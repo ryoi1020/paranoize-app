@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARANOISE — 掲示板</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+  --accent:#7c5cfc;--accent2:#b794f4;--glow:rgba(124,92,252,0.3);
+  --tx:#e8e8f0;--tx2:#9090b0;--tx3:#5a5a7a;
+  --border:rgba(124,92,252,0.2);--border2:rgba(255,255,255,0.08);
+  --green:#00d4a0;--yellow:#f6c90e;--red:#ff4d6d;
+  --r:10px;--rl:14px;--rs:6px;
+}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:4rem;}
+.nav{padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border2);}
+.nav-back{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--tx2);font-size:0.78rem;text-decoration:none;transition:all 0.15s;}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.nav-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;}
+.container{max-width:680px;margin:0 auto;padding:1.25rem 1rem;}
+
+/* CATEGORY TABS */
+.cat-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center;}
+.cat-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:0.78rem;color:var(--tx2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;white-space:nowrap;}
+.cat-btn:hover{border-color:var(--border);color:var(--tx);}
+.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.cat-add-btn{background:none;border:1px dashed var(--border);border-radius:20px;padding:5px 12px;font-size:0.75rem;color:var(--tx3);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;}
+.cat-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* POST FORM */
+.post-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1.25rem;}
+.post-form-title{font-size:0.75rem;font-weight:700;color:var(--tx2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;color:var(--tx);font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--tx3);}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;color:var(--tx);font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;cursor:pointer;}
+.form-select:focus{border-color:var(--accent);}
+.form-title{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;color:var(--tx);font-size:0.9rem;font-family:'Noto Sans JP',sans-serif;outline:none;margin-bottom:8px;font-weight:500;}
+.form-title:focus{border-color:var(--accent);}
+.form-title::placeholder{color:var(--tx3);}
+.form-body{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);padding:10px;color:var(--tx);font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;resize:vertical;min-height:80px;line-height:1.7;margin-bottom:8px;}
+.form-body:focus{border-color:var(--accent);}
+.form-body::placeholder{color:var(--tx3);}
+.form-footer{display:flex;justify-content:flex-end;}
+.post-btn{background:var(--accent);border:none;border-radius:var(--rs);padding:8px 20px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:opacity 0.15s;}
+.post-btn:hover{opacity:0.85;}
+.post-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* POSTS */
+.posts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.posts-count{font-size:0.75rem;color:var(--tx3);}
+.posts-list{display:flex;flex-direction:column;gap:8px;}
+.post-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:14px 16px;transition:border-color 0.15s;}
+.post-card:hover{border-color:var(--border);}
+.post-card-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.post-cat-badge{font-size:0.65rem;padding:2px 8px;border-radius:4px;font-weight:600;flex-shrink:0;margin-top:2px;}
+.cat-color-0{background:rgba(124,92,252,0.15);color:var(--accent2);border:1px solid rgba(124,92,252,0.25);}
+.cat-color-1{background:rgba(0,212,160,0.12);color:var(--green);border:1px solid rgba(0,212,160,0.25);}
+.cat-color-2{background:rgba(246,201,14,0.12);color:var(--yellow);border:1px solid rgba(246,201,14,0.25);}
+.cat-color-3{background:rgba(255,77,109,0.12);color:var(--red);border:1px solid rgba(255,77,109,0.25);}
+.cat-color-4{background:rgba(0,180,255,0.12);color:#00b4ff;border:1px solid rgba(0,180,255,0.25);}
+.post-title{font-size:0.95rem;font-weight:700;flex:1;line-height:1.4;}
+.post-del-btn{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:0.8rem;padding:2px 6px;border-radius:4px;transition:all 0.15s;opacity:0;flex-shrink:0;}
+.post-card:hover .post-del-btn{opacity:1;}
+.post-del-btn:hover{background:rgba(255,77,109,0.15);color:var(--red);}
+.post-body{font-size:0.85rem;color:var(--tx2);line-height:1.7;white-space:pre-wrap;word-break:break-all;margin-bottom:10px;}
+.post-footer{display:flex;align-items:center;gap:8px;}
+.post-author{font-size:0.72rem;color:var(--accent2);font-weight:500;}
+.post-date{font-size:0.68rem;color:var(--tx3);margin-left:auto;}
+
+/* LOADING / EMPTY */
+.loading{text-align:center;padding:3rem;color:var(--tx3);}
+.spin{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;margin:0 auto 12px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:3rem;color:var(--tx3);}
+.empty-icon{font-size:2.5rem;margin-bottom:0.75rem;opacity:0.3;}
+
+/* CAT ADD MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;width:100%;max-width:360px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;}
+.modal-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;color:var(--tx);font-size:0.9rem;font-family:'Noto Sans JP',sans-serif;outline:none;margin-bottom:1rem;}
+.modal-input:focus{border-color:var(--accent);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.modal-ok{background:var(--accent);border:none;border-radius:var(--rs);padding:7px 18px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.modal-cancel{background:none;border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;color:var(--tx2);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border);border-radius:var(--r);padding:8px 18px;font-size:0.82rem;color:var(--tx);opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:200;}
+.toast.show{opacity:1;}
+
+@media(max-width:480px){.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/" class="nav-back">← ホーム</a>
+  <span class="nav-title">💬 掲示板</span>
+</div>
+
+<div class="container">
+
+  <!-- カテゴリタブ -->
+  <div class="cat-wrap" id="catWrap">
+    <div class="loading"><div class="spin"></div></div>
+  </div>
+
+  <!-- 投稿フォーム -->
+  <div class="post-form">
+    <div class="post-form-title">新規投稿</div>
+    <div class="form-row">
+      <input class="form-input" id="formAuthor" placeholder="名前（省略可）" maxlength="20">
+      <select class="form-select" id="formCat"></select>
+    </div>
+    <input class="form-title" id="formTitle" placeholder="タイトル" maxlength="60">
+    <textarea class="form-body" id="formBody" placeholder="内容を入力..."></textarea>
+    <div class="form-footer">
+      <button class="post-btn" id="postBtn" onclick="submitPost()">投稿する</button>
+    </div>
+  </div>
+
+  <!-- 投稿一覧 -->
+  <div class="posts-header">
+    <span class="posts-count" id="postsCount"></span>
+  </div>
+  <div class="posts-list" id="postsList">
+    <div class="loading"><div class="spin"></div><p style="font-size:0.85rem;">読み込み中...</p></div>
+  </div>
+
+</div>
+
+<!-- カテゴリ追加モーダル -->
+<div class="modal-overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-title">カテゴリを追加</div>
+    <input class="modal-input" id="catModalInput" placeholder="カテゴリ名を入力..." maxlength="20" onkeydown="if(event.key==='Enter')addCategory()">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeCatModal()">キャンセル</button>
+      <button class="modal-ok" onclick="addCategory()">追加</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SUPABASE_URL = 'https://hpyaocrnmvnnbltbazrx.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweWFvY3JubXZubmJsdGJhenJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjE4NDcsImV4cCI6MjA5NDU5Nzg0N30.2KgUsm2I-6BLCbeNmd7F0kdvrc8iYQv5Eg8SXOdWt8A';
+
+var categories = [];
+var posts = [];
+var activeCat = 'すべて';
+var catColors = {};
+
+function api(path, options){
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options && options.headers || {})
+    }
+  });
+}
+
+function getCatColor(name){
+  if(!catColors[name]){
+    var idx = Object.keys(catColors).length % 5;
+    catColors[name] = idx;
+  }
+  return 'cat-color-' + catColors[name];
+}
+
+async function loadCategories(){
+  try{
+    var r = await api('categories?select=*&order=created_at.asc');
+    var data = await r.json();
+    categories = data.map(function(c){ return c.name; });
+    renderCatTabs();
+    renderCatSelect();
+  }catch(e){ console.error(e); }
+}
+
+async function loadPosts(){
+  try{
+    var url = 'posts?select=*&order=created_at.desc&limit=100';
+    if(activeCat !== 'すべて') url += '&category=eq.' + encodeURIComponent(activeCat);
+    var r = await api(url);
+    posts = await r.json();
+    renderPosts();
+  }catch(e){
+    document.getElementById('postsList').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p style="font-size:0.85rem;">読み込みに失敗しました</p></div>';
+  }
+}
+
+function renderCatTabs(){
+  var all = ['すべて'].concat(categories);
+  var html = all.map(function(c){
+    return '<button class="cat-btn'+(c===activeCat?' active':'')+'" onclick="switchCat(\''+c+'\')">'+c+'</button>';
+  }).join('');
+  html += '<button class="cat-add-btn" onclick="openCatModal()">＋ カテゴリ追加</button>';
+  document.getElementById('catWrap').innerHTML = html;
+}
+
+function renderCatSelect(){
+  var sel = document.getElementById('formCat');
+  sel.innerHTML = categories.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+}
+
+function renderPosts(){
+  var count = document.getElementById('postsCount');
+  count.textContent = posts.length + '件の投稿';
+  if(posts.length === 0){
+    document.getElementById('postsList').innerHTML = '<div class="empty"><div class="empty-icon">💬</div><p style="font-size:0.85rem;">まだ投稿がありません。最初の投稿をしてみましょう！</p></div>';
+    return;
+  }
+  document.getElementById('postsList').innerHTML = posts.map(function(p){
+    var dt = new Date(p.created_at);
+    var dateStr = dt.getMonth()+1 + '/' + dt.getDate() + ' ' + dt.getHours().toString().padStart(2,'0') + ':' + dt.getMinutes().toString().padStart(2,'0');
+    var colorClass = getCatColor(p.category);
+    return '<div class="post-card">' +
+      '<div class="post-card-header">' +
+        '<span class="post-cat-badge '+colorClass+'">'+escHtml(p.category)+'</span>' +
+        '<span class="post-title">'+escHtml(p.title)+'</span>' +
+        '<button class="post-del-btn" onclick="deletePost('+p.id+')">✕</button>' +
+      '</div>' +
+      '<div class="post-body">'+escHtml(p.body)+'</div>' +
+      '<div class="post-footer">' +
+        '<span class="post-author">👤 '+escHtml(p.author||'名無し')+'</span>' +
+        '<span class="post-date">'+dateStr+'</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function switchCat(cat){
+  activeCat = cat;
+  renderCatTabs();
+  document.getElementById('postsList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  loadPosts();
+}
+
+async function submitPost(){
+  var author = document.getElementById('formAuthor').value.trim() || '名無し';
+  var cat = document.getElementById('formCat').value;
+  var title = document.getElementById('formTitle').value.trim();
+  var body = document.getElementById('formBody').value.trim();
+  if(!title){ alert('タイトルを入力してください'); return; }
+  if(!body){ alert('内容を入力してください'); return; }
+  var btn = document.getElementById('postBtn');
+  btn.disabled = true; btn.textContent = '投稿中...';
+  try{
+    var r = await api('posts', {
+      method: 'POST',
+      body: JSON.stringify({ author, category: cat, title, body })
+    });
+    if(!r.ok) throw new Error('投稿に失敗しました');
+    document.getElementById('formAuthor').value = '';
+    document.getElementById('formTitle').value = '';
+    document.getElementById('formBody').value = '';
+    showToast('投稿しました！');
+    await loadPosts();
+  }catch(e){ alert(e.message); }
+  finally{ btn.disabled = false; btn.textContent = '投稿する'; }
+}
+
+async function deletePost(id){
+  if(!confirm('この投稿を削除しますか？')) return;
+  try{
+    await api('posts?id=eq.'+id, { method: 'DELETE' });
+    showToast('削除しました');
+    await loadPosts();
+  }catch(e){ alert('削除に失敗しました'); }
+}
+
+function openCatModal(){
+  document.getElementById('catModal').classList.add('open');
+  document.getElementById('catModalInput').value = '';
+  setTimeout(function(){ document.getElementById('catModalInput').focus(); }, 100);
+}
+
+function closeCatModal(){
+  document.getElementById('catModal').classList.remove('open');
+}
+
+async function addCategory(){
+  var name = document.getElementById('catModalInput').value.trim();
+  if(!name){ alert('カテゴリ名を入力してください'); return; }
+  if(categories.indexOf(name) >= 0){ alert('すでに存在するカテゴリです'); return; }
+  try{
+    var r = await api('categories', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    });
+    if(!r.ok) throw new Error('追加に失敗しました');
+    closeCatModal();
+    await loadCategories();
+    showToast('カテゴリ「'+name+'」を追加しました！');
+  }catch(e){ alert(e.message); }
+}
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+document.getElementById('catModal').addEventListener('click', function(e){
+  if(e.target === this) closeCatModal();
+});
+
+// 初期読み込み
+loadCategories().then(function(){ loadPosts(); });
+
+// 30秒ごとに自動更新
+setInterval(loadPosts, 30000);
+</script>
+</body>
+</html>
