@@ -85,9 +85,7 @@
     .btg.s3 { background: var(--bgd); color: var(--txd); border-color: var(--brd); }
     .btg.s2 { background: var(--bgw); color: var(--txw); border-color: var(--brw); }
     .btg.s1 { background: var(--bg); color: var(--tx); border-color: var(--br); }
-    .key-section { background: var(--bgw); border: 0.5px solid var(--brw); border-radius: var(--rm); padding: 12px; margin-bottom: 1rem; }
-    .key-section p { font-size: 12px; color: var(--txw); margin: 0 0 8px; font-weight: 600; }
-    .key-section .note { font-size: 11px; color: var(--tx2); margin: 6px 0 0; line-height: 1.6; }
+
     @media (max-width: 480px) { .g2 { grid-template-columns: 1fr; } .g3 { grid-template-columns: repeat(2,1fr); } .sg { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -106,11 +104,6 @@
     </div>
   </div>
 
-  <div class="key-section">
-    <p><i class="ti ti-key" style="font-size:14px;vertical-align:-2px;"></i> Anthropic APIキーを入力してください</p>
-    <input type="password" id="apiKey" placeholder="sk-ant-..." style="margin-bottom:4px;">
-    <p class="note">APIキーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--txi);">console.anthropic.com</a> で取得できます。このページ上でのみ使用され、外部に送信されません（Anthropic APIへの通信のみ）。</p>
-  </div>
 
   <div class="card">
     <p class="lbl">マップを選択</p>
@@ -381,8 +374,6 @@ function buildPrompt(){
 }
 
 async function analyze(){
-  var apiKey=document.getElementById('apiKey').value.trim();
-  if(!apiKey){alert('APIキーを入力してください');return;}
   var sc=document.getElementById('sc').value;
   var enemy=document.getElementById('enemy').value;
   if(!sc||!enemy){alert('布告可能数・相手の戦力を選択してください');return;}
@@ -393,19 +384,19 @@ async function analyze(){
   document.getElementById('result').innerHTML='<div class="card" style="text-align:center;padding:2rem;"><div class="spin" style="width:24px;height:24px;margin:0 auto 12px;display:block;"></div><p style="color:var(--tx2);margin:0;font-size:14px;">AIが状況を分析しています...</p></div>';
 
   try{
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
+    var res=await fetch('/api/analyze',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:buildPrompt()}]})
     });
     var data=await res.json();
     if(data.error){throw new Error(data.error.message);}
-    var txt=data.content.map(function(i){return i.text||'';}).join('');
+    var txt=(data.content||[]).map(function(i){return i.text||'';}).join('');
     var clean=txt.replace(/```json|```/g,'').trim();
     var result=JSON.parse(clean);
     renderResult(result);
   }catch(e){
-    document.getElementById('result').innerHTML='<div class="card d"><p style="margin:0;font-size:13px;color:var(--txd);">エラーが発生しました：'+e.message+'<br><br>APIキーが正しいか確認してください。</p></div>';
+    document.getElementById('result').innerHTML='<div class="card d"><p style="margin:0;font-size:13px;color:var(--txd);">エラーが発生しました：'+e.message+'<br><br>しばらく待ってから再試行してください。</p></div>';
   }finally{
     btn.disabled=false;
     btn.innerHTML='<i class="ti ti-sparkles"></i> AIに戦略を分析してもらう';
