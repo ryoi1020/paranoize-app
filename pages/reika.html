@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>麗華の野望 開幕前 戦略アドバイザー</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #ffffff; --bg2: #f8f9fa; --bg3: #f1f3f5;
+      --bgi: #e7f5ff; --bgs: #ebfbee; --bgw: #fff9db; --bgd: #fff5f5;
+      --tx: #212529; --tx2: #868e96; --tx3: #adb5bd;
+      --txi: #1971c2; --txs: #2f9e44; --txw: #e67700; --txd: #c92a2a;
+      --br: rgba(0,0,0,0.12); --br2: rgba(0,0,0,0.2);
+      --bri: #74c0fc; --brs: #8ce99a; --brw: #ffd43b; --brd: #ffa8a8;
+      --rm: 8px; --rl: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1b1e; --bg2: #25262b; --bg3: #2c2e33;
+        --bgi: #1c3557; --bgs: #1b3a2a; --bgw: #3d3000; --bgd: #3d1c1c;
+        --tx: #c1c2c5; --tx2: #909296; --tx3: #5c5f66;
+        --txi: #74c0fc; --txs: #8ce99a; --txw: #ffd43b; --txd: #ffa8a8;
+        --br: rgba(255,255,255,0.1); --br2: rgba(255,255,255,0.2);
+        --bri: #1c3557; --brs: #1b3a2a; --brw: #3d3000; --brd: #3d1c1c;
+      }
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--tx); margin: 0; padding: 1rem; line-height: 1.6; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    .hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+    .hdr-icon { width: 40px; height: 40px; border-radius: var(--rm); background: var(--bgi); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hdr-icon i { font-size: 22px; color: var(--txi); }
+    .hdr h1 { font-size: 20px; font-weight: 600; margin: 0 0 2px; }
+    .hdr p { font-size: 13px; color: var(--tx2); margin: 0; }
+    .card { background: var(--bg); border: 0.5px solid var(--br); border-radius: var(--rl); padding: 1.25rem; margin-bottom: 1rem; }
+    .card.s { background: var(--bgs); border-color: var(--brs); }
+    .card.w { background: var(--bgw); border-color: var(--brw); }
+    .card.d { background: var(--bgd); border-color: var(--brd); }
+    .card.sec { background: var(--bg2); border: none; }
+    .lbl { font-size: 12px; font-weight: 600; color: var(--tx2); margin: 0 0 8px; }
+    .sub { font-size: 11px; color: var(--tx3); margin: 0 0 6px; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin-bottom: 1rem; }
+    .fld { display: flex; flex-direction: column; gap: 4px; }
+    .fld > span { font-size: 12px; color: var(--tx2); }
+    select, input[type="number"], input[type="password"], input[type="text"] {
+      width: 100%; font-size: 13px; padding: 6px 8px;
+      border: 0.5px solid var(--br2); border-radius: var(--rm);
+      background: var(--bg); color: var(--tx); outline: none;
+    }
+    select:focus, input:focus { border-color: var(--bri); }
+    .dr { display: flex; align-items: center; gap: 8px; }
+    .dr input { width: 80px; text-align: center; }
+    .ph { font-size: 11px; margin-left: 4px; }
+    .abox { border-radius: var(--rm); padding: 10px 12px; margin-bottom: 1rem; border: 0.5px solid var(--br); background: var(--bg2); }
+    .abox .at { font-size: 12px; font-weight: 600; margin: 0 0 3px; }
+    .abox .ab { font-size: 12px; color: var(--tx2); margin: 0; line-height: 1.6; }
+    .icard { border: 0.5px solid var(--br); border-radius: var(--rm); padding: 12px; margin-bottom: 1rem; }
+    .db { border-radius: var(--rm); padding: 6px 12px; font-size: 12px; font-weight: 600; margin-bottom: 10px; display: none; }
+    .sb { border-radius: var(--rm); padding: 10px 12px; background: var(--bg2); border: 0.5px solid var(--br); margin-bottom: 10px; display: none; }
+    .st { font-size: 12px; font-weight: 600; color: var(--tx2); margin: 0 0 6px; }
+    .sg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .sc { background: var(--bg); border-radius: var(--rm); padding: 8px 10px; border: 0.5px solid var(--br); }
+    .ss { font-size: 11px; color: var(--tx3); margin: 0 0 2px; }
+    .sv { font-size: 15px; font-weight: 600; margin: 0; }
+    .sd { font-size: 11px; color: var(--tx2); margin: 0; }
+    .sr { font-size: 13px; font-weight: 600; margin: 0; line-height: 1.5; }
+    .cbl { display: flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: var(--rm); border: 0.5px solid var(--br); background: var(--bg2); cursor: pointer; font-size: 12px; color: var(--tx); user-select: none; }
+    .cbl.s3 { border-color: var(--brd); background: var(--bgd); }
+    .cbl.s2 { border-color: var(--brw); background: var(--bgw); }
+    .cbl input { margin: 0; width: 13px; height: 13px; flex-shrink: 0; cursor: pointer; }
+    .mbts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
+    .mb { padding: 5px 14px; font-size: 13px; border-radius: var(--rm); border: 0.5px solid var(--br); background: var(--bg); color: var(--tx); cursor: pointer; }
+    .mb:disabled { opacity: 0.4; cursor: not-allowed; }
+    .mb.act { background: var(--bgi); color: var(--txi); border-color: var(--bri); }
+    .abtn { width: 100%; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--bgi); color: var(--txi); border: 0.5px solid var(--bri); border-radius: var(--rm); }
+    .abtn:hover { opacity: 0.85; }
+    .abtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .spin { width: 18px; height: 18px; border: 2px solid var(--br); border-top-color: var(--txi); border-radius: 50%; animation: sp 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .aitag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: var(--rm); display: inline-block; margin-bottom: 3px; }
+    .tgl { display: flex; flex-wrap: wrap; gap: 6px; }
+    .btg { font-size: 12px; padding: 3px 8px; border-radius: var(--rm); border: 0.5px solid; }
+    .btg.s3 { background: var(--bgd); color: var(--txd); border-color: var(--brd); }
+    .btg.s2 { background: var(--bgw); color: var(--txw); border-color: var(--brw); }
+    .btg.s1 { background: var(--bg); color: var(--tx); border-color: var(--br); }
+    .key-section { background: var(--bgw); border: 0.5px solid var(--brw); border-radius: var(--rm); padding: 12px; margin-bottom: 1rem; }
+    .key-section p { font-size: 12px; color: var(--txw); margin: 0 0 8px; font-weight: 600; }
+    .key-section .note { font-size: 11px; color: var(--tx2); margin: 6px 0 0; line-height: 1.6; }
+    @media (max-width: 480px) { .g2 { grid-template-columns: 1fr; } .g3 { grid-template-columns: repeat(2,1fr); } .sg { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:50;">
+  <a href="/" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.9);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:6px 12px;color:#868e96;font-size:0.78rem;text-decoration:none;backdrop-filter:blur(8px);">
+    ← ホームに戻る
+  </a>
+</div>
+<div class="wrap" style="padding-top:3.5rem;">
+  <div class="hdr">
+    <div class="hdr-icon"><i class="ti ti-sword"></i></div>
+    <div>
+      <h1>麗華の野望 開幕前 戦略アドバイザー</h1>
+      <p>AIが状況を総合判断して今日と明日以降の戦略を提案します</p>
+    </div>
+  </div>
+
+  <div class="key-section">
+    <p><i class="ti ti-key" style="font-size:14px;vertical-align:-2px;"></i> Anthropic APIキーを入力してください</p>
+    <input type="password" id="apiKey" placeholder="sk-ant-..." style="margin-bottom:4px;">
+    <p class="note">APIキーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--txi);">console.anthropic.com</a> で取得できます。このページ上でのみ使用され、外部に送信されません（Anthropic APIへの通信のみ）。</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">マップを選択</p>
+    <div class="mbts" id="mapBtns"></div>
+
+    <div class="g2">
+      <div class="fld">
+        <span>開催形式</span>
+        <select id="mode" onchange="onModeChange()">
+          <option value="normal">通常版（2週間・21:00〜21:45）</option>
+          <option value="national">全国版（1週間・22:00〜22:45）</option>
+        </select>
+      </div>
+      <div class="fld">
+        <span>今日の残り日数 <span class="ph" id="phLabel"></span></span>
+        <div class="dr">
+          <input type="number" id="daysLeft" min="1" max="14" value="7" oninput="onDaysChange()">
+          <span style="font-size:13px;color:var(--tx2);">日</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="abox" id="daysBox">
+      <p class="at" id="daysTitle"></p>
+      <p class="ab" id="daysBody"></p>
+    </div>
+
+    <div class="icard">
+      <p class="lbl">勝ちたい相手ギルドの情報</p>
+      <div class="g2">
+        <div class="fld"><span>自チームの現在ポイント</span><input type="number" id="myPoint" placeholder="例: 48" min="0" oninput="updateSim()"></div>
+        <div class="fld"><span>相手ギルドの現在ポイント</span><input type="number" id="enemyPoint" placeholder="例: 36" min="0" oninput="updateSim()"></div>
+      </div>
+      <div class="db" id="diffBox"></div>
+      <div class="sb" id="simBox">
+        <p class="st">フィニッシュ予測（現状維持の場合）</p>
+        <div id="simContent"></div>
+      </div>
+      <div class="fld">
+        <span>相手の戦力（戦闘力）</span>
+        <select id="enemy">
+          <option value="">選択してください</option>
+          <option value="weaker">自分たちより弱い</option>
+          <option value="equal">ほぼ互角</option>
+          <option value="stronger">自分たちより強い</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fld" style="margin-bottom:1rem;">
+      <span>布告可能数（前日ランキング）</span>
+      <select id="sc">
+        <option value="">選択してください</option>
+        <option value="three" id="opt3" style="display:none;">3つ（全国版）</option>
+        <option value="two" id="opt2">2つ（上位8ギルド）</option>
+        <option value="one" id="opt1">1つ（9〜16位）</option>
+        <option value="zero">0（布告権なし）</option>
+      </select>
+    </div>
+
+    <p class="lbl">自チームの保有拠点 <span class="sub" id="ownLbl"></span></p>
+    <div class="g3" id="baseGrid"></div>
+
+    <p class="lbl">布告されている拠点</p>
+    <p class="sub">どのギルドからでも、布告されている拠点すべてにチェック</p>
+    <div class="g3" id="attackedGrid"></div>
+
+    <p class="lbl">相手ギルドが保有している拠点 <span class="sub" id="enLbl"></span></p>
+    <div class="g3" id="enemyBaseGrid"></div>
+
+    <button class="abtn" id="analyzeBtn" onclick="analyze()">
+      <i class="ti ti-sparkles"></i> AIに戦略を分析してもらう
+    </button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+var BASES={
+  '本丸':{star:3,neighbors:['肉屋A','メゾン・ド・イエ','本田のマンション','八本木ヒルズ']},
+  '八本木ヒルズ':{star:2,neighbors:['本丸','映画館A','ゲームセンターA']},
+  '温泉宿':{star:2,neighbors:['カシワ荘','映画館A','酒場','魚屋A']},
+  '本田のマンション':{star:2,neighbors:['本丸','カシワ荘','映画館B','魚屋A']},
+  'メゾン・ド・イエ':{star:2,neighbors:['本丸','カジノ']},
+  'カジノ':{star:2,neighbors:['メゾン・ド・イエ','本屋','宮本家','映画館B']},
+  '肉屋A':{star:1,neighbors:['本丸','ゲームセンターB']},
+  '肉屋B':{star:1,neighbors:['魚屋B','魚屋A']},
+  '魚屋A':{star:1,neighbors:['肉屋B','温泉宿','本田のマンション']},
+  '魚屋B':{star:1,neighbors:['肉屋B','映画館B']},
+  'ゲームセンターA':{star:1,neighbors:['橘家','八本木ヒルズ']},
+  'ゲームセンターB':{star:1,neighbors:['肉屋A','本屋']},
+  '本屋':{star:1,neighbors:['ゲームセンターB','宮本家','カジノ']},
+  '宮本家':{star:1,neighbors:['カジノ','本屋']},
+  '映画館A':{star:1,neighbors:['八本木ヒルズ','温泉宿']},
+  '映画館B':{star:1,neighbors:['カジノ','本田のマンション','魚屋B']},
+  'カシワ荘':{star:1,neighbors:['本田のマンション','温泉宿']},
+  '酒場':{star:1,neighbors:['温泉宿','橘家']},
+  '橘家':{star:1,neighbors:['酒場','ゲームセンターA']}
+};
+var MAPS={'トウホク':{available:true},'トウカイ':{available:false},'キンキ':{available:false},'シコク':{available:false},'キュウシュウ':{available:false}};
+var MAP='トウホク';
+var BN=Object.keys(BASES);
+
+function sl(n){return '★'.repeat(BASES[n].star);}
+function pts(l){return l.reduce(function(s,n){return s+(BASES[n]?BASES[n].star:0);},0);}
+function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'+n);return e&&e.checked;});}
+
+function buildMapBtns(){
+  var c=document.getElementById('mapBtns');c.innerHTML='';
+  Object.keys(MAPS).forEach(function(n){
+    var av=MAPS[n].available;
+    var b=document.createElement('button');
+    b.textContent=n+(av?'':'（未公開）');b.disabled=!av;
+    b.className='mb'+(n===MAP?' act':'');
+    if(av){b.onclick=function(){MAP=n;buildMapBtns();buildGrids();document.getElementById('result').innerHTML='';updateSim();};}
+    c.appendChild(b);
+  });
+}
+
+function buildGrids(){
+  [['baseGrid','own'],['attackedGrid','atk'],['enemyBaseGrid','enm']].forEach(function(g){
+    var grid=document.getElementById(g[0]);grid.innerHTML='';
+    BN.forEach(function(n){
+      var s=BASES[n].star;
+      var l=document.createElement('label');
+      l.className='cbl'+(s===3?' s3':s===2?' s2':'');
+      var cb=document.createElement('input');cb.type='checkbox';cb.id=g[1]+'_'+n;cb.onchange=updateSim;
+      var sp=document.createElement('span');sp.textContent=sl(n)+' '+n;
+      l.appendChild(cb);l.appendChild(sp);grid.appendChild(l);
+    });
+  });
+}
+
+function onModeChange(){
+  var isN=document.getElementById('mode').value==='national';
+  document.getElementById('opt3').style.display=isN?'block':'none';
+  document.getElementById('opt2').style.display=isN?'none':'block';
+  document.getElementById('opt1').textContent=isN?'2つ（全国版：9位以下）':'1つ（9〜16位）';
+  document.getElementById('opt2').textContent=isN?'3つ（全国版）':'2つ（上位8ギルド）';
+  onDaysChange();
+}
+
+function onDaysChange(){
+  var d=parseInt(document.getElementById('daysLeft').value)||1;
+  var isN=document.getElementById('mode').value==='national';
+  var max=isN?7:14;var r=d/max;
+  var ph,pc,tt,tb;
+  if(r>0.6){ph='序盤';pc='#2f9e44';tt='残り'+d+'日（序盤）— 拠点を広げてポイントの土台を作れ';tb='序盤は拠点の確保が最優先です。布告権を使って★1・★2拠点を積極的に押さえ、本丸を狙うルートを作ってください。';}
+  else if(r>0.3){ph='中盤';pc='#e67700';tt='残り'+d+'日（中盤）— ポイント差を計算して攻守を判断せよ';tb='中盤は相手とのポイント差と1日あたりの獲得ポイントを計算しながら戦略を立てる時期です。';}
+  else{ph='終盤';pc='#c92a2a';
+    if(d===1){tt='最終日 — 布告権を全て使い切り、駆け込み奪取を狙え';tb='終戦15分前（通常版21:30・全国版22:30）以降に取った拠点は取り返されません。';}
+    else{tt='残り'+d+'日（終盤）';tb='追いかけている相手には大胆な攻撃、リードしている相手には全力守備で臨んでください。';}}
+  var pl=document.getElementById('phLabel');pl.textContent='（'+ph+'）';pl.style.color=pc;
+  var bx=document.getElementById('daysBox');bx.style.borderColor=pc;
+  var te=document.getElementById('daysTitle');te.style.color=pc;te.textContent=tt;
+  document.getElementById('daysBody').textContent=tb;
+  updateSim();
+}
+
+function updateSim(){
+  var d=parseInt(document.getElementById('daysLeft').value)||1;
+  var myR=document.getElementById('myPoint').value;
+  var enR=document.getElementById('enemyPoint').value;
+  var myP=myR!==''?parseInt(myR):null;
+  var enP=enR!==''?parseInt(enR):null;
+  var own=chk('own');var enOwn=chk('enm');
+  var myD=pts(own);var enD=pts(enOwn);
+  document.getElementById('ownLbl').textContent=own.length>0?'（'+own.length+'拠点・+'+myD+'pt/日）':'';
+  document.getElementById('enLbl').textContent=enOwn.length>0?'（'+enOwn.length+'拠点・+'+enD+'pt/日）':'';
+  var db=document.getElementById('diffBox');
+  if(myP!==null&&enP!==null){
+    var diff=myP-enP;db.style.display='block';
+    if(diff>0){db.style.cssText='display:block;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;background:#ebfbee;color:#2f9e44;border:0.5px solid #8ce99a;';db.textContent='現在ポイント差：自チームが +'+diff+'pt リード中';}
+    else if(diff<0){db.style.cssText='display:block;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;background:#fff5f5;color:#c92a2a;border:0.5px solid #ffa8a8;';db.textContent='現在ポイント差：相手が '+Math.abs(diff)+'pt リード中';}
+    else{db.style.cssText='display:block;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;background:#f8f9fa;color:#868e96;border:0.5px solid rgba(0,0,0,0.12);';db.textContent='現在ポイント差：同点';}
+  }else{db.style.display='none';}
+  var sb=document.getElementById('simBox');var sc=document.getElementById('simContent');
+  if(myP!==null&&own.length>0){
+    sb.style.display='block';
+    var mf=myP+myD*d;var ef=enP!==null?enP+enD*d:null;var fd=ef!==null?mf-ef:null;
+    var h='<div class="sg"><div class="sc"><p class="ss">自チーム（'+d+'日後）</p><p class="sv">'+mf+'pt</p><p class="sd">+'+myD+'pt/日 × '+d+'日</p></div>';
+    if(ef!==null){h+='<div class="sc"><p class="ss">相手ギルド（'+d+'日後）</p><p class="sv">'+ef+'pt</p><p class="sd">+'+enD+'pt/日 × '+d+'日</p></div>';}
+    else{h+='<div class="sc" style="display:flex;align-items:center;justify-content:center;"><p class="ss">相手ポイントを入力してください</p></div>';}
+    h+='</div>';
+    if(fd!==null){var rc,rt;if(fd>0){rc='#2f9e44';rt='現状維持で +'+fd+'pt フィニッシュ — 逃げ切れます';}else if(fd<0){rc='#c92a2a';rt='現状維持では '+Math.abs(fd)+'pt 届かない';}else{rc='#e67700';rt='現状維持で同点フィニッシュ';}h+='<p class="sr" style="color:'+rc+';">'+rt+'</p>';}
+    sc.innerHTML=h;
+  }else{sb.style.display='none';}
+}
+
+function buildPrompt(){
+  var mode=document.getElementById('mode').value;
+  var sc=document.getElementById('sc').value;
+  var enemy=document.getElementById('enemy').value;
+  var d=parseInt(document.getElementById('daysLeft').value)||1;
+  var myP=document.getElementById('myPoint').value!==''?parseInt(document.getElementById('myPoint').value):null;
+  var enP=document.getElementById('enemyPoint').value!==''?parseInt(document.getElementById('enemyPoint').value):null;
+  var own=chk('own');var atk=chk('atk');var enOwn=chk('enm');
+  var isN=mode==='national';var max=isN?7:14;
+  var cutoff=isN?'22:30':'21:30';var endT=isN?'22:45':'21:45';
+  var myD=pts(own);var enD=pts(enOwn);
+  var attackable=[];
+  own.forEach(function(n){BASES[n].neighbors.forEach(function(nb){if(own.indexOf(nb)<0&&attackable.indexOf(nb)<0)attackable.push(nb);});});
+  var vuln=own.filter(function(n){return atk.indexOf(n)>=0;});
+  var myF=myP!==null?myP+myD*d:null;var enF=enP!==null?enP+enD*d:null;
+  var fd=myF!==null&&enF!==null?myF-enF:null;
+  var scL={'three':'3つ（全国版）','two':'2つ（上位8ギルド）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
+  var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
+
+  var p='# 麗華の野望 戦略分析\n\n## ゲームルール（重要）\n';
+  p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
+  p+='- 布告可能数は前日ランキング次第（通常版：上位8ギルドは2つ、9〜16位は1つ、全国版は3つ）\n';
+  p+='- ★1=1pt/日、★2=2pt/日、★3（本丸）=3pt/日（毎日終戦後に加算）\n';
+  p+='- ★2への布告条件：★1を1つ以上保有\n';
+  p+='- 本丸（★3）への布告条件：★2を1つ、または★1を2つ以上保有\n';
+  p+='- 拠点取得後15分間は保護期間（取り返し不可）\n';
+  p+='- 終戦'+endT+'の15分前（'+cutoff+'）以降に取った拠点は相手に取り返せない\n';
+  p+='- 布告返し：相手が布告した拠点に自分も布告することで相手の戦力を分散できる\n\n';
+
+  p+='## 現在の状況\n';
+  p+='- 開催形式：'+(isN?'全国版（1週間・22:00〜22:45）':'通常版（2週間・21:00〜21:45）')+'\n';
+  p+='- 残り日数：'+d+'日（全'+max+'日中）\n';
+  p+='- 布告可能数：'+scL+'\n';
+  p+='- 相手の戦力：'+enL+'\n\n';
+
+  p+='## 自チームの保有拠点\n';
+  if(own.length>0){own.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});p+='合計：+'+myD+'pt/日\n';}else{p+='（なし）\n';}
+  p+='\n## 布告されている拠点\n';
+  if(atk.length>0){atk.forEach(function(n){p+='- '+sl(n)+' '+n+(own.indexOf(n)>=0?' ←自チームが保有中・布告されている！':'')+'\n';});}else{p+='（なし）\n';}
+  p+='\n## 相手ギルドの保有拠点\n';
+  if(enOwn.length>0){enOwn.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});p+='合計：+'+enD+'pt/日\n';}else{p+='（不明）\n';}
+  p+='\n## 今日布告できる拠点（自チームの隣接拠点）\n';
+  if(attackable.length>0){attackable.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});}else{p+='（なし、または拠点未保有）\n';}
+
+  if(myP!==null||enP!==null){
+    p+='\n## ポイント情報\n';
+    if(myP!==null)p+='- 自チーム現在：'+myP+'pt → '+d+'日後（現状維持）：'+myF+'pt\n';
+    if(enP!==null)p+='- 相手現在：'+enP+'pt → '+d+'日後（現状維持）：'+enF+'pt\n';
+    if(fd!==null){if(fd>0)p+='- 現状維持：+'+fd+'pt で逃げ切れる\n';else if(fd<0)p+='- 現状維持：'+Math.abs(fd)+'pt 届かない\n';else p+='- 現状維持：同点フィニッシュ\n';}
+  }
+
+  p+='\n## 分析依頼\n上記の状況を総合的に判断して、以下のJSONのみを出力してください（説明文不要）。\n\n';
+  p+='重要な制約：\n';
+  p+='- 布告権が0の場合は絶対に布告を勧めないこと\n';
+  p+='- 布告権が1の場合は1つだけ布告できることを考慮すること\n';
+  p+='- 終戦（'+endT+'）まで時間がある場合、'+cutoff+'以降の駆け込み奪取の話は不要\n';
+  p+='- 布告されている拠点を守れない場合は守るか捨てるかの現実的な判断を含めること\n';
+  p+='- 逆転可能性はポイント計算に基づき現実的に判断すること\n';
+  p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n\n';
+  p+='```json\n{\n';
+  p+='  "summary": "状況の一言まとめ（20文字以内）",\n';
+  p+='  "priority": "defense または attack または balance",\n';
+  p+='  "reversal": {\n';
+  p+='    "type": "leading（リード中） または reversible（逆転可能） または difficult（厳しい） または impossible（不可能）",\n';
+  p+='    "message": "逆転に関する具体的な分析（ポイント数値を含む）"\n';
+  p+='  },\n';
+  p+='  "today": [\n';
+  p+='    {"tag": "攻撃 または 守備 または 布告 または 戦略", "title": "今日やること", "reason": "具体的な理由（拠点名・ポイント数値を含む）"}\n';
+  p+='  ],\n';
+  p+='  "tomorrow": [\n';
+  p+='    {"tag": "攻撃 または 守備 または 布告 または 戦略", "title": "明日以降の方針", "reason": "理由"}\n';
+  p+='  ],\n';
+  p+='  "warnings": [\n';
+  p+='    {"title": "警告タイトル", "reason": "詳細"}\n';
+  p+='  ]\n';
+  p+='}\n```';
+  return p;
+}
+
+async function analyze(){
+  var apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){alert('APIキーを入力してください');return;}
+  var sc=document.getElementById('sc').value;
+  var enemy=document.getElementById('enemy').value;
+  if(!sc||!enemy){alert('布告可能数・相手の戦力を選択してください');return;}
+
+  var btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span>AIが分析中...';
+  document.getElementById('result').innerHTML='<div class="card" style="text-align:center;padding:2rem;"><div class="spin" style="width:24px;height:24px;margin:0 auto 12px;display:block;"></div><p style="color:var(--tx2);margin:0;font-size:14px;">AIが状況を分析しています...</p></div>';
+
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:buildPrompt()}]})
+    });
+    var data=await res.json();
+    if(data.error){throw new Error(data.error.message);}
+    var txt=data.content.map(function(i){return i.text||'';}).join('');
+    var clean=txt.replace(/```json|```/g,'').trim();
+    var result=JSON.parse(clean);
+    renderResult(result);
+  }catch(e){
+    document.getElementById('result').innerHTML='<div class="card d"><p style="margin:0;font-size:13px;color:var(--txd);">エラーが発生しました：'+e.message+'<br><br>APIキーが正しいか確認してください。</p></div>';
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<i class="ti ti-sparkles"></i> AIに戦略を分析してもらう';
+  }
+}
+
+function tStyle(t){
+  if(t==='攻撃')return 'background:#e7f5ff;color:#1971c2;';
+  if(t==='守備')return 'background:#fff5f5;color:#c92a2a;';
+  if(t==='布告')return 'background:#fff9db;color:#e67700;';
+  return 'background:#f8f9fa;color:#868e96;';
+}
+
+function renderResult(a){
+  var pm={defense:{l:'守備優先',bg:'#fff5f5',tc:'#c92a2a',ic:'ti-shield'},attack:{l:'攻撃優先',bg:'#e7f5ff',tc:'#1971c2',ic:'ti-sword'},balance:{l:'バランス',bg:'#ebfbee',tc:'#2f9e44',ic:'ti-scale'}};
+  var pc=pm[a.priority]||pm.balance;
+  var h='';
+
+  if(a.warnings&&a.warnings.length>0){
+    h+='<div class="card d"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="ti ti-alert-triangle" style="font-size:18px;color:#c92a2a;"></i><p style="font-size:14px;font-weight:600;color:#c92a2a;margin:0;">緊急警告</p></div>';
+    a.warnings.forEach(function(w){h+='<div style="padding-left:12px;border-left:2px solid #ffa8a8;margin-bottom:6px;"><p style="font-size:13px;font-weight:600;color:#c92a2a;margin:0 0 3px;">'+w.title+'</p><p style="font-size:12px;color:var(--tx2);margin:0;line-height:1.6;">'+w.reason+'</p></div>';});
+    h+='</div>';
+  }
+
+  if(a.reversal){
+    var r=a.reversal;
+    var rc={leading:{cls:'s',ic:'ti-shield-check',c:'#2f9e44',bc:'#8ce99a',lb:'現状分析'},reversible:{cls:'s',ic:'ti-trending-up',c:'#2f9e44',bc:'#8ce99a',lb:'逆転シミュレーション — 逆転可能！'},difficult:{cls:'w',ic:'ti-alert-circle',c:'#e67700',bc:'#ffd43b',lb:'逆転シミュレーション — 厳しい状況'},impossible:{cls:'d',ic:'ti-x',c:'#c92a2a',bc:'#ffa8a8',lb:'逆転シミュレーション — 逆転不可'}}[r.type]||{cls:'',ic:'ti-info-circle',c:'#868e96',bc:'rgba(0,0,0,0.12)',lb:'ポイント分析'};
+    h+='<div class="card '+rc.cls+'"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="ti '+rc.ic+'" style="font-size:18px;color:'+rc.c+';"></i><p style="font-size:14px;font-weight:600;color:'+rc.c+';margin:0;">'+rc.lb+'</p></div>';
+    h+='<div style="padding-left:12px;border-left:2px solid '+rc.bc+';"><p style="font-size:13px;color:'+rc.c+';font-weight:600;margin:0;line-height:1.6;">'+r.message+'</p></div></div>';
+  }
+
+  h+='<div class="card"><span style="background:'+pc.bg+';color:'+pc.tc+';font-size:12px;font-weight:600;padding:3px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;"><i class="ti '+pc.ic+'" style="font-size:13px;"></i> '+pc.l+'</span><p style="font-size:16px;font-weight:600;margin:0;">'+a.summary+'</p></div>';
+
+  function sec(items,title,icon){
+    if(!items||!items.length)return '';
+    var s='<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;"><i class="ti '+icon+'" style="font-size:18px;color:var(--tx2);"></i><p style="font-size:14px;font-weight:600;margin:0;">'+title+'</p></div>';
+    items.forEach(function(item){
+      s+='<div style="margin-bottom:1rem;padding-left:12px;border-left:2px solid var(--br);">';
+      s+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;"><span class="aitag" style="'+tStyle(item.tag)+'">'+item.tag+'</span><p style="font-size:13px;font-weight:600;margin:0;">'+item.title+'</p></div>';
+      s+='<p style="font-size:12px;color:var(--tx2);margin:0;line-height:1.6;">'+item.reason+'</p></div>';
+    });
+    return s+'</div>';
+  }
+
+  h+=sec(a.today,'今日やること','ti-calendar-event');
+  h+=sec(a.tomorrow,'明日以降の方針','ti-calendar-stats');
+
+  var own=chk('own');var attackable=[];
+  own.forEach(function(n){BASES[n].neighbors.forEach(function(nb){if(own.indexOf(nb)<0&&attackable.indexOf(nb)<0)attackable.push(nb);});});
+  if(attackable.length>0){
+    h+='<div class="card sec"><p class="lbl">今日布告できる拠点</p><div class="tgl">';
+    attackable.forEach(function(n){if(!BASES[n])return;var s=BASES[n].star;h+='<span class="btg s'+(s===3?'3':s===2?'2':'1')+'">'+'★'.repeat(s)+' '+n+'（+'+s+'pt/日）</span>';});
+    h+='</div></div>';
+  }
+
+  document.getElementById('result').innerHTML=h;
+}
+
+buildMapBtns();buildGrids();onDaysChange();
+</script>
+</body>
+</html>
