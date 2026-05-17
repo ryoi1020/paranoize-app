@@ -95,6 +95,23 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
 .bonus-day.today .bonus-day-label{color:var(--accent2);}
 .bonus-item{font-size:0.6rem;color:var(--tx3);line-height:1.4;margin-bottom:2px;}
 .bonus-item.highlight{color:var(--yellow);}
+
+/* MONTHLY EVENTS */
+.monthly-section{margin-bottom:1.25rem;}
+.event-list{display:flex;flex-direction:column;gap:6px;}
+.event-item{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.event-item.active{border-color:var(--green);background:rgba(0,212,160,0.06);}
+.event-item.soon{border-color:var(--yellow);background:rgba(246,201,14,0.06);}
+.event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--tx3);}
+.event-item.active .event-dot{background:var(--green);}
+.event-item.soon .event-dot{background:var(--yellow);}
+.event-content{flex:1;}
+.event-name{font-size:0.88rem;font-weight:500;}
+.event-schedule{font-size:0.72rem;color:var(--tx3);margin-top:2px;}
+.event-item.active .event-name{color:var(--green);}
+.event-item.soon .event-name{color:var(--yellow);}
+.event-badge{font-size:0.65rem;padding:2px 7px;border-radius:4px;background:rgba(0,212,160,0.15);color:var(--green);border:1px solid rgba(0,212,160,0.3);flex-shrink:0;}
+.event-badge.soon{background:rgba(246,201,14,0.15);color:var(--yellow);border-color:rgba(246,201,14,0.3);}
 /* WEEKLY RESET NOTICE */
 .notice{background:rgba(246,201,14,0.08);border:1px solid rgba(246,201,14,0.2);border-radius:var(--r);padding:10px 14px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--yellow);display:none;}
 </style>
@@ -189,7 +206,17 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
       </div>
       <button class="form-cancel" onclick="toggleForm('custom')">キャンセル</button>
     </div>
+  
+  <!-- 月次イベント -->
+  <div class="section monthly-section">
+    <div class="section-header">
+      <div class="section-title">
+        <span style="color:var(--accent2);">●</span> 月次イベント
+      </div>
+    </div>
+    <div class="event-list" id="monthlyEventList"></div>
   </div>
+</div>
 
 </div>
 
@@ -241,6 +268,80 @@ function renderBonusGrid(){
   }).join('');
 }
 renderBonusGrid();
+
+function renderMonthlyEvents(){
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var dow = now.getDay(); // 0=日
+
+  // 今月15日に一番近い金曜を計算
+  function nearestFriday15(m, y){
+    var d15 = new Date(y, m-1, 15);
+    var diff = (5 - d15.getDay() + 7) % 7;
+    if(diff > 3) diff -= 7;
+    return new Date(y, m-1, 15 + diff).getDate();
+  }
+  var fri15 = nearestFriday15(month, now.getFullYear());
+
+  // 月次イベント定義
+  var events = [
+    {
+      name:'ラッキーパック（小・大）',
+      schedule:'毎月1日〜5日',
+      active: day >= 1 && day <= 5,
+      soon: day === 28 || day === 29 || day === 30 || day === 31,
+    },
+    {
+      name:'ミッションパス',
+      schedule:'2週間ごと（第1火曜〜）',
+      active: true,
+      soon: false,
+      note:'デイリーミッションでPt獲得',
+    },
+    {
+      name:'ワニナシ金融（1日0時）',
+      schedule:'毎月1日0時〜5日間',
+      active: day >= 1 && day <= 5,
+      soon: day >= 28,
+    },
+    {
+      name:'ワニナシ金融（15日前後の金曜）',
+      schedule:'毎月15日前後の金曜12:00〜5日間',
+      active: Math.abs(day - fri15) <= 2,
+      soon: Math.abs(day - fri15) <= 5 && day < fri15,
+    },
+    {
+      name:'鉱山ボーナス（金脈）',
+      schedule:'毎月15日に一番近い金曜',
+      active: day === fri15,
+      soon: day >= fri15 - 2 && day < fri15,
+    },
+    {
+      name:'レイドミッション',
+      schedule:'月末の1週間（新エピ追加直前の火曜〜）',
+      active: day >= 24,
+      soon: day >= 20 && day < 24,
+    },
+  ];
+
+  var list = document.getElementById('monthlyEventList');
+  list.innerHTML = events.map(function(e){
+    var cls = e.active ? 'active' : e.soon ? 'soon' : '';
+    var badge = e.active ? '<span class="event-badge">開催中</span>' : e.soon ? '<span class="event-badge soon">もうすぐ</span>' : '';
+    var note = e.note ? '<span style="color:var(--accent2);"> — '+e.note+'</span>' : '';
+    return '<div class="event-item '+cls+'">' +
+      '<div class="event-dot"></div>' +
+      '<div class="event-content">' +
+        '<div class="event-name">'+e.name+note+'</div>' +
+        '<div class="event-schedule">'+e.schedule+'</div>' +
+      '</div>' +
+      badge +
+      '</div>';
+  }).join('');
+}
+renderMonthlyEvents();
+
 
 updateDate();
 
@@ -334,6 +435,80 @@ function renderBonusGrid(){
 }
 renderBonusGrid();
 
+function renderMonthlyEvents(){
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var dow = now.getDay(); // 0=日
+
+  // 今月15日に一番近い金曜を計算
+  function nearestFriday15(m, y){
+    var d15 = new Date(y, m-1, 15);
+    var diff = (5 - d15.getDay() + 7) % 7;
+    if(diff > 3) diff -= 7;
+    return new Date(y, m-1, 15 + diff).getDate();
+  }
+  var fri15 = nearestFriday15(month, now.getFullYear());
+
+  // 月次イベント定義
+  var events = [
+    {
+      name:'ラッキーパック（小・大）',
+      schedule:'毎月1日〜5日',
+      active: day >= 1 && day <= 5,
+      soon: day === 28 || day === 29 || day === 30 || day === 31,
+    },
+    {
+      name:'ミッションパス',
+      schedule:'2週間ごと（第1火曜〜）',
+      active: true,
+      soon: false,
+      note:'デイリーミッションでPt獲得',
+    },
+    {
+      name:'ワニナシ金融（1日0時）',
+      schedule:'毎月1日0時〜5日間',
+      active: day >= 1 && day <= 5,
+      soon: day >= 28,
+    },
+    {
+      name:'ワニナシ金融（15日前後の金曜）',
+      schedule:'毎月15日前後の金曜12:00〜5日間',
+      active: Math.abs(day - fri15) <= 2,
+      soon: Math.abs(day - fri15) <= 5 && day < fri15,
+    },
+    {
+      name:'鉱山ボーナス（金脈）',
+      schedule:'毎月15日に一番近い金曜',
+      active: day === fri15,
+      soon: day >= fri15 - 2 && day < fri15,
+    },
+    {
+      name:'レイドミッション',
+      schedule:'月末の1週間（新エピ追加直前の火曜〜）',
+      active: day >= 24,
+      soon: day >= 20 && day < 24,
+    },
+  ];
+
+  var list = document.getElementById('monthlyEventList');
+  list.innerHTML = events.map(function(e){
+    var cls = e.active ? 'active' : e.soon ? 'soon' : '';
+    var badge = e.active ? '<span class="event-badge">開催中</span>' : e.soon ? '<span class="event-badge soon">もうすぐ</span>' : '';
+    var note = e.note ? '<span style="color:var(--accent2);"> — '+e.note+'</span>' : '';
+    return '<div class="event-item '+cls+'">' +
+      '<div class="event-dot"></div>' +
+      '<div class="event-content">' +
+        '<div class="event-name">'+e.name+note+'</div>' +
+        '<div class="event-schedule">'+e.schedule+'</div>' +
+      '</div>' +
+      badge +
+      '</div>';
+  }).join('');
+}
+renderMonthlyEvents();
+
+
 }
 
 function addCustomTask(type) {
@@ -379,6 +554,80 @@ function renderBonusGrid(){
 }
 renderBonusGrid();
 
+function renderMonthlyEvents(){
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var dow = now.getDay(); // 0=日
+
+  // 今月15日に一番近い金曜を計算
+  function nearestFriday15(m, y){
+    var d15 = new Date(y, m-1, 15);
+    var diff = (5 - d15.getDay() + 7) % 7;
+    if(diff > 3) diff -= 7;
+    return new Date(y, m-1, 15 + diff).getDate();
+  }
+  var fri15 = nearestFriday15(month, now.getFullYear());
+
+  // 月次イベント定義
+  var events = [
+    {
+      name:'ラッキーパック（小・大）',
+      schedule:'毎月1日〜5日',
+      active: day >= 1 && day <= 5,
+      soon: day === 28 || day === 29 || day === 30 || day === 31,
+    },
+    {
+      name:'ミッションパス',
+      schedule:'2週間ごと（第1火曜〜）',
+      active: true,
+      soon: false,
+      note:'デイリーミッションでPt獲得',
+    },
+    {
+      name:'ワニナシ金融（1日0時）',
+      schedule:'毎月1日0時〜5日間',
+      active: day >= 1 && day <= 5,
+      soon: day >= 28,
+    },
+    {
+      name:'ワニナシ金融（15日前後の金曜）',
+      schedule:'毎月15日前後の金曜12:00〜5日間',
+      active: Math.abs(day - fri15) <= 2,
+      soon: Math.abs(day - fri15) <= 5 && day < fri15,
+    },
+    {
+      name:'鉱山ボーナス（金脈）',
+      schedule:'毎月15日に一番近い金曜',
+      active: day === fri15,
+      soon: day >= fri15 - 2 && day < fri15,
+    },
+    {
+      name:'レイドミッション',
+      schedule:'月末の1週間（新エピ追加直前の火曜〜）',
+      active: day >= 24,
+      soon: day >= 20 && day < 24,
+    },
+  ];
+
+  var list = document.getElementById('monthlyEventList');
+  list.innerHTML = events.map(function(e){
+    var cls = e.active ? 'active' : e.soon ? 'soon' : '';
+    var badge = e.active ? '<span class="event-badge">開催中</span>' : e.soon ? '<span class="event-badge soon">もうすぐ</span>' : '';
+    var note = e.note ? '<span style="color:var(--accent2);"> — '+e.note+'</span>' : '';
+    return '<div class="event-item '+cls+'">' +
+      '<div class="event-dot"></div>' +
+      '<div class="event-content">' +
+        '<div class="event-name">'+e.name+note+'</div>' +
+        '<div class="event-schedule">'+e.schedule+'</div>' +
+      '</div>' +
+      badge +
+      '</div>';
+  }).join('');
+}
+renderMonthlyEvents();
+
+
   toggleForm(type);
 }
 
@@ -412,6 +661,80 @@ function renderBonusGrid(){
   }).join('');
 }
 renderBonusGrid();
+
+function renderMonthlyEvents(){
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var dow = now.getDay(); // 0=日
+
+  // 今月15日に一番近い金曜を計算
+  function nearestFriday15(m, y){
+    var d15 = new Date(y, m-1, 15);
+    var diff = (5 - d15.getDay() + 7) % 7;
+    if(diff > 3) diff -= 7;
+    return new Date(y, m-1, 15 + diff).getDate();
+  }
+  var fri15 = nearestFriday15(month, now.getFullYear());
+
+  // 月次イベント定義
+  var events = [
+    {
+      name:'ラッキーパック（小・大）',
+      schedule:'毎月1日〜5日',
+      active: day >= 1 && day <= 5,
+      soon: day === 28 || day === 29 || day === 30 || day === 31,
+    },
+    {
+      name:'ミッションパス',
+      schedule:'2週間ごと（第1火曜〜）',
+      active: true,
+      soon: false,
+      note:'デイリーミッションでPt獲得',
+    },
+    {
+      name:'ワニナシ金融（1日0時）',
+      schedule:'毎月1日0時〜5日間',
+      active: day >= 1 && day <= 5,
+      soon: day >= 28,
+    },
+    {
+      name:'ワニナシ金融（15日前後の金曜）',
+      schedule:'毎月15日前後の金曜12:00〜5日間',
+      active: Math.abs(day - fri15) <= 2,
+      soon: Math.abs(day - fri15) <= 5 && day < fri15,
+    },
+    {
+      name:'鉱山ボーナス（金脈）',
+      schedule:'毎月15日に一番近い金曜',
+      active: day === fri15,
+      soon: day >= fri15 - 2 && day < fri15,
+    },
+    {
+      name:'レイドミッション',
+      schedule:'月末の1週間（新エピ追加直前の火曜〜）',
+      active: day >= 24,
+      soon: day >= 20 && day < 24,
+    },
+  ];
+
+  var list = document.getElementById('monthlyEventList');
+  list.innerHTML = events.map(function(e){
+    var cls = e.active ? 'active' : e.soon ? 'soon' : '';
+    var badge = e.active ? '<span class="event-badge">開催中</span>' : e.soon ? '<span class="event-badge soon">もうすぐ</span>' : '';
+    var note = e.note ? '<span style="color:var(--accent2);"> — '+e.note+'</span>' : '';
+    return '<div class="event-item '+cls+'">' +
+      '<div class="event-dot"></div>' +
+      '<div class="event-content">' +
+        '<div class="event-name">'+e.name+note+'</div>' +
+        '<div class="event-schedule">'+e.schedule+'</div>' +
+      '</div>' +
+      badge +
+      '</div>';
+  }).join('');
+}
+renderMonthlyEvents();
+
 
 }
 
@@ -456,6 +779,80 @@ function renderBonusGrid(){
   }).join('');
 }
 renderBonusGrid();
+
+function renderMonthlyEvents(){
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var dow = now.getDay(); // 0=日
+
+  // 今月15日に一番近い金曜を計算
+  function nearestFriday15(m, y){
+    var d15 = new Date(y, m-1, 15);
+    var diff = (5 - d15.getDay() + 7) % 7;
+    if(diff > 3) diff -= 7;
+    return new Date(y, m-1, 15 + diff).getDate();
+  }
+  var fri15 = nearestFriday15(month, now.getFullYear());
+
+  // 月次イベント定義
+  var events = [
+    {
+      name:'ラッキーパック（小・大）',
+      schedule:'毎月1日〜5日',
+      active: day >= 1 && day <= 5,
+      soon: day === 28 || day === 29 || day === 30 || day === 31,
+    },
+    {
+      name:'ミッションパス',
+      schedule:'2週間ごと（第1火曜〜）',
+      active: true,
+      soon: false,
+      note:'デイリーミッションでPt獲得',
+    },
+    {
+      name:'ワニナシ金融（1日0時）',
+      schedule:'毎月1日0時〜5日間',
+      active: day >= 1 && day <= 5,
+      soon: day >= 28,
+    },
+    {
+      name:'ワニナシ金融（15日前後の金曜）',
+      schedule:'毎月15日前後の金曜12:00〜5日間',
+      active: Math.abs(day - fri15) <= 2,
+      soon: Math.abs(day - fri15) <= 5 && day < fri15,
+    },
+    {
+      name:'鉱山ボーナス（金脈）',
+      schedule:'毎月15日に一番近い金曜',
+      active: day === fri15,
+      soon: day >= fri15 - 2 && day < fri15,
+    },
+    {
+      name:'レイドミッション',
+      schedule:'月末の1週間（新エピ追加直前の火曜〜）',
+      active: day >= 24,
+      soon: day >= 20 && day < 24,
+    },
+  ];
+
+  var list = document.getElementById('monthlyEventList');
+  list.innerHTML = events.map(function(e){
+    var cls = e.active ? 'active' : e.soon ? 'soon' : '';
+    var badge = e.active ? '<span class="event-badge">開催中</span>' : e.soon ? '<span class="event-badge soon">もうすぐ</span>' : '';
+    var note = e.note ? '<span style="color:var(--accent2);"> — '+e.note+'</span>' : '';
+    return '<div class="event-item '+cls+'">' +
+      '<div class="event-dot"></div>' +
+      '<div class="event-content">' +
+        '<div class="event-name">'+e.name+note+'</div>' +
+        '<div class="event-schedule">'+e.schedule+'</div>' +
+      '</div>' +
+      badge +
+      '</div>';
+  }).join('');
+}
+renderMonthlyEvents();
+
 
   }
 }
