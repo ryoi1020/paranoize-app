@@ -6,19 +6,17 @@
 <title>PARANOISE 攻略アプリ</title>
 <link rel="stylesheet" href="/assets/common.css">
 <style>
-.hero{text-align:center;padding:2.5rem 1rem 2rem;position:relative;}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(124,92,252,0.1),transparent);pointer-events:none;}
-.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,8vw,3.5rem);font-weight:800;letter-spacing:0.1em;background:linear-gradient(135deg,#fff 0%,var(--accent2) 50%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
-.hero-sub{font-size:0.78rem;letter-spacing:0.3em;color:var(--tx3);text-transform:uppercase;margin-top:0.5rem;}
+.hero{text-align:center;padding:2.5rem 1rem 2rem;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(107,70,245,0.07),transparent);pointer-events:none;}
+.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,8vw,3.5rem);font-weight:800;letter-spacing:0.08em;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+.hero-sub{font-size:0.75rem;letter-spacing:0.25em;color:var(--tx3);text-transform:uppercase;margin-top:0.5rem;font-weight:500;}
 .menu{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 1rem 1rem;}
-.menu-item{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:1.25rem;text-decoration:none;color:var(--tx);transition:all 0.2s;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
-.menu-item::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--glow2),transparent);opacity:0;transition:opacity 0.2s;}
-.menu-item:hover{border-color:var(--border);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
-.menu-item:hover::before{opacity:1;}
+.menu-item{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r16);padding:1.25rem;text-decoration:none;color:var(--tx);transition:all 0.2s;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);}
+.menu-item:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow2);}
 .menu-icon{font-size:1.75rem;line-height:1;}
 .menu-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:var(--tx);}
 .menu-desc{font-size:0.72rem;color:var(--tx2);line-height:1.5;}
-.menu-badge{font-size:0.62rem;padding:2px 7px;border-radius:var(--r99);background:var(--bg4);color:var(--tx3);border:1px solid var(--border2);display:inline-block;margin-top:2px;}
+.menu-badge{font-size:0.62rem;padding:2px 8px;border-radius:var(--r99);background:var(--bg3);color:var(--tx3);border:1px solid var(--border2);display:inline-block;margin-top:2px;}
 .version{text-align:center;padding:0.5rem;font-size:0.65rem;color:var(--tx3);}
 </style>
 </head>
@@ -36,7 +34,7 @@
   <a class="menu-item" href="/reika">
     <div class="menu-icon">⚔️</div>
     <div class="menu-title">麗華の野望</div>
-    <div class="menu-desc">AIが状況を分析して今日と明日以降の戦略を提案。</div>
+    <div class="menu-desc">AIが状況を分析して戦略を提案。</div>
   </a>
   <a class="menu-item" href="/tasks">
     <div class="menu-icon">📅</div>
@@ -53,7 +51,7 @@
     <div class="menu-title">掲示板</div>
     <div class="menu-desc">ギルド募集・雑談・攻略情報を共有。</div>
   </a>
-  <a class="menu-item" href="#" style="opacity:0.5;pointer-events:none;">
+  <a class="menu-item" href="#" style="opacity:0.45;pointer-events:none;">
     <div class="menu-icon">🔧</div>
     <div class="menu-title">育成シミュ</div>
     <div class="menu-desc">仮育成でステータスと必要素材を確認。</div>
