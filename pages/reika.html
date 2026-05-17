@@ -88,6 +88,7 @@
 
     @media (max-width: 480px) { .g2 { grid-template-columns: 1fr; } .g3 { grid-template-columns: repeat(2,1fr); } .sg { grid-template-columns: 1fr; } }
   </style>
+<link rel="stylesheet" href="/assets/common.css">
 </head>
 <body>
 <div style="position:fixed;top:12px;left:12px;z-index:50;">
@@ -456,6 +457,27 @@ function renderResult(a){
 }
 
 buildMapBtns();buildGrids();onDaysChange();
+</script>
+<nav class="p-tabbar">
+  <a class="p-tab" href="/" id="tab-home"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards" id="tab-cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab" href="/reika" id="tab-reika"><span class="p-tab-icon">⚔️</span>麗華</a>
+  <a class="p-tab" href="/tasks" id="tab-tasks"><span class="p-tab-icon">📅</span>タスク</a>
+  <a class="p-tab" href="/memo" id="tab-memo"><span class="p-tab-icon">📝</span>メモ</a>
+  <a class="p-tab" href="/board" id="tab-board"><span class="p-tab-icon">💬</span>掲示板</a>
+</nav>
+<script>
+(function(){
+  var path = location.pathname;
+  var map = {'/':[document.getElementById('tab-home')],'/cards':['tab-cards'],'/reika':['tab-reika'],'/tasks':['tab-tasks'],'/memo':['tab-memo'],'/board':['tab-board']};
+  var tabs = {'tab-home':'tab-home','tab-cards':'tab-cards','tab-reika':'tab-reika','tab-tasks':'tab-tasks','tab-memo':'tab-memo','tab-board':'tab-board'};
+  Object.keys(tabs).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var href = el.getAttribute('href');
+    if(path === href || (href !== '/' && path.startsWith(href))) el.classList.add('active');
+  });
+})();
 </script>
 </body>
 </html>
