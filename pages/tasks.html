@@ -86,6 +86,15 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
 /* EMPTY */
 .empty-task{text-align:center;padding:1.5rem;color:var(--tx3);font-size:0.82rem;}
 
+
+/* WEEKLY BONUS */
+.bonus-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1.25rem;}
+.bonus-day{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 4px;text-align:center;}
+.bonus-day.today{border-color:var(--accent);background:rgba(124,92,252,0.1);}
+.bonus-day-label{font-size:0.72rem;font-weight:700;margin-bottom:4px;}
+.bonus-day.today .bonus-day-label{color:var(--accent2);}
+.bonus-item{font-size:0.6rem;color:var(--tx3);line-height:1.4;margin-bottom:2px;}
+.bonus-item.highlight{color:var(--yellow);}
 /* WEEKLY RESET NOTICE */
 .notice{background:rgba(246,201,14,0.08);border:1px solid rgba(246,201,14,0.2);border-radius:var(--r);padding:10px 14px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--yellow);display:none;}
 </style>
@@ -106,6 +115,10 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
     </div>
     <button class="reset-btn" onclick="confirmReset()">デイリーリセット</button>
   </div>
+
+
+  <p class="section-label" style="margin-bottom:8px;">📆 今週の曜日ボーナス</p>
+  <div class="bonus-grid" id="bonusGrid"></div>
 
   <div class="notice" id="weeklyNotice">
     📅 今週のウィークリータスクがリセットされました！
@@ -203,6 +216,32 @@ var FIXED_WEEKLY = [
 var state = loadState();
 checkAutoReset();
 renderAll();
+
+function renderBonusGrid(){
+  var today = new Date().getDay();
+  var days = [
+    {day:0,label:'日',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:1,label:'月',bonuses:['統率EXP×1.5','謎のROM×2']},
+    {day:2,label:'火',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:3,label:'水',bonuses:['合宿EXP×2']},
+    {day:4,label:'木',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:5,label:'金',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:6,label:'土',bonuses:['合宿EXP×2']},
+  ];
+  var order = [1,2,3,4,5,6,0]; // 月〜日
+  var grid = document.getElementById('bonusGrid');
+  grid.innerHTML = order.map(function(d){
+    var info = days[d];
+    var isToday = d === today;
+    var items = info.bonuses.map(function(b){
+      var hl = b.indexOf('ガチャ')>=0||b.indexOf('鉱山')>=0||b.indexOf('極秘')>=0;
+      return '<div class="bonus-item'+(hl?' highlight':'')+'">'+b+'</div>';
+    }).join('');
+    return '<div class="bonus-day'+(isToday?' today':'')+'"><div class="bonus-day-label">'+info.label+'</div>'+items+'</div>';
+  }).join('');
+}
+renderBonusGrid();
+
 updateDate();
 
 function loadState() {
@@ -269,6 +308,32 @@ function toggleTask(type, id) {
   else arr.push(id);
   saveState();
   renderAll();
+
+function renderBonusGrid(){
+  var today = new Date().getDay();
+  var days = [
+    {day:0,label:'日',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:1,label:'月',bonuses:['統率EXP×1.5','謎のROM×2']},
+    {day:2,label:'火',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:3,label:'水',bonuses:['合宿EXP×2']},
+    {day:4,label:'木',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:5,label:'金',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:6,label:'土',bonuses:['合宿EXP×2']},
+  ];
+  var order = [1,2,3,4,5,6,0]; // 月〜日
+  var grid = document.getElementById('bonusGrid');
+  grid.innerHTML = order.map(function(d){
+    var info = days[d];
+    var isToday = d === today;
+    var items = info.bonuses.map(function(b){
+      var hl = b.indexOf('ガチャ')>=0||b.indexOf('鉱山')>=0||b.indexOf('極秘')>=0;
+      return '<div class="bonus-item'+(hl?' highlight':'')+'">'+b+'</div>';
+    }).join('');
+    return '<div class="bonus-day'+(isToday?' today':'')+'"><div class="bonus-day-label">'+info.label+'</div>'+items+'</div>';
+  }).join('');
+}
+renderBonusGrid();
+
 }
 
 function addCustomTask(type) {
@@ -288,6 +353,32 @@ function addCustomTask(type) {
   input.value = '';
   saveState();
   renderAll();
+
+function renderBonusGrid(){
+  var today = new Date().getDay();
+  var days = [
+    {day:0,label:'日',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:1,label:'月',bonuses:['統率EXP×1.5','謎のROM×2']},
+    {day:2,label:'火',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:3,label:'水',bonuses:['合宿EXP×2']},
+    {day:4,label:'木',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:5,label:'金',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:6,label:'土',bonuses:['合宿EXP×2']},
+  ];
+  var order = [1,2,3,4,5,6,0]; // 月〜日
+  var grid = document.getElementById('bonusGrid');
+  grid.innerHTML = order.map(function(d){
+    var info = days[d];
+    var isToday = d === today;
+    var items = info.bonuses.map(function(b){
+      var hl = b.indexOf('ガチャ')>=0||b.indexOf('鉱山')>=0||b.indexOf('極秘')>=0;
+      return '<div class="bonus-item'+(hl?' highlight':'')+'">'+b+'</div>';
+    }).join('');
+    return '<div class="bonus-day'+(isToday?' today':'')+'"><div class="bonus-day-label">'+info.label+'</div>'+items+'</div>';
+  }).join('');
+}
+renderBonusGrid();
+
   toggleForm(type);
 }
 
@@ -296,6 +387,32 @@ function deleteTask(id) {
   state.customDone = state.customDone.filter(function(d){ return d !== id; });
   saveState();
   renderAll();
+
+function renderBonusGrid(){
+  var today = new Date().getDay();
+  var days = [
+    {day:0,label:'日',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:1,label:'月',bonuses:['統率EXP×1.5','謎のROM×2']},
+    {day:2,label:'火',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:3,label:'水',bonuses:['合宿EXP×2']},
+    {day:4,label:'木',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:5,label:'金',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:6,label:'土',bonuses:['合宿EXP×2']},
+  ];
+  var order = [1,2,3,4,5,6,0]; // 月〜日
+  var grid = document.getElementById('bonusGrid');
+  grid.innerHTML = order.map(function(d){
+    var info = days[d];
+    var isToday = d === today;
+    var items = info.bonuses.map(function(b){
+      var hl = b.indexOf('ガチャ')>=0||b.indexOf('鉱山')>=0||b.indexOf('極秘')>=0;
+      return '<div class="bonus-item'+(hl?' highlight':'')+'">'+b+'</div>';
+    }).join('');
+    return '<div class="bonus-day'+(isToday?' today':'')+'"><div class="bonus-day-label">'+info.label+'</div>'+items+'</div>';
+  }).join('');
+}
+renderBonusGrid();
+
 }
 
 function toggleForm(type) {
@@ -314,6 +431,32 @@ function confirmReset() {
     state.lastDaily = todayStr();
     saveState();
     renderAll();
+
+function renderBonusGrid(){
+  var today = new Date().getDay();
+  var days = [
+    {day:0,label:'日',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:1,label:'月',bonuses:['統率EXP×1.5','謎のROM×2']},
+    {day:2,label:'火',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:3,label:'水',bonuses:['合宿EXP×2']},
+    {day:4,label:'木',bonuses:['統率EXP×2.5','謎のROM×2']},
+    {day:5,label:'金',bonuses:['コイン×2','ガチャ更新','鉱山バイト','極秘調査']},
+    {day:6,label:'土',bonuses:['合宿EXP×2']},
+  ];
+  var order = [1,2,3,4,5,6,0]; // 月〜日
+  var grid = document.getElementById('bonusGrid');
+  grid.innerHTML = order.map(function(d){
+    var info = days[d];
+    var isToday = d === today;
+    var items = info.bonuses.map(function(b){
+      var hl = b.indexOf('ガチャ')>=0||b.indexOf('鉱山')>=0||b.indexOf('極秘')>=0;
+      return '<div class="bonus-item'+(hl?' highlight':'')+'">'+b+'</div>';
+    }).join('');
+    return '<div class="bonus-day'+(isToday?' today':'')+'"><div class="bonus-day-label">'+info.label+'</div>'+items+'</div>';
+  }).join('');
+}
+renderBonusGrid();
+
   }
 }
 
@@ -384,3 +527,4 @@ function renderAll() {
 </script>
 </body>
 </html>
+
