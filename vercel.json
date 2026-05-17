@@ -4,6 +4,7 @@
     { "source": "/cards", "destination": "/pages/cards.html" },
     { "source": "/reika", "destination": "/pages/reika.html" },
     { "source": "/tasks", "destination": "/pages/tasks.html" },
+    { "source": "/memo", "destination": "/pages/memo.html" },
     { "source": "/(.*)", "destination": "/pages/index.html" }
   ]
 }
