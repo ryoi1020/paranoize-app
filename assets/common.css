@@ -90,7 +90,8 @@ body::after{
 .p-tab:hover{color:rgba(0,0,0,0.5);}
 .p-tab.active{color:var(--accent);}
 .p-tab.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2.5px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:0 0 4px 4px;}
-.p-tab-icon{font-size:1.2rem;line-height:1;}
+.p-tab-icon{font-size:1.2rem;line-height:1;filter:grayscale(30%) opacity(0.45);transition:filter 0.15s,font-size 0.15s;}
+.p-tab.active .p-tab-icon{font-size:1.35rem;filter:grayscale(0%) opacity(1) drop-shadow(0 0 4px rgba(5,150,105,0.4));}
 
 /* CONTAINER */
 .p-wrap{max-width:680px;margin:0 auto;padding:1.25rem 1rem;position:relative;z-index:1;}
