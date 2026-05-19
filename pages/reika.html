@@ -6,88 +6,38 @@
   <title>麗華の野望 開幕前 戦略アドバイザー</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    :root {
-      --bg: #ffffff; --bg2: #f8f9fa; --bg3: #f1f3f5;
-      --bgi: #e7f5ff; --bgs: #ebfbee; --bgw: #fff9db; --bgd: #fff5f5;
-      --tx: #212529; --tx2: #868e96; --tx3: #adb5bd;
-      --txi: #1971c2; --txs: #2f9e44; --txw: #e67700; --txd: #c92a2a;
-      --br: rgba(0,0,0,0.12); --br2: rgba(0,0,0,0.2);
-      --bri: #74c0fc; --brs: #8ce99a; --brw: #ffd43b; --brd: #ffa8a8;
-      --rm: 8px; --rl: 12px;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1a1b1e; --bg2: #25262b; --bg3: #2c2e33;
-        --bgi: #1c3557; --bgs: #1b3a2a; --bgw: #3d3000; --bgd: #3d1c1c;
-        --tx: #c1c2c5; --tx2: #909296; --tx3: #5c5f66;
-        --txi: #74c0fc; --txs: #8ce99a; --txw: #ffd43b; --txd: #ffa8a8;
-        --br: rgba(255,255,255,0.1); --br2: rgba(255,255,255,0.2);
-        --bri: #1c3557; --brs: #1b3a2a; --brw: #3d3000; --brd: #3d1c1c;
-      }
-    }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--tx); margin: 0; padding: 1rem; line-height: 1.6; }
-    .wrap { max-width: 720px; margin: 0 auto; }
-    .hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
-    .hdr-icon { width: 40px; height: 40px; border-radius: var(--rm); background: var(--bgi); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .hdr-icon i { font-size: 22px; color: var(--txi); }
-    .hdr h1 { font-size: 20px; font-weight: 600; margin: 0 0 2px; }
-    .hdr p { font-size: 13px; color: var(--tx2); margin: 0; }
-    .card { background: var(--bg); border: 0.5px solid var(--br); border-radius: var(--rl); padding: 1.25rem; margin-bottom: 1rem; }
-    .card.s { background: var(--bgs); border-color: var(--brs); }
-    .card.w { background: var(--bgw); border-color: var(--brw); }
-    .card.d { background: var(--bgd); border-color: var(--brd); }
-    .card.sec { background: var(--bg2); border: none; }
-    .lbl { font-size: 12px; font-weight: 600; color: var(--tx2); margin: 0 0 8px; }
-    .sub { font-size: 11px; color: var(--tx3); margin: 0 0 6px; }
-    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin-bottom: 1rem; }
-    .fld { display: flex; flex-direction: column; gap: 4px; }
-    .fld > span { font-size: 12px; color: var(--tx2); }
-    select, input[type="number"], input[type="password"], input[type="text"] {
-      width: 100%; font-size: 13px; padding: 6px 8px;
-      border: 0.5px solid var(--br2); border-radius: var(--rm);
-      background: var(--bg); color: var(--tx); outline: none;
-    }
-    select:focus, input:focus { border-color: var(--bri); }
-    .dr { display: flex; align-items: center; gap: 8px; }
-    .dr input { width: 80px; text-align: center; }
-    .ph { font-size: 11px; margin-left: 4px; }
-    .abox { border-radius: var(--rm); padding: 10px 12px; margin-bottom: 1rem; border: 0.5px solid var(--br); background: var(--bg2); }
-    .abox .at { font-size: 12px; font-weight: 600; margin: 0 0 3px; }
-    .abox .ab { font-size: 12px; color: var(--tx2); margin: 0; line-height: 1.6; }
-    .icard { border: 0.5px solid var(--br); border-radius: var(--rm); padding: 12px; margin-bottom: 1rem; }
-    .db { border-radius: var(--rm); padding: 6px 12px; font-size: 12px; font-weight: 600; margin-bottom: 10px; display: none; }
-    .sb { border-radius: var(--rm); padding: 10px 12px; background: var(--bg2); border: 0.5px solid var(--br); margin-bottom: 10px; display: none; }
-    .st { font-size: 12px; font-weight: 600; color: var(--tx2); margin: 0 0 6px; }
-    .sg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    .sc { background: var(--bg); border-radius: var(--rm); padding: 8px 10px; border: 0.5px solid var(--br); }
-    .ss { font-size: 11px; color: var(--tx3); margin: 0 0 2px; }
-    .sv { font-size: 15px; font-weight: 600; margin: 0; }
-    .sd { font-size: 11px; color: var(--tx2); margin: 0; }
-    .sr { font-size: 13px; font-weight: 600; margin: 0; line-height: 1.5; }
-    .cbl { display: flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: var(--rm); border: 0.5px solid var(--br); background: var(--bg2); cursor: pointer; font-size: 12px; color: var(--tx); user-select: none; }
-    .cbl.s3 { border-color: var(--brd); background: var(--bgd); }
-    .cbl.s2 { border-color: var(--brw); background: var(--bgw); }
-    .cbl input { margin: 0; width: 13px; height: 13px; flex-shrink: 0; cursor: pointer; }
-    .mbts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
-    .mb { padding: 5px 14px; font-size: 13px; border-radius: var(--rm); border: 0.5px solid var(--br); background: var(--bg); color: var(--tx); cursor: pointer; }
-    .mb:disabled { opacity: 0.4; cursor: not-allowed; }
-    .mb.act { background: var(--bgi); color: var(--txi); border-color: var(--bri); }
-    .abtn { width: 100%; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--bgi); color: var(--txi); border: 0.5px solid var(--bri); border-radius: var(--rm); }
-    .abtn:hover { opacity: 0.85; }
-    .abtn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .spin { width: 18px; height: 18px; border: 2px solid var(--br); border-top-color: var(--txi); border-radius: 50%; animation: sp 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
-    @keyframes sp { to { transform: rotate(360deg); } }
-    .aitag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: var(--rm); display: inline-block; margin-bottom: 3px; }
-    .tgl { display: flex; flex-wrap: wrap; gap: 6px; }
-    .btg { font-size: 12px; padding: 3px 8px; border-radius: var(--rm); border: 0.5px solid; }
-    .btg.s3 { background: var(--bgd); color: var(--txd); border-color: var(--brd); }
-    .btg.s2 { background: var(--bgw); color: var(--txw); border-color: var(--brw); }
-    .btg.s1 { background: var(--bg); color: var(--tx); border-color: var(--br); }
-
-    @media (max-width: 480px) { .g2 { grid-template-columns: 1fr; } .g3 { grid-template-columns: repeat(2,1fr); } .sg { grid-template-columns: 1fr; } }
-  </style>
+body{background:var(--bg);}
+.page-wrap{max-width:680px;margin:0 auto;padding:1rem;position:relative;z-index:1;}
+.page-header{text-align:center;padding:1.5rem 0 1rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#4c1d95,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-desc{font-size:0.78rem;color:var(--tx2);margin-top:6px;line-height:1.6;}
+.glass-card{background:rgba(255,255,255,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.85);border-radius:var(--r20);padding:1.25rem;margin-bottom:0.75rem;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.glass-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
+.section-label{font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--tx3);font-weight:700;margin-bottom:10px;}
+.input-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
+.input-group{display:flex;flex-direction:column;gap:4px;}
+.input-label{font-size:0.68rem;color:var(--tx2);font-weight:600;}
+.analyze-btn{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:var(--r99);color:#fff;font-size:0.95rem;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(124,58,237,0.35),inset 0 1px 0 rgba(255,255,255,0.2);margin-bottom:1.5rem;}
+.analyze-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.45);}
+.analyze-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.result-wrap{display:none;margin-bottom:4rem;}
+.result-wrap.show{display:block;}
+.result-card{background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(168,85,247,0.85));border:1px solid rgba(255,255,255,0.25);border-radius:var(--r20);overflow:hidden;box-shadow:0 8px 32px rgba(124,58,237,0.3);}
+.result-header{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.15);}
+.result-icon{font-size:1.4rem;}
+.result-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
+.result-body{padding:1.25rem 1.5rem;}
+.result-text{font-size:0.88rem;color:rgba(255,255,255,0.92);line-height:1.9;white-space:pre-wrap;}
+.loading-wrap{text-align:center;padding:2.5rem;}
+.loading-text{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:12px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.followup-wrap{margin-top:1rem;display:none;}
+.followup-wrap.show{display:flex;gap:8px;}
+.followup-input{flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:var(--r99);padding:9px 14px;color:#fff;font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;}
+.followup-input::placeholder{color:rgba(255,255,255,0.4);}
+.followup-btn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:var(--r99);padding:9px 16px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+@media(max-width:480px){.input-wrap{grid-template-columns:1fr;}}
+</style>
 <link rel="stylesheet" href="/assets/common.css">
 </head>
 <body>
@@ -459,11 +409,11 @@ function renderResult(a){
 buildMapBtns();buildGrids();onDaysChange();
 </script>
 <nav class="p-tabbar">
-  <a class="p-tab" href="/" id="tab-home"><span class="p-tab-icon">🏠</span>ホーム</a>
-  <a class="p-tab" href="/cards" id="tab-cards"><span class="p-tab-icon">📖</span>カード</a>
-  <a class="p-tab" href="/formation" id="tab-formation"><span class="p-tab-icon">🧩</span>編成</a>
-  <a class="p-tab" href="/tasks" id="tab-tasks"><span class="p-tab-icon">📅</span>タスク</a>
-  <a class="p-tab" href="/memo" id="tab-memo"><span class="p-tab-icon">📝</span>メモ</a>
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
+  <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
+  <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
 </nav>
 <script>
 (function(){
