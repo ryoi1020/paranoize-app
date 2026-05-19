@@ -185,7 +185,7 @@ function render() {
     const savedPos = getImgPos(imgKey);
     const defaultPos = getImgStyle(c.img);
     const imgPos = savedPos !== null ? 'center ' + savedPos + '%' : defaultPos;
-    const imgHtml = c.img ? '<div class="card-img-wrap"><img class="card-img" src="' + c.img + '" alt="' + c.name + '" loading="lazy" data-key="' + imgKey + '" style="object-position:' + imgPos + '" onerror=\"this.parentElement.style.display='none'\"></div>' : '';
+    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:${imgPos}" onerror="this.parentElement.style.display='none'"></div>` : '';
     const passiveItems = c.passive.slice(0,2).map(s =>
       '<div class="skill-item"><span class="skill-label p">P</span><span class="skill-text"><span class="skill-name">' + skillShort(s) + '</span>' + (skillDesc(s) ? ' — ' + skillDesc(s) : '') + '</span></div>'
     ).join('');
