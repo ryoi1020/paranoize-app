@@ -479,7 +479,7 @@ function openModal(filteredIdx) {
       </div>
       <div class="modal-skill-desc">${skillDesc(s)}</div>
     </div>`).join('');
-  const mImgHtml = c.img ? `<div style="width:100%;background:#f8f8f8;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;max-height:200px;"><img src="${c.img}" alt="${c.name}" style="width:100%;height:220px;object-fit:cover;object-position:center 10%;" onerror="this.parentElement.style.display='none'"></div>` : '';
+  const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" style="width:100%;height:260px;object-fit:cover;object-position:center 15%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
   modal.innerHTML = `${mImgHtml}
     <div class="modal-header">
       <span class="modal-rarity rarity-badge ${c.rarity}">${c.rarity}</span>
@@ -509,6 +509,24 @@ function closeModal(e) {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function toggleImgFull(wrap) {
+  var img = wrap.querySelector('img');
+  var hint = wrap.querySelector('div');
+  if (wrap.dataset.full === '1') {
+    img.style.height = '260px';
+    img.style.objectFit = 'cover';
+    img.style.objectPosition = 'center 15%';
+    hint.textContent = 'タップで全体表示';
+    wrap.dataset.full = '0';
+  } else {
+    img.style.height = 'auto';
+    img.style.objectFit = 'contain';
+    img.style.objectPosition = 'center center';
+    hint.textContent = 'タップで戻す';
+    wrap.dataset.full = '1';
+  }
+}
 
 function initAllImgDrag() {
   document.querySelectorAll('.card-img').forEach(function(img) {
