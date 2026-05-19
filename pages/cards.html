@@ -8,12 +8,12 @@
 <style>
 body{background:var(--bg);}
 .header{padding:1rem 1rem 0.75rem;text-align:center;border-bottom:1px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:40;}
-.logo{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#4c1d95,#7c3aed,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#064e3b,#059669,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .logo-sub{font-size:0.62rem;letter-spacing:0.2em;color:var(--tx3);text-transform:uppercase;margin-top:2px;}
 
 .search-wrap{padding:0.75rem 1rem 0.5rem;max-width:1400px;margin:0 auto;position:relative;z-index:1;}
 .search-box{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.85);border-radius:var(--r99);padding:0 16px;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
-.search-box:focus-within{border-color:rgba(124,58,237,0.4);box-shadow:0 0 0 3px rgba(124,58,237,0.08),0 2px 12px rgba(0,0,0,0.06);}
+.search-box:focus-within{border-color:rgba(5,150,105,0.4);box-shadow:0 0 0 3px rgba(5,150,105,0.08),0 2px 12px rgba(0,0,0,0.06);}
 .search-icon{color:var(--tx3);font-size:1rem;flex-shrink:0;}
 .search-input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:0.92rem;font-family:'Noto Sans JP',sans-serif;padding:11px 0;}
 .search-input::placeholder{color:var(--tx3);}
@@ -35,7 +35,7 @@ body{background:var(--bg);}
   border-radius:var(--r20);overflow:hidden;cursor:pointer;
   transition:all 0.2s;box-shadow:var(--shadow);
 }
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.15),0 2px 8px rgba(0,0,0,0.06);border-color:rgba(124,58,237,0.3);}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(5,150,105,0.15),0 2px 8px rgba(0,0,0,0.06);border-color:rgba(5,150,105,0.3);}
 .card:active{transform:scale(0.98);}
 
 .card-img-wrap{width:100%;overflow:hidden;border-radius:var(--r20) var(--r20) 0 0;background:rgba(0,0,0,0.04);max-height:140px;}
@@ -53,13 +53,13 @@ body{background:var(--bg);}
 .attr-tag{font-size:0.62rem;padding:2px 6px;border-radius:var(--r4,4px);font-weight:600;}
 .attr-地{background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.2);}
 .attr-光{background:rgba(245,158,11,0.1);color:#92400e;border:1px solid rgba(245,158,11,0.2);}
-.attr-闇{background:rgba(124,58,237,0.1);color:#5b21b6;border:1px solid rgba(124,58,237,0.2);}
+.attr-闇{background:rgba(5,150,105,0.1);color:#065f46;border:1px solid rgba(5,150,105,0.2);}
 .atk-tag{font-size:0.62rem;padding:2px 6px;border-radius:var(--r4,4px);font-weight:500;background:rgba(59,130,246,0.1);color:#1e40af;border:1px solid rgba(59,130,246,0.2);}
 
 .card-skills{padding:0 12px 10px;display:flex;flex-direction:column;gap:3px;}
 .skill-item{display:flex;gap:5px;align-items:flex-start;}
 .skill-label{font-size:0.58rem;padding:2px 5px;border-radius:4px;flex-shrink:0;margin-top:1px;font-weight:700;}
-.skill-label.p{background:rgba(124,58,237,0.1);color:var(--accent);}
+.skill-label.p{background:rgba(5,150,105,0.1);color:var(--accent);}
 .skill-label.a{background:rgba(59,130,246,0.1);color:#2563eb;}
 .skill-text{font-size:0.72rem;color:var(--tx2);line-height:1.5;}
 .skill-name{color:var(--tx);font-weight:600;}
@@ -81,7 +81,7 @@ body{background:var(--bg);}
 .modal-skill{background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.85);border-radius:var(--r12);padding:10px 12px;margin-bottom:8px;}
 .modal-skill-header{display:flex;gap:6px;align-items:center;margin-bottom:4px;}
 .modal-skill-name{font-size:0.85rem;font-weight:700;color:var(--tx);}
-.modal-skill-cost{font-size:0.68rem;color:var(--accent);background:rgba(124,58,237,0.08);padding:2px 7px;border-radius:var(--r4,4px);}
+.modal-skill-cost{font-size:0.68rem;color:var(--accent);background:rgba(5,150,105,0.08);padding:2px 7px;border-radius:var(--r4,4px);}
 .modal-skill-desc{font-size:0.78rem;color:var(--tx2);line-height:1.6;}
 .empty{text-align:center;padding:4rem 2rem;color:var(--tx3);}
 .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:0.2;}
