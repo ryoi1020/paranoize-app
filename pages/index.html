@@ -6,60 +6,133 @@
 <title>PARANOISE 攻略アプリ</title>
 <link rel="stylesheet" href="/assets/common.css">
 <style>
-.hero{text-align:center;padding:2.5rem 1rem 2rem;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(107,70,245,0.07),transparent);pointer-events:none;}
-.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,8vw,3.5rem);font-weight:800;letter-spacing:0.08em;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
-.hero-sub{font-size:0.75rem;letter-spacing:0.25em;color:var(--tx3);text-transform:uppercase;margin-top:0.5rem;font-weight:500;}
-.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 1rem 1rem;}
-.menu-item{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r16);padding:1.25rem;text-decoration:none;color:var(--tx);transition:all 0.2s;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);}
-.menu-item:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow2);}
-.menu-icon{font-size:1.75rem;line-height:1;}
-.menu-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:var(--tx);}
-.menu-desc{font-size:0.72rem;color:var(--tx2);line-height:1.5;}
-.menu-badge{font-size:0.62rem;padding:2px 8px;border-radius:var(--r99);background:var(--bg3);color:var(--tx3);border:1px solid var(--border2);display:inline-block;margin-top:2px;}
-.version{text-align:center;padding:0.5rem;font-size:0.65rem;color:var(--tx3);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080e;color:#eeeef5;font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:80px;overflow-x:hidden;}
+
+/* HERO */
+.hero{position:relative;padding:3.5rem 1.5rem 2.5rem;text-align:center;overflow:hidden;}
+.hero-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(107,70,245,0.25),transparent 70%);}
+.hero-eyebrow{font-size:0.65rem;letter-spacing:0.35em;color:#7c5cfc;text-transform:uppercase;font-weight:700;margin-bottom:1rem;}
+.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(3rem,12vw,5rem);font-weight:800;letter-spacing:0.04em;line-height:1;background:linear-gradient(160deg,#ffffff 0%,#c4b5fd 45%,#7c5cfc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:0.78rem;color:#55556a;margin-top:0.75rem;letter-spacing:0.2em;text-transform:uppercase;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:20px;padding:5px 14px;font-size:0.7rem;color:#b794f4;margin-top:1.25rem;}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:#00d4a0;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* MENU GRID */
+.menu-wrap{padding:0 1rem 1.5rem;}
+.section-label{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:#55556a;font-weight:700;padding:0 0.25rem;margin-bottom:0.75rem;}
+.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;}
+
+/* FEATURED CARD */
+.card-featured{background:linear-gradient(135deg,rgba(124,92,252,0.15) 0%,rgba(124,92,252,0.05) 100%);border:1px solid rgba(124,92,252,0.3);border-radius:20px;padding:1.5rem;text-decoration:none;color:#eeeef5;display:block;position:relative;overflow:hidden;margin-bottom:8px;transition:all 0.2s;}
+.card-featured::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(124,92,252,0.2),transparent 70%);pointer-events:none;}
+.card-featured:hover{border-color:rgba(124,92,252,0.5);transform:translateY(-2px);}
+.card-featured-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.card-featured-icon{font-size:2rem;}
+.card-featured-badge{font-size:0.62rem;padding:3px 10px;border-radius:20px;background:rgba(124,92,252,0.2);color:#b794f4;border:1px solid rgba(124,92,252,0.3);font-weight:600;letter-spacing:0.05em;}
+.card-featured-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.25rem;}
+.card-featured-desc{font-size:0.75rem;color:#6b7280;line-height:1.5;}
+
+/* REGULAR CARDS */
+.menu-item{background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.1rem;text-decoration:none;color:#eeeef5;display:flex;flex-direction:column;gap:8px;transition:all 0.2s;position:relative;overflow:hidden;}
+.menu-item::before{content:'';position:absolute;inset:0;opacity:0;background:linear-gradient(135deg,rgba(124,92,252,0.08),transparent);transition:opacity 0.2s;}
+.menu-item:hover{border-color:rgba(124,92,252,0.3);transform:translateY(-2px);}
+.menu-item:hover::before{opacity:1;}
+.menu-item-icon{font-size:1.5rem;line-height:1;}
+.menu-item-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;color:#eeeef5;}
+.menu-item-desc{font-size:0.68rem;color:#55556a;line-height:1.5;}
+
+/* FULL WIDTH CARD */
+.card-full{background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:#eeeef5;display:flex;align-items:center;gap:14px;transition:all 0.2s;margin-bottom:8px;}
+.card-full:hover{border-color:rgba(124,92,252,0.3);transform:translateY(-1px);}
+.card-full-icon{font-size:1.5rem;flex-shrink:0;}
+.card-full-content{flex:1;}
+.card-full-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;margin-bottom:2px;}
+.card-full-desc{font-size:0.68rem;color:#55556a;line-height:1.4;}
+.card-full-arrow{color:#55556a;font-size:1rem;flex-shrink:0;}
+
+/* FOOTER */
+.footer{text-align:center;padding:1rem;font-size:0.62rem;color:#2a2a3a;letter-spacing:0.1em;}
+
+/* TAB BAR */
+.p-tabbar{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(8,8,14,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:stretch;z-index:100;}
+.p-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#55556a;font-size:0.58rem;font-weight:500;transition:color 0.15s;border:none;background:none;font-family:'Noto Sans JP',sans-serif;padding:8px 4px;position:relative;}
+.p-tab:hover{color:#9090b0;}
+.p-tab.active{color:#b794f4;}
+.p-tab-icon{font-size:1.25rem;line-height:1;}
+.p-tab.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:linear-gradient(90deg,#7c5cfc,#b794f4);border-radius:0 0 3px 3px;}
 </style>
 </head>
 <body>
+
 <div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">攻略アプリ</div>
   <div class="hero-logo">PARANOISE</div>
-  <div class="hero-sub">攻略アプリ</div>
+  <div class="hero-sub">Guild Strategy Tools</div>
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    AI搭載・リアルタイム攻略
+  </div>
 </div>
-<div class="menu">
-  <a class="menu-item" href="/cards">
-    <div class="menu-icon">📖</div>
-    <div class="menu-title">カード検索</div>
-    <div class="menu-desc">キャラ・スキルを検索。レアリティ・属性でフィルター。</div>
+
+<div class="menu-wrap">
+
+  <!-- 麗華の野望 フィーチャードカード -->
+  <a class="card-featured" href="/reika">
+    <div class="card-featured-top">
+      <span class="card-featured-icon">⚔️</span>
+      <span class="card-featured-badge">AI POWERED</span>
+    </div>
+    <div class="card-featured-title">麗華の野望</div>
+    <div class="card-featured-desc">AIが戦況を分析し、今日の立ち回りと班編成を提案。勝率を最大化する戦略をリアルタイムで生成。</div>
   </a>
-  <a class="menu-item" href="/reika">
-    <div class="menu-icon">⚔️</div>
-    <div class="menu-title">麗華の野望</div>
-    <div class="menu-desc">AIが状況を分析して戦略を提案。</div>
+
+  <!-- 2列グリッド -->
+  <div class="menu">
+    <a class="menu-item" href="/cards">
+      <div class="menu-item-icon">📖</div>
+      <div class="menu-item-title">カード検索</div>
+      <div class="menu-item-desc">全92枚のキャラ・スキルをフィルター検索</div>
+    </a>
+    <a class="menu-item" href="/formation">
+      <div class="menu-item-icon">🧩</div>
+      <div class="menu-item-title">編成AI</div>
+      <div class="menu-item-desc">手持ちSSRから最強の4班編成を提案</div>
+    </a>
+  </div>
+
+  <!-- フル幅カード -->
+  <a class="card-full" href="/tasks">
+    <span class="card-full-icon">📅</span>
+    <div class="card-full-content">
+      <div class="card-full-title">タスク管理</div>
+      <div class="card-full-desc">デイリー・ウィークリー・月次イベントを一元管理</div>
+    </div>
+    <span class="card-full-arrow">›</span>
   </a>
-  <a class="menu-item" href="/tasks">
-    <div class="menu-icon">📅</div>
-    <div class="menu-title">タスク管理</div>
-    <div class="menu-desc">デイリー・ウィークリーと月次イベントを管理。</div>
+
+  <a class="card-full" href="/memo">
+    <span class="card-full-icon">📝</span>
+    <div class="card-full-content">
+      <div class="card-full-title">共有メモ</div>
+      <div class="card-full-desc">合言葉でギルドメンバーとメモを共有</div>
+    </div>
+    <span class="card-full-arrow">›</span>
   </a>
-  <a class="menu-item" href="/memo">
-    <div class="menu-icon">📝</div>
-    <div class="menu-title">共有メモ</div>
-    <div class="menu-desc">合言葉でアクセスできるメモスペース。</div>
-  </a>
-  <a class="menu-item" href="/formation">
-    <div class="menu-icon">🧠</div>
-    <div class="menu-title">編成アドバイザー</div>
-    <div class="menu-desc">手持ちカードを選ぶだけでAIが最強編成を提案！</div>
-  </a>
+
 </div>
-<div class="version">v1.0.0</div>
+
+<div class="footer">v1.0.0 · PARANOISE GUILD TOOLS</div>
+
 <nav class="p-tabbar">
   <a class="p-tab active" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
   <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
-  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>麗華</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
   <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
   <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
-  <a class="p-tab" href="/board"><span class="p-tab-icon">💬</span>掲示板</a>
 </nav>
+
 </body>
 </html>
