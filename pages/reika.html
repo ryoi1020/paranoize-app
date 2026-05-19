@@ -154,11 +154,11 @@ body{background:var(--bg);}
     </div>
 
     <div class="fld" style="margin-bottom:1rem;">
-      <span>布告可能数（前日ランキング）</span>
+      <span>布告可能数（前日火曜ランキング）</span>
       <select id="sc">
         <option value="">選択してください</option>
         <option value="three" id="opt3" style="display:none;">3つ（全国版）</option>
-        <option value="two" id="opt2">2つ（上位8ギルド）</option>
+        <option value="two" id="opt2">2つ（8位以内）＋拠点2つ持ちスタート</option>
         <option value="one" id="opt1">1つ（9〜16位）</option>
         <option value="zero">0（布告権なし）</option>
       </select>
@@ -377,12 +377,13 @@ function buildPrompt(){
   var vuln=own.filter(function(n){return atk.indexOf(n)>=0;});
   var myF=myP!==null?myP+myD*d:null;var enF=enP!==null?enP+enD*d:null;
   var fd=myF!==null&&enF!==null?myF-enF:null;
-  var scL={'three':'3つ（全国版）','two':'2つ（上位8ギルド）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
+  var scL={'three':'3つ（全国版）','two':'2つ（8位以内・★1拠点2つ持ちスタート）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
   p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
-  p+='- 布告可能数は前日ランキング次第（通常版：上位8ギルドは2つ、9〜16位は1つ、全国版は3つ）\n';
+  p+='- 布告可能数は前日火曜ランキング次第（通常版：8位以内は2つ、9〜16位は1つ、全国版は3つ）\n';
+  p+='- 8位以内（布告2つ）のギルドは、★1拠点2つ持ちの状態でスタートできる（火曜のランキング報酬として付与される）\n';
   p+='- ★1=1pt/日、★2=2pt/日、★3（本丸）=3pt/日（毎日終戦後に加算）\n';
   p+='- ★2への布告条件：★1を1つ以上保有\n';
   p+='- 本丸（★3）への布告条件：★2を1つ、または★1を2つ以上保有\n';
@@ -394,6 +395,7 @@ function buildPrompt(){
   p+='- 開催形式：'+(isN?'全国版（1週間・22:00〜22:45）':'通常版（2週間・21:00〜21:45）')+'\n';
   p+='- 残り日数：'+d+'日（全'+max+'日中）\n';
   p+='- 布告可能数：'+scL+'\n';
+  if(sc==='two'&&own.length===0){p+='- ※8位以内のため、★1拠点を2つ持った状態でスタートしている可能性が高い。初日から本丸へ布告できる超攻撃戦略を最優先で提案すること\n';}
   p+='- 相手の戦力：'+enL+'\n\n';
 
   p+='## 自チームの保有拠点\n';
