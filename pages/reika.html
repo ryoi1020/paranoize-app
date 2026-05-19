@@ -183,6 +183,55 @@ body{background:var(--bg);}
 </div>
 
 <script>
+var BASES_TOUHOKU={
+  '本丸':{star:3,neighbors:['肉屋A','メゾン・ド・イエ','本田のマンション','八本木ヒルズ']},
+  '八本木ヒルズ':{star:2,neighbors:['本丸','映画館A','ゲームセンターA']},
+  '温泉宿':{star:2,neighbors:['カシワ荘','映画館A','酒場','魚屋A']},
+  '本田のマンション':{star:2,neighbors:['本丸','カシワ荘','映画館B','魚屋A']},
+  'メゾン・ド・イエ':{star:2,neighbors:['本丸','カジノ']},
+  'カジノ':{star:2,neighbors:['メゾン・ド・イエ','本屋','宮本家','映画館B']},
+  '肉屋A':{star:1,neighbors:['本丸','ゲームセンターB']},
+  '肉屋B':{star:1,neighbors:['魚屋B','魚屋A']},
+  '魚屋A':{star:1,neighbors:['肉屋B','温泉宿','本田のマンション']},
+  '魚屋B':{star:1,neighbors:['肉屋B','映画館B']},
+  'ゲームセンターA':{star:1,neighbors:['橘家','八本木ヒルズ']},
+  'ゲームセンターB':{star:1,neighbors:['肉屋A','本屋']},
+  '本屋':{star:1,neighbors:['ゲームセンターB','宮本家','カジノ']},
+  '宮本家':{star:1,neighbors:['カジノ','本屋']},
+  '映画館A':{star:1,neighbors:['八本木ヒルズ','温泉宿']},
+  '映画館B':{star:1,neighbors:['カジノ','本田のマンション','魚屋B']},
+  'カシワ荘':{star:1,neighbors:['本田のマンション','温泉宿']},
+  '酒場':{star:1,neighbors:['温泉宿','橘家']},
+  '橘家':{star:1,neighbors:['酒場','ゲームセンターA']}
+};
+
+var BASES_TOUKAI={
+  '本丸':{star:3,neighbors:['麗華のお屋敷','本田のマンション','肉屋B','八本木ヒルズ']},
+  '麗華のお屋敷':{star:2,neighbors:['本丸','宮本家','温泉宿','ゲームセンター']},
+  '本田のマンション':{star:2,neighbors:['魚屋B','本丸','橘家']},
+  '八本木ヒルズ':{star:2,neighbors:['本丸','酒場B']},
+  '温泉宿':{star:2,neighbors:['麗華のお屋敷','鍛冶屋A']},
+  'カジノ':{star:2,neighbors:['肉屋A','酒場A']},
+  'サンシャイン77':{star:2,neighbors:['肉屋A','魚屋A','カシワ荘']},
+  '肉屋B':{star:1,neighbors:['本丸','魚屋B']},
+  '魚屋B':{star:1,neighbors:['本田のマンション','肉屋B','道場B']},
+  '道場B':{star:1,neighbors:['魚屋B','鍛冶屋B']},
+  '鍛冶屋B':{star:1,neighbors:['道場B','本屋B']},
+  '本屋B':{star:1,neighbors:['橘家','映画館']},
+  '橘家':{star:1,neighbors:['本田のマンション','宮本家','酒場A']},
+  '宮本家':{star:1,neighbors:['橘家','麗華のお屋敷','酒場A']},
+  '酒場B':{star:1,neighbors:['八本木ヒルズ','ゲームセンター']},
+  'ゲームセンター':{star:1,neighbors:['鍛冶屋A','酒場B','麗華のお屋敷']},
+  '鍛冶屋A':{star:1,neighbors:['ゲームセンター','本屋A','温泉宿']},
+  '本屋A':{star:1,neighbors:['鍛冶屋A','道場A']},
+  '道場A':{star:1,neighbors:['カシワ荘','本屋A']},
+  'カシワ荘':{star:1,neighbors:['道場A','サンシャイン77']},
+  '肉屋A':{star:1,neighbors:['サンシャイン77','カジノ']},
+  '酒場A':{star:1,neighbors:['橘家','宮本家','カジノ']},
+  '魚屋A':{star:1,neighbors:['サンシャイン77','映画館']},
+  '映画館':{star:1,neighbors:['魚屋A','本屋B']}
+};
+
 var BASES={
   '本丸':{star:3,neighbors:['肉屋A','メゾン・ド・イエ','本田のマンション','八本木ヒルズ']},
   '八本木ヒルズ':{star:2,neighbors:['本丸','映画館A','ゲームセンターA']},
@@ -204,13 +253,26 @@ var BASES={
   '酒場':{star:1,neighbors:['温泉宿','橘家']},
   '橘家':{star:1,neighbors:['酒場','ゲームセンターA']}
 };
-var MAPS={'トウホク':{available:true},'トウカイ':{available:false},'キンキ':{available:false},'シコク':{available:false},'キュウシュウ':{available:false}};
+var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:false},'シコク':{available:false},'キュウシュウ':{available:false}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
 
 function sl(n){return '★'.repeat(BASES[n].star);}
 function pts(l){return l.reduce(function(s,n){return s+(BASES[n]?BASES[n].star:0);},0);}
 function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'+n);return e&&e.checked;});}
+
+function updateBases(){
+  if(MAP==='トウカイ'){
+    Object.assign(BASES, BASES_TOUKAI);
+    // トウカイ用にBASESをリセット
+    for(var k in BASES){ if(!BASES_TOUKAI[k]) delete BASES[k]; }
+    Object.assign(BASES, BASES_TOUKAI);
+  } else {
+    for(var k in BASES){ if(!BASES_TOUHOKU[k]) delete BASES[k]; }
+    Object.assign(BASES, BASES_TOUHOKU);
+  }
+  BN = Object.keys(BASES);
+}
 
 function buildMapBtns(){
   var c=document.getElementById('mapBtns');c.innerHTML='';
@@ -219,7 +281,7 @@ function buildMapBtns(){
     var b=document.createElement('button');
     b.textContent=n+(av?'':'（未公開）');b.disabled=!av;
     b.className='mb'+(n===MAP?' act':'');
-    if(av){b.onclick=function(){MAP=n;buildMapBtns();buildGrids();document.getElementById('result').innerHTML='';updateSim();};}
+    if(av){b.onclick=function(){MAP=n;updateBases();buildMapBtns();buildGrids();document.getElementById('result').innerHTML='';updateSim();};}
     c.appendChild(b);
   });
 }
@@ -495,7 +557,7 @@ function renderResult(a){
   document.getElementById('result').innerHTML=h;
 }
 
-buildMapBtns();buildGrids();onDaysChange();
+updateBases();buildMapBtns();buildGrids();onDaysChange();
 </script>
 <nav class="p-tabbar">
   <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
