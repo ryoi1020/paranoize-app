@@ -138,52 +138,32 @@ body{background:var(--bg);}
 var currentKeyword = '';
 var memos = [];
 var activeTag = '';
-var SUPABASE_URL = 'https://hpyaocrnmvnnbltbazrx.supabase.co';
-var SUPABASE_KEY = 'SUPABASE_KEY_REMOVED';
-
-// Supabaseのanon keyを使ってメモを保存・読込
+// APIプロキシ経由でSupabaseにアクセス
 async function loadFromStorage(kw){
   try{
-    // まずローカルキャッシュを確認
     var local = localStorage.getItem('paranoise_memo_' + kw);
     var localData = local ? JSON.parse(local) : [];
-    
-    // Supabaseから取得
-    var res = await fetch(SUPABASE_URL + '/rest/v1/memo_data?keyword=eq.' + encodeURIComponent(kw) + '&select=data', {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY
-      }
-    });
+    var res = await fetch('/api/memo?action=load&keyword=' + encodeURIComponent(kw));
     if(res.ok){
-      var rows = await res.json();
-      if(rows.length > 0){
-        return JSON.parse(rows[0].data);
-      }
+      var result = await res.json();
+      if(result.data) return JSON.parse(result.data);
     }
     return localData;
   }catch(e){
-    // オフライン時はローカルから
-    var local = localStorage.getItem('paranoise_memo_' + currentKeyword);
+    var local = localStorage.getItem('paranoise_memo_' + kw);
     return local ? JSON.parse(local) : [];
   }
 }
 
 async function saveToStorage(){
-  // ローカルにも保存
   localStorage.setItem('paranoise_memo_' + currentKeyword, JSON.stringify(memos));
   try{
-    await fetch(SUPABASE_URL + '/rest/v1/memo_data', {
+    await fetch('/api/memo', {
       method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({keyword: currentKeyword, data: JSON.stringify(memos)})
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'save', keyword: currentKeyword, data: JSON.stringify(memos)})
     });
-  }catch(e){ console.log('Supabase保存エラー:', e); }
+  }catch(e){ console.log('保存エラー:', e); }
 }
 
 function getHistory(){
