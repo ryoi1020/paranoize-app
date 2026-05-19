@@ -93,7 +93,7 @@ body{background:var(--bg);}
 
 <div class="p-nav">
   <a href="/" class="p-nav-back">← ホーム</a>
-  <span class="p-nav-title">⚔️ 編成アドバイザー</span>
+  <span class="p-nav-title">🧩 編成アドバイザー</span>
 </div>
 
 <div class="p-wrap">
@@ -166,13 +166,13 @@ body{background:var(--bg);}
   <textarea class="memo-input" id="memoInput" placeholder="例：スリープ系が多い敵に対応したい、回復役を入れたい、など..."></textarea>
 
   <!-- 分析ボタン -->
-  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">⚔️ AIに編成を分析してもらう</button>
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">🧩 AIに編成を分析してもらう</button>
 
   <!-- 結果 -->
   <div class="result-wrap" id="resultWrap">
     <div class="result-card">
       <div class="result-header">
-        <span class="result-icon">⚔️</span>
+        <span class="result-icon">🧩</span>
         <span class="result-title">編成アドバイス</span>
       </div>
       <div class="result-body">
@@ -190,7 +190,7 @@ body{background:var(--bg);}
 <nav class="p-tabbar">
   <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
   <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
-  <a class="p-tab active" href="/formation"><span class="p-tab-icon">⚔️</span>編成</a>
+  <a class="p-tab active" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
   <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
   <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
   <a class="p-tab" href="/board"><span class="p-tab-icon">💬</span>掲示板</a>
@@ -480,7 +480,7 @@ async function analyze() {
   }
   var btn = document.getElementById('analyzeBtn');
   btn.disabled = true;
-  btn.textContent = '⚔️ 分析中...';
+  btn.textContent = '🧩 分析中...';
   var resultWrap = document.getElementById('resultWrap');
   var resultContent = document.getElementById('resultContent');
   resultWrap.classList.add('show');
@@ -504,7 +504,7 @@ async function analyze() {
     resultContent.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">エラーが発生しました。しばらく待ってから再試行してください。</div>';
   }
   btn.disabled = false;
-  btn.textContent = '⚔️ AIに編成を分析してもらう';
+  btn.textContent = '🧩 AIに編成を分析してもらう';
 }
 
 async function followup() {
