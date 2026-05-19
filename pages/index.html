@@ -72,6 +72,10 @@ body{
 .featured-desc{font-size:0.73rem;color:rgba(255,255,255,0.75);line-height:1.6;}
 .featured-cta{display:inline-flex;align-items:center;gap:6px;margin-top:1.1rem;font-size:0.72rem;color:rgba(255,255,255,0.9);font-weight:600;}
 .featured-cta-arrow{background:rgba(255,255,255,0.2);border-radius:100px;padding:3px 10px;font-size:0.7rem;border:1px solid rgba(255,255,255,0.25);}
+.featured-sub{margin-bottom:0.75rem;}
+.featured-inner-sub{background:linear-gradient(135deg,rgba(4,120,87,0.75) 0%,rgba(5,150,105,0.7) 50%,rgba(52,211,153,0.65) 100%);padding:1.2rem;}
+.featured-inner-sub .featured-title{font-size:1.2rem;}
+.featured-inner-sub .featured-desc{font-size:0.71rem;}
 
 /* 2列グリッド */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
@@ -130,9 +134,11 @@ body{
   <div class="hero-sub">攻略アプリ · Powered by eサプリ</div>
 </div>
 
-<!-- 麗華の野望 フィーチャード -->
+<!-- AI機能 -->
 <div class="section">
-  <div class="section-label">注目機能</div>
+  <div class="section-label">AI機能</div>
+
+  <!-- 麗華の野望 戦略AI -->
   <a class="featured" href="/reika">
     <div class="featured-inner">
       <div class="featured-shine"></div>
@@ -141,41 +147,46 @@ body{
         <span class="featured-icon">⚔️</span>
         <span class="featured-badge">AI Powered</span>
       </div>
-      <div class="featured-title">麗華の野望</div>
+      <div class="featured-title">麗華の野望 戦略AI</div>
       <div class="featured-desc">戦況を入力するだけでAIが最適戦略を提案。立ち回り・班編成・逆転シミュレーションまで対応。</div>
       <div class="featured-cta">戦略を分析する <span class="featured-cta-arrow">→</span></div>
     </div>
   </a>
+
+  <!-- 編成AI -->
+  <a class="featured featured-sub" href="/formation">
+    <div class="featured-inner featured-inner-sub">
+      <div class="featured-shine"></div>
+      <div class="featured-glow"></div>
+      <div class="featured-top">
+        <span class="featured-icon">🧩</span>
+        <span class="featured-badge">AI Powered</span>
+      </div>
+      <div class="featured-title">編成アドバイザー</div>
+      <div class="featured-desc">手持ちSSRを選ぶだけで最強4班編成をAIが提案。入場スキルの配置まで考慮した本格分析。</div>
+      <div class="featured-cta">編成を分析する <span class="featured-cta-arrow">→</span></div>
+    </div>
+  </a>
 </div>
 
-<!-- カード検索 + 編成AI -->
+<!-- カード検索・ツール -->
 <div class="section">
-  <div class="section-label">データベース</div>
-  <div class="grid2">
-    <a class="card glass" href="/cards">
-      <div class="card-shine"></div>
-      <div class="card-icon">📖</div>
-      <div class="card-title">カード検索</div>
-      <div class="card-desc">全92枚のキャラ・スキルを即検索</div>
-    </a>
-    <a class="card glass" href="/formation">
-      <div class="card-shine"></div>
-      <div class="card-icon">🧩</div>
-      <div class="card-title">編成AI</div>
-      <div class="card-desc">SSRを選ぶだけで4班編成を提案</div>
-    </a>
-  </div>
-</div>
-
-<!-- タスク・メモ -->
-<div class="section">
-  <div class="section-label">ギルドツール</div>
+  <div class="section-label">データ＆ツール</div>
+  <a class="list-card glass" href="/cards">
+    <div class="list-card-shine"></div>
+    <div class="list-icon" style="background:linear-gradient(135deg,rgba(5,150,105,0.15),rgba(4,120,87,0.08));border:1px solid rgba(5,150,105,0.2);">📖</div>
+    <div class="list-body">
+      <div class="list-title">カード検索</div>
+      <div class="list-desc">全92枚のキャラ・スキルをレアリティ・属性でフィルター検索</div>
+    </div>
+    <span class="list-chevron">›</span>
+  </a>
   <a class="list-card glass" href="/tasks">
     <div class="list-card-shine"></div>
     <div class="list-icon green">📅</div>
     <div class="list-body">
       <div class="list-title">タスク管理</div>
-      <div class="list-desc">デイリー・ウィークリー・月次イベントを管理</div>
+      <div class="list-desc">デイリー・ウィークリー・月次イベントを一元管理</div>
     </div>
     <span class="list-chevron">›</span>
   </a>

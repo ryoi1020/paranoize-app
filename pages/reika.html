@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>麗華の野望 開幕前 戦略アドバイザー</title>
+  <title>麗華の野望 戦略AI 開幕前 戦略アドバイザー</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
 body{background:var(--bg);}
@@ -50,7 +50,7 @@ body{background:var(--bg);}
   <div class="hdr">
     <div class="hdr-icon"><i class="ti ti-sword"></i></div>
     <div>
-      <h1>麗華の野望 開幕前 戦略アドバイザー</h1>
+      <h1>麗華の野望 戦略AI 開幕前 戦略アドバイザー</h1>
       <p>AIが状況を総合判断して今日と明日以降の戦略を提案します</p>
     </div>
   </div>
@@ -264,7 +264,7 @@ function buildPrompt(){
   var scL={'three':'3つ（全国版）','two':'2つ（上位8ギルド）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
-  var p='# 麗華の野望 戦略分析\n\n## ゲームルール（重要）\n';
+  var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
   p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
   p+='- 布告可能数は前日ランキング次第（通常版：上位8ギルドは2つ、9〜16位は1つ、全国版は3つ）\n';
   p+='- ★1=1pt/日、★2=2pt/日、★3（本丸）=3pt/日（毎日終戦後に加算）\n';
