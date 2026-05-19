@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARANOISE — 編成アドバイザー</title>
+<link rel="stylesheet" href="/assets/common.css">
+<style>
+body{background:var(--bg);}
+.page-header{text-align:center;padding:1.5rem 1rem 1rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-desc{font-size:0.82rem;color:var(--tx2);margin-top:6px;line-height:1.6;}
+
+/* 用途 */
+.purpose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem;}
+.purpose-btn{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.15s;box-shadow:var(--shadow);}
+.purpose-btn:hover{border-color:var(--accent);}
+.purpose-btn.active{border-color:var(--accent);background:var(--accent3);box-shadow:var(--shadow2);}
+.purpose-icon{font-size:1.4rem;margin-bottom:4px;}
+.purpose-label{font-size:0.75rem;font-weight:700;color:var(--tx);}
+.purpose-sub{font-size:0.62rem;color:var(--tx3);margin-top:2px;}
+
+/* 選択済みカード */
+.selected-area{min-height:52px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r12);padding:10px 12px;display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;box-shadow:var(--shadow);}
+.selected-empty{font-size:0.78rem;color:var(--tx3);align-self:center;width:100%;text-align:center;}
+.sel-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent3);border:1px solid rgba(107,70,245,0.25);border-radius:var(--r99);padding:3px 10px;font-size:0.72rem;font-weight:600;color:var(--accent);cursor:pointer;transition:all 0.15s;}
+.sel-chip:hover{background:#fee2e2;border-color:var(--red);color:var(--red);}
+
+/* カード検索 */
+.card-search-box{display:flex;gap:8px;align-items:center;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:0 12px;margin-bottom:8px;box-shadow:var(--shadow);}
+.card-search-box:focus-within{border-color:var(--accent);}
+.card-search-input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:0.88rem;font-family:'Noto Sans JP',sans-serif;padding:10px 0;}
+.card-search-input::placeholder{color:var(--tx3);}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.fbtn{background:var(--bg2);border:1px solid var(--border2);color:var(--tx2);border-radius:var(--r99);padding:4px 11px;font-size:0.72rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;}
+.fbtn:hover{border-color:var(--accent);color:var(--accent);}
+.fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* カードグリッド */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:300px;overflow-y:auto;margin-bottom:1.25rem;padding:2px;}
+.card-option{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:8px 10px;cursor:pointer;transition:all 0.15s;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.card-option:hover{border-color:var(--accent);transform:translateY(-1px);}
+.card-option.on{border-color:var(--accent);background:var(--accent3);}
+.card-option.on::after{content:'✓';position:absolute;top:5px;right:7px;color:var(--accent);font-weight:800;font-size:0.8rem;}
+.opt-rarity{font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block;margin-bottom:3px;}
+.opt-rarity.SSR{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.opt-rarity.SR{background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;}
+.opt-rarity.R{background:#fef3c7;color:#78350f;border:1px solid #fcd34d;opacity:0.7;}
+.opt-name{font-size:0.78rem;font-weight:700;color:var(--tx);line-height:1.3;}
+.opt-card{font-size:0.63rem;color:var(--tx3);margin-top:2px;line-height:1.3;}
+.opt-tags{display:flex;gap:3px;margin-top:4px;}
+.tag-xs{font-size:0.6rem;padding:1px 5px;border-radius:3px;font-weight:500;}
+.attr-地{background:#d1fae5;color:#065f46;}
+.attr-光{background:#fef9c3;color:#854d0e;}
+.attr-闇{background:#ede9fe;color:#5b21b6;}
+.atk-xs{background:#dbeafe;color:#1e40af;}
+
+/* メモ */
+.memo-input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:10px 12px;color:var(--tx);font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;resize:none;height:68px;line-height:1.6;box-shadow:var(--shadow);margin-bottom:1.25rem;}
+.memo-input:focus{border-color:var(--accent);}
+.memo-input::placeholder{color:var(--tx3);}
+
+/* 分析ボタン */
+.analyze-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--r12);color:#fff;font-size:1rem;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(107,70,245,0.3);margin-bottom:1.5rem;}
+.analyze-btn:hover{opacity:0.9;transform:translateY(-1px);}
+.analyze-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* 結果 */
+.result-wrap{display:none;margin-bottom:4rem;}
+.result-wrap.show{display:block;}
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow2);}
+.result-header{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.result-icon{font-size:1.4rem;}
+.result-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
+.result-body{padding:1.25rem 1.5rem;}
+.result-text{font-size:0.88rem;color:var(--tx);line-height:1.9;white-space:pre-wrap;}
+.loading-wrap{text-align:center;padding:2.5rem;}
+.loading-text{font-size:0.85rem;color:var(--tx2);margin-top:12px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* 追加質問 */
+.followup-wrap{margin-top:1rem;display:none;}
+.followup-wrap.show{display:flex;gap:8px;}
+.followup-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);padding:9px 12px;color:var(--tx);font-size:0.85rem;font-family:'Noto Sans JP',sans-serif;outline:none;}
+.followup-input:focus{border-color:var(--accent);}
+.followup-input::placeholder{color:var(--tx3);}
+.followup-btn{background:var(--accent);border:none;border-radius:var(--r8);padding:9px 14px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+
+.sel-count{font-size:0.72rem;color:var(--accent);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="p-nav">
+  <a href="/" class="p-nav-back">← ホーム</a>
+  <span class="p-nav-title">🧠 編成アドバイザー</span>
+</div>
+
+<div class="p-wrap">
+  <div class="page-header">
+    <div class="page-title">編成アドバイザー</div>
+    <div class="page-desc">手持ちカードを選ぶだけでAIが最強編成を提案！<br>理由・立ち回りまで丁寧に解説します。</div>
+  </div>
+
+  <!-- 用途選択 -->
+  <div class="p-label" style="margin-bottom:10px;">① 何のための編成？</div>
+  <div class="purpose-grid">
+    <div class="purpose-btn active" onclick="selectPurpose(this,'麗華の野望')">
+      <div class="purpose-icon">⚔️</div>
+      <div class="purpose-label">麗華の野望</div>
+      <div class="purpose-sub">拠点攻防戦</div>
+    </div>
+    <div class="purpose-btn" onclick="selectPurpose(this,'レイド')">
+      <div class="purpose-icon">🔥</div>
+      <div class="purpose-label">レイド</div>
+      <div class="purpose-sub">高火力重視</div>
+    </div>
+    <div class="purpose-btn" onclick="selectPurpose(this,'闘技場')">
+      <div class="purpose-icon">🏆</div>
+      <div class="purpose-label">闘技場</div>
+      <div class="purpose-sub">対人戦</div>
+    </div>
+    <div class="purpose-btn" onclick="selectPurpose(this,'謎の遺跡')">
+      <div class="purpose-icon">🗺️</div>
+      <div class="purpose-label">謎の遺跡</div>
+      <div class="purpose-sub">メインバトル</div>
+    </div>
+    <div class="purpose-btn" onclick="selectPurpose(this,'初心者育成')">
+      <div class="purpose-icon">🌱</div>
+      <div class="purpose-label">初心者育成</div>
+      <div class="purpose-sub">序盤攻略</div>
+    </div>
+    <div class="purpose-btn" onclick="selectPurpose(this,'汎用')">
+      <div class="purpose-icon">⭐</div>
+      <div class="purpose-label">汎用</div>
+      <div class="purpose-sub">万能編成</div>
+    </div>
+  </div>
+
+  <!-- 手持ちカード選択 -->
+  <div class="p-label" style="margin-bottom:8px;">
+    ② 手持ちのカードを選択
+    <span class="sel-count" id="selCount">（0枚）</span>
+  </div>
+  <div class="selected-area" id="selectedArea">
+    <span class="selected-empty" id="selectedEmpty">カードを選んでください（タップで解除できます）</span>
+  </div>
+
+  <!-- 検索・フィルター -->
+  <div class="card-search-box">
+    <span style="color:var(--tx3);">🔍</span>
+    <input class="card-search-input" id="searchInput" placeholder="カード名・キャラ名で検索..." oninput="renderCards()">
+  </div>
+  <div class="filter-row">
+    <button class="fbtn" onclick="toggleF('rarity','SSR',this)">SSR</button>
+    <button class="fbtn" onclick="toggleF('rarity','SR',this)">SR</button>
+    <button class="fbtn" onclick="toggleF('rarity','R',this)">R</button>
+    <button class="fbtn" onclick="toggleF('attr','地',this)">🟢 地</button>
+    <button class="fbtn" onclick="toggleF('attr','光',this)">🟡 光</button>
+    <button class="fbtn" onclick="toggleF('attr','闇',this)">🟣 闇</button>
+    <button class="fbtn" onclick="toggleF('atk','物理',this)">物理</button>
+    <button class="fbtn" onclick="toggleF('atk','特殊',this)">特殊</button>
+  </div>
+  <div class="card-grid" id="cardGrid"></div>
+
+  <!-- 追加メモ -->
+  <div class="p-label" style="margin-bottom:8px;">③ 補足があれば（任意）</div>
+  <textarea class="memo-input" id="memoInput" placeholder="例：スリープ系が多い敵に対応したい、回復役を入れたい、など..."></textarea>
+
+  <!-- 分析ボタン -->
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">🧠 AIに編成を分析してもらう</button>
+
+  <!-- 結果 -->
+  <div class="result-wrap" id="resultWrap">
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-icon">🧠</span>
+        <span class="result-title">編成アドバイス</span>
+      </div>
+      <div class="result-body">
+        <div id="resultContent"></div>
+        <div class="followup-wrap" id="followupWrap">
+          <input class="followup-input" id="followupInput" placeholder="追加で聞きたいことは？" onkeydown="if(event.key==='Enter')followup()">
+          <button class="followup-btn" onclick="followup()">質問</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="p-tabbar">
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab active" href="/formation"><span class="p-tab-icon">🧠</span>編成</a>
+  <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
+  <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
+  <a class="p-tab" href="/board"><span class="p-tab-icon">💬</span>掲示板</a>
+</nav>
+
+<script>
+var selectedCards = [];
+var filters = {rarity:[], attr:[], atk:[]};
+var purpose = '麗華の野望';
+var conversationHistory = [];
+
+var CARDS = [
+  {rarity:'SSR',name:'望月 那由多',card:'ファースト・ラブ',attr:'地',atk:'特殊',passive:['入場スリープ(2体)','回復の遺志'],active:['ファーストエイド','サバイバー','迅速攻撃']},
+  {rarity:'SSR',name:'天草 仁',card:'あなたを見ていると',attr:'闇',atk:'物理',passive:['ポイズンスキン','EX反撃体勢'],active:['シリアルキラー(2体)','強化アタック(2体)','アタック(2体)']},
+  {rarity:'SSR',name:'黒澤 アンナ',card:'心を惑わす嘘',attr:'地',atk:'特殊',passive:['復讐スリープ(2体)','逆境の一撃EX(2体)'],active:['ドリームハンター','スリープタッチ','迅速攻撃']},
+  {rarity:'SSR',name:'鳳梨 麗華',card:'夕立の迷子',attr:'地',atk:'特殊',passive:['反撃態勢','根性'],active:['逆境ドレイン','サバイバー','アタック(2体)']},
+  {rarity:'SSR',name:'橘 結衣',card:'ピュアな駆け引き',attr:'光',atk:'物理',passive:['反撃態勢','回復の遺志'],active:['HP反転','タイムストライク','アタック(全体)']},
+  {rarity:'SSR',name:'蒼木 祥子',card:'今夜のデザートは…',attr:'光',atk:'特殊',passive:['入場スタン(2体)','HP反転'],active:['シリアルキラー','タイムストライク','アタック(2体)']},
+  {rarity:'SSR',name:'本田 美波',card:'デートじゃないよね？',attr:'光',atk:'物理',passive:['オートスタン','根性'],active:['ヒール&デトックス','サバイバー','迅速攻撃(全体)']},
+  {rarity:'SSR',name:'橘 智弥',card:'頂点捕食者',attr:'闇',atk:'物理',passive:['入場ポイズン(全体)','逆境ドレイン(2体)'],active:['シリアルキラー','ポイズンイーター','アタック(2体)']},
+  {rarity:'SSR',name:'宮本 涼子',card:'咥えタバコの弔い酒',attr:'光',atk:'特殊',passive:['入場スタン(2体)','逆境ドレイン(2体)'],active:['タイムストライク','EX戦術的撤退','迅速攻撃']},
+  {rarity:'SSR',name:'橘 結衣',card:'その視線の先に',attr:'地',atk:'特殊',passive:['復讐スリープ(2体)','HP反転'],active:['EXスリープ(2体)','サバイバー','アタック']},
+  {rarity:'SSR',name:'黒澤 アンナ',card:'密室のミーティング',attr:'闇',atk:'物理',passive:['ポイズンスキン','EXチャージ'],active:['ポイズンイーター','ポイズンタッチ','ポイズンアタック']},
+  {rarity:'SSR',name:'柳葉 龍',card:'遅れてきた男',attr:'地',atk:'特殊',passive:['オートスリープ','EXチャージ'],active:['ドリームハンター','強化迅速攻撃(全体)','アタック(2体)']},
+  {rarity:'SSR',name:'橘 智弥',card:'兄として、友として',attr:'光',atk:'物理',passive:['スタンスキン','HP反転'],active:['サバイバー','スタンアサルトEX(2体)','アタック']},
+  {rarity:'SSR',name:'宮本 蓮士',card:'打ち明けた秘密',attr:'地',atk:'特殊',passive:['入場スリープ(2体)','孤軍奮闘'],active:['ドリームハンター','EX戦術的撤退','アタック']},
+  {rarity:'SSR',name:'蒼木 祥子',card:'空腹の打ち合わせ',attr:'闇',atk:'物理',passive:['オートポイズン','復讐ポイズン'],active:['逆境ドレイン','ポイズンイーター','アタック(2体)']},
+  {rarity:'SR',name:'モクマル',card:'レンジの頼れる？相棒',attr:'光',atk:'特殊',passive:['復讐スタン'],active:['強化アタック(2体)','アタック']},
+  {rarity:'SR',name:'鳳梨 恵理華',card:'炎と共に消えた姉',attr:'地',atk:'特殊',passive:[],active:['ギブターンEX','サバイバー','アタック']},
+  {rarity:'SR',name:'柳葉 龍',card:'反骨のアウトロー',attr:'地',atk:'物理',passive:[],active:['強化アタック','アタック']},
+  {rarity:'SR',name:'宮本 涼子',card:'家族思いの元ヤンドライバー',attr:'地',atk:'特殊',passive:['復讐スリープ'],active:['強化アタック','アタック']},
+  {rarity:'SR',name:'榊原 大地',card:'器用に生きる曲者ヤクザ',attr:'光',atk:'物理',passive:[],active:['タイムストライク','スタンガン']},
+  {rarity:'SR',name:'黒澤 アンナ',card:'特殊犯罪六課のエリート刑事',attr:'闇',atk:'特殊',passive:['復讐ポイズン'],active:['ポイズンイーター','アタック(2体)','ポイズンアタック']},
+  {rarity:'SR',name:'蒼木 祥子',card:'欲望を秘めた化学教師',attr:'闇',atk:'物理',passive:['復讐ポイズン'],active:['ポイズンイーター','アタック(2体)','ポイズンアタック']},
+  {rarity:'SR',name:'望月 那由多',card:'気だるげ天才ハッカー',attr:'光',atk:'特殊',passive:['入場スタン'],active:['強化アタック(2体)','アタック(2体)']},
+  {rarity:'SR',name:'火神 禅',card:'戦地を統べる赤き虎',attr:'闇',atk:'物理',passive:[],active:['孤軍奮闘','強化アタック','アタック']},
+  {rarity:'SR',name:'美影 メイサ',card:'闇に舞う鳳梨の隠し刀',attr:'地',atk:'特殊',passive:['入場スリープ'],active:['強化アタック(2体)','アタック(2体)']},
+  {rarity:'SR',name:'橘 智弥',card:'誰もが慕う頼れる主将',attr:'光',atk:'物理',passive:['オートガード'],active:['強化アタック(2体)','アタック']},
+  {rarity:'SR',name:'天草 仁',card:'鳳梨に忠誠を誓った男',attr:'闇',atk:'特殊',passive:['根性'],active:['サバイバー','強化アタック(全体)','アタック']},
+  {rarity:'SR',name:'宮本 蓮士',card:'黒き刃を振るう青年',attr:'闇',atk:'物理',passive:['根性'],active:['孤軍奮闘','タイムストライク','アタック']},
+  {rarity:'SR',name:'鳳梨 麗華',card:'鳳梨の名を背負う少女',attr:'地',atk:'特殊',passive:['根性'],active:['シリアルキラー','強化アタック(2体)','アタック']},
+  {rarity:'SR',name:'本田 美波',card:'神奈川県警の若きエース',attr:'光',atk:'物理',passive:['根性'],active:['シリアルキラー','強化アタック','アタック']},
+  {rarity:'SR',name:'橘 結衣',card:'天真爛漫な剣道女子',attr:'光',atk:'特殊',passive:['根性'],active:['サバイバー','強化アタック','アタック(2体)']},
+  {rarity:'SR',name:'フラミンゴ',card:'ミッション・コンプリート',attr:'光',atk:'特殊',passive:[],active:['EXエクスチェンジ','タイムストライク','迅速攻撃']},
+  {rarity:'SR',name:'バニッシャー',card:'悪い子にはお仕置を',attr:'地',atk:'物理',passive:[],active:['シリアルキラー','強化アタック','アタック']},
+  {rarity:'SR',name:'ドクトパス',card:'まさかの二足歩行',attr:'闇',atk:'特殊',passive:[],active:['ポイズンイーター','ポイズンアサルト','アタック(2体)']},
+  {rarity:'SR',name:'ホーリーカウ',card:'聖なる乳牛',attr:'光',atk:'特殊',passive:[],active:['浄化','アタック(2体)']},
+  {rarity:'SR',name:'ネスコーラル',card:'サンゴの海の守り神',attr:'闇',atk:'特殊',passive:[],active:['強化アタック(全体)','アタック(全体)']},
+  {rarity:'SR',name:'フォーテイル',card:'牙よりも恐ろしい武器',attr:'地',atk:'物理',passive:[],active:['強化アタック(2体)','アタック(2体)']},
+  {rarity:'SR',name:'ジュテムゴン',card:'愛を歌う海のアイドル',attr:'光',atk:'特殊',passive:[],active:['強化アタック(2体)','アタック(2体)']},
+  {rarity:'SR',name:'イントヨウ',card:'ぐるぐる回るモノクローム',attr:'光',atk:'物理',passive:[],active:['自爆スタン','アタック']},
+  {rarity:'SR',name:'ゴルメダル',card:'ハンパじゃない高級感',attr:'地',atk:'物理',passive:[],active:['タイムフリップEX','アタック(全体)']},
+  {rarity:'SR',name:'ベアボッコ',card:'出会って2秒でフルパン',attr:'光',atk:'物理',passive:['根性'],active:['HP反転EX','アタック(2体)']},
+  {rarity:'SR',name:'カピバーン',card:'身を焦がすほどのユルさ',attr:'光',atk:'物理',passive:['根性'],active:['アタック']},
+  {rarity:'SR',name:'カウディナル',card:'ミルクしたたる枢機卿',attr:'地',atk:'特殊',passive:['浄化の遺志'],active:['アタック']},
+  {rarity:'SR',name:'リューグーン',card:'時を忘れた海底の主',attr:'闇',atk:'特殊',passive:[],active:['アタック']},
+  {rarity:'SR',name:'ネイサン',card:'ネコ科最強のエージェント',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ピューマルゴ',card:'不可触な黄金の毛皮',attr:'闇',atk:'物理',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'コロコニー',card:'暗躍する二本の刃',attr:'地',atk:'物理',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ハグビット',card:'キュートな見た目の腹黒ウサギ',attr:'地',atk:'物理',passive:[],active:['自爆ポイズン','アタック']},
+  {rarity:'SR',name:'シャルロッテ',card:'とってもお上品な猛獣',attr:'闇',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'SR',name:'オージュゴン',card:'見れば必ず恋愛成就',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'エクソホーン',card:'悪魔泣かせのキトウシ',attr:'闇',atk:'特殊',passive:[],active:['自爆ヒール','アタック']},
+  {rarity:'SR',name:'テンタクル',card:'絡まれたら一巻の終わり',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ラブタロス',card:'愛と憎悪は表裏一体',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ヌメデューサ',card:'ヌメった瞳にとりこまれるな',attr:'光',atk:'特殊',passive:[],active:['アタック(全体)']},
+  {rarity:'SR',name:'ドレシャット',card:'踊るシッポを鞭にして',attr:'地',atk:'物理',passive:[],active:['自爆スリープ','アタック']},
+  {rarity:'SR',name:'サンゴリュー',card:'命を育む蒼きドラゴン',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ジェームソン',card:'コードネームはC.A.T.',attr:'地',atk:'特殊',passive:[],active:['アタック(全体)']},
+  {rarity:'SR',name:'ウサシン',card:'漆黒の殺戮マスコット',attr:'光',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'SR',name:'シルバルド',card:'銀毛のヒョウは走らない',attr:'地',atk:'物理',passive:[],active:['アタック(全体)']},
+  {rarity:'SR',name:'ナンノヨウ',card:'ジト目で相手を完全拒否',attr:'光',atk:'物理',passive:[],active:['アタック(2体)']},
+  {rarity:'SR',name:'ペルシャラン',card:'華麗なるムチさばき',attr:'地',atk:'物理',passive:[],active:['アタック(全体)']},
+  {rarity:'R',name:'ポーランチャ',card:'ホワイト・ベアナックル',attr:'地',atk:'物理',passive:[],active:['ビッグボム']},
+  {rarity:'R',name:'ペングラス',card:'氷点下のその先へ',attr:'闇',atk:'特殊',passive:[],active:['自爆ヒール','アタック']},
+  {rarity:'R',name:'ラムーマ',card:'眠りに誘う触り心地',attr:'地',atk:'物理',passive:[],active:['自爆スリープ','アタック']},
+  {rarity:'R',name:'モフレイム',card:'2000℃のたてがみ',attr:'光',atk:'特殊',passive:[],active:['自爆スタン','アタック']},
+  {rarity:'R',name:'ブラコロネ',card:'ほどける刃で敵を切り裂く',attr:'闇',atk:'物理',passive:[],active:['ポイズンアタック']},
+  {rarity:'R',name:'ドリップル',card:'ニャフェイン満タン',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'ウィスパラ',card:'燃え盛るカピバラ',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'ワントム',card:'ご主人想いのゴースト犬',attr:'闇',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'ニャルネード',card:'小さな竜巻にご用心',attr:'闇',atk:'物理',passive:[],active:['自爆ギブターン','アタック(2体)']},
+  {rarity:'R',name:'オツキミミ',card:'一年中食欲の秋',attr:'闇',atk:'物理',passive:[],active:['ポイズンアタック']},
+  {rarity:'R',name:'小松 彩',card:'組を見守る姉貴分',attr:'光',atk:'物理',passive:[],active:['ヘビーアタック(2体)']},
+  {rarity:'R',name:'小早川 紗季',card:'エネルギッシュな広島娘',attr:'闇',atk:'物理',passive:[],active:['迅速攻撃(全体)']},
+  {rarity:'R',name:'剛田 剣信',card:'剣道大好き真っ直ぐ青年',attr:'光',atk:'特殊',passive:[],active:['アタック']},
+  {rarity:'R',name:'鰐島 誠司',card:'未来を憂う鰐梨組組長',attr:'地',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'水野 ヒロト',card:'血気盛んな切り込み隊長',attr:'地',atk:'特殊',passive:[],active:['アタック(全体)']},
+  {rarity:'R',name:'嶋 大輔',card:'昔気質な相談役',attr:'光',atk:'特殊',passive:[],active:['アタック(全体)']},
+  {rarity:'R',name:'黒田 源',card:'極道界の超大物',attr:'地',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'カピメテオ',card:'脱力系隕石',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'デスロップ',card:'飛び跳ねるのはおまえだ',attr:'闇',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'ヘビー',card:'その拳は超重量級',attr:'闇',atk:'物理',passive:[],active:['アタック(全体)']},
+  {rarity:'R',name:'ネコヒー',card:'一杯の癒しをあなたに',attr:'光',atk:'特殊',passive:[],active:['アタック']},
+  {rarity:'R',name:'ニャプチーノ',card:'甘さ控えめ可愛さマシマシ',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'カッチギン',card:'氷上のブラックダイヤ',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'フローギン',card:'羽毛を捨てた氷の化身',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'アクムートン',card:'数えたら最期',attr:'光',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'ネムートン',card:'進化した肌触り',attr:'闇',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'スプーキー',card:'飼い主呪わば穴二つ',attr:'地',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'バウロスキー',card:'無重力のおさんぽへ',attr:'光',atk:'物理',passive:[],active:['アタック']},
+  {rarity:'R',name:'シンバーン',card:'闇にきらめく百獣の王',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'モエフレア',card:'ピンクの炎で獲物を狩る',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
+  {rarity:'R',name:'ニャンベルト',card:'蝶のように舞い、猫のように鳴く',attr:'光',atk:'物理',passive:[],active:['アタック']},
+];
+
+function selectPurpose(el, val) {
+  document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  purpose = val;
+}
+
+function toggleF(type, val, btn) {
+  var arr = filters[type];
+  var idx = arr.indexOf(val);
+  if (idx >= 0) { arr.splice(idx, 1); btn.classList.remove('on'); }
+  else { arr.push(val); btn.classList.add('on'); }
+  renderCards();
+}
+
+function toggleCard(idx) {
+  var c = filteredCards[idx];
+  var key = c.rarity + '_' + c.name + '_' + c.card;
+  var existing = selectedCards.findIndex(s => s.key === key);
+  if (existing >= 0) {
+    selectedCards.splice(existing, 1);
+  } else {
+    selectedCards.push({key, name:c.name, card:c.card, rarity:c.rarity, attr:c.attr, atk:c.atk, passive:c.passive, active:c.active});
+  }
+  renderSelected();
+  renderCards();
+}
+
+function removeSelected(key) {
+  selectedCards = selectedCards.filter(s => s.key !== key);
+  renderSelected();
+  renderCards();
+}
+
+function renderSelected() {
+  var area = document.getElementById('selectedArea');
+  var empty = document.getElementById('selectedEmpty');
+  document.getElementById('selCount').textContent = '（' + selectedCards.length + '枚）';
+  if (selectedCards.length === 0) {
+    area.innerHTML = '<span class="selected-empty" id="selectedEmpty">カードを選んでください（タップで解除できます）</span>';
+    return;
+  }
+  area.innerHTML = selectedCards.map(s =>
+    `<span class="sel-chip" onclick="removeSelected('${s.key}')">
+      <span class="chip-rarity">${s.rarity}</span> ${s.name}「${s.card}」✕
+    </span>`
+  ).join('');
+}
+
+var filteredCards = [];
+function renderCards() {
+  var q = document.getElementById('searchInput').value.toLowerCase();
+  filteredCards = CARDS.filter(c => {
+    if (filters.rarity.length && !filters.rarity.includes(c.rarity)) return false;
+    if (filters.attr.length && !filters.attr.includes(c.attr)) return false;
+    if (filters.atk.length && !filters.atk.includes(c.atk)) return false;
+    if (q) {
+      var hay = (c.name + c.card + c.attr + c.atk).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  var grid = document.getElementById('cardGrid');
+  grid.innerHTML = filteredCards.map((c, i) => {
+    var key = c.rarity + '_' + c.name + '_' + c.card;
+    var isOn = selectedCards.some(s => s.key === key);
+    return `<div class="card-option${isOn?' on':''}" onclick="toggleCard(${i})">
+      <span class="opt-rarity ${c.rarity}">${c.rarity}</span>
+      <div class="opt-name">${c.name}</div>
+      <div class="opt-card">「${c.card}」</div>
+      <div class="opt-tags">
+        <span class="tag-xs attr-${c.attr}">${c.attr}</span>
+        <span class="tag-xs atk-xs">${c.atk}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildPrompt() {
+  var cardList = selectedCards.map(c =>
+    `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk}) パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`
+  ).join('\n');
+  var memo = document.getElementById('memoInput').value.trim();
+  return `あなたはパラノイズというモバイルゲームの編成アドバイザーです。
+以下のゲーム情報を踏まえてアドバイスしてください。
+
+【ゲームの基本情報】
+- ターン制バトルゲーム。TU（タイムユニット）が少ないスキルほど早く使える
+- 属性：地・光・闇（属性相性あり）
+- 攻撃種：物理・特殊
+- スキル種：パッシブ（常時発動）、アクティブ（手動使用）
+- 編成は最大5〜6体。増援として順番に出撃する形式
+- キルが増えるとシリアルキラー系が使用可能になる
+- HP30%以下で「逆境」系スキルが発動
+- スリープ・スタン・ポイズンなどの状態異常あり
+
+【用途】: ${purpose}
+
+【手持ちカード】:
+${cardList || 'なし'}
+
+${memo ? '【補足】: ' + memo : ''}
+
+以下の内容でアドバイスしてください：
+1. おすすめ編成（出撃順も含めて）
+2. 各カードの役割
+3. 立ち回りのポイント
+4. 足りていない役割・改善案
+
+わかりやすく、実践的に教えてください。`;
+}
+
+async function analyze() {
+  if (selectedCards.length === 0) {
+    alert('カードを1枚以上選択してください！');
+    return;
+  }
+  var btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = '🧠 分析中...';
+  var resultWrap = document.getElementById('resultWrap');
+  var resultContent = document.getElementById('resultContent');
+  resultWrap.classList.add('show');
+  resultContent.innerHTML = '<div class="loading-wrap"><div class="p-spin" style="margin:0 auto;"></div><div class="loading-text">AIが編成を分析しています...</div></div>';
+  resultWrap.scrollIntoView({behavior:'smooth', block:'start'});
+
+  conversationHistory = [{role:'user', content:buildPrompt()}];
+
+  try {
+    var res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt: buildPrompt()})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(i => i.text||'').join('');
+    conversationHistory.push({role:'assistant', content:txt});
+    resultContent.innerHTML = '<div class="result-text">' + txt.replace(/\n/g,'<br>') + '</div>';
+    document.getElementById('followupWrap').classList.add('show');
+  } catch(e) {
+    resultContent.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">エラーが発生しました。しばらく待ってから再試行してください。</div>';
+  }
+  btn.disabled = false;
+  btn.textContent = '🧠 AIに編成を分析してもらう';
+}
+
+async function followup() {
+  var input = document.getElementById('followupInput');
+  var q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  var resultContent = document.getElementById('resultContent');
+  conversationHistory.push({role:'user', content:q});
+  resultContent.innerHTML += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border2);"><div style="font-size:0.78rem;color:var(--tx3);margin-bottom:6px;">Q: ' + q + '</div><div class="loading-wrap" style="padding:1rem 0;"><div class="p-spin" style="margin:0 auto;"></div></div></div>';
+
+  try {
+    var res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt: conversationHistory.map(m => m.role === 'user' ? 'ユーザー: ' + m.content : 'AI: ' + m.content).join('\n\n')})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(i => i.text||'').join('');
+    conversationHistory.push({role:'assistant', content:txt});
+    var divs = resultContent.querySelectorAll('div[style*="border-top"]');
+    var last = divs[divs.length-1];
+    last.querySelector('.loading-wrap').outerHTML = '<div class="result-text" style="margin-top:6px;">' + txt.replace(/\n/g,'<br>') + '</div>';
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+renderCards();
+</script>
+</body>
+</html>
