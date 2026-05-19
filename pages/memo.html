@@ -146,24 +146,36 @@ async function loadFromStorage(kw){
     var res = await fetch('/api/memo?keyword=' + encodeURIComponent(kw));
     if(res.ok){
       var result = await res.json();
-      if(result.data) return JSON.parse(result.data);
+      if(result.data){
+        var serverData = JSON.parse(result.data);
+        // サーバーデータをローカルにも同期
+        localStorage.setItem('paranoise_memo_' + kw, JSON.stringify(serverData));
+        return serverData;
+      }
     }
     return localData;
   }catch(e){
+    console.log('サーバー取得失敗・ローカルキャッシュを使用:', e);
+    showToast('オフラインモード：ローカルデータを表示中');
     var local = localStorage.getItem('paranoise_memo_' + kw);
     return local ? JSON.parse(local) : [];
   }
 }
 
 async function saveToStorage(){
+  // ローカルに即時保存
   localStorage.setItem('paranoise_memo_' + currentKeyword, JSON.stringify(memos));
   try{
-    await fetch('/api/memo', {
+    var res = await fetch('/api/memo', {
       method: 'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({action:'save', keyword: currentKeyword, data: JSON.stringify(memos)})
     });
-  }catch(e){ console.log('保存エラー:', e); }
+    if(!res.ok) throw new Error('保存失敗');
+  }catch(e){
+    console.log('サーバー保存失敗:', e);
+    showToast('⚠️ サーバー保存失敗：ローカルには保存済み');
+  }
 }
 
 function getHistory(){

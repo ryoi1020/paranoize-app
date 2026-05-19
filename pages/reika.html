@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>麗華の野望 戦略AI 開幕前 戦略アドバイザー</title>
+  <title>PARANOIZE — 麗華の野望 戦略AI</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
 body{background:var(--bg);}
@@ -99,7 +99,7 @@ body{background:var(--bg);}
   <div class="hdr">
     <div class="hdr-icon"><i class="ti ti-sword"></i></div>
     <div>
-      <h1>麗華の野望 戦略AI 開幕前 戦略アドバイザー</h1>
+      <h1>麗華の野望 戦略AI</h1>
       <p>AIが状況を総合判断して今日と明日以降の戦略を提案します</p>
     </div>
   </div>
@@ -542,14 +542,16 @@ async function analyze(){
     var res=await fetch('/api/analyze',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:buildPrompt()}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:buildPrompt()}]})
     });
     var data=await res.json();
     if(data.error){throw new Error(data.error.message);}
     var txt=(data.content||[]).map(function(i){return i.text||'';}).join('');
     var clean=txt.replace(/```json|```/g,'').trim();
-    // JSON文字列値内の改行を除去してからパース
-    clean=clean.replace(/"([^"]*?)\n([^"]*?)"/g,function(m,a,b){return '"'+a+' '+b+'"';});
+    // JSON文字列値内の改行・制御文字を除去してからパース
+    clean=clean.replace(/("(?:[^"\\]|\\.)*")/g,function(m){
+      return m.replace(/\n/g,' ').replace(/\r/g,'').replace(/\t/g,' ');
+    });
     var result=JSON.parse(clean);
     renderResult(result);
   }catch(e){
