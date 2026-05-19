@@ -495,7 +495,8 @@ function buildPrompt(){
     if(fd!==null){if(fd>0)p+='- 現状維持：+'+fd+'pt で逃げ切れる\n';else if(fd<0)p+='- 現状維持：'+Math.abs(fd)+'pt 届かない\n';else p+='- 現状維持：同点フィニッシュ\n';}
   }
 
-  p+='\n## 分析依頼\n上記の状況を総合的に判断して、以下のJSONのみを出力してください（説明文不要）。\n\n';
+  p+='\n## 分析依頼\n上記の状況を総合的に判断して、以下のJSONのみを出力してください。\n';
+  p+='厳守事項：説明文・前置き・コメント一切不要。JSONブロックのみ出力。JSON文字列値の中に改行を入れないこと。\n\n';
   p+='重要な制約：\n';
   p+='- 布告権が0の場合は絶対に布告を勧めないこと\n';
   p+='- 布告権が1の場合は1つだけ布告できることを考慮すること\n';
@@ -547,6 +548,8 @@ async function analyze(){
     if(data.error){throw new Error(data.error.message);}
     var txt=(data.content||[]).map(function(i){return i.text||'';}).join('');
     var clean=txt.replace(/```json|```/g,'').trim();
+    // JSON文字列値内の改行を除去してからパース
+    clean=clean.replace(/"([^"]*?)\n([^"]*?)"/g,function(m,a,b){return '"'+a+' '+b+'"';});
     var result=JSON.parse(clean);
     renderResult(result);
   }catch(e){
