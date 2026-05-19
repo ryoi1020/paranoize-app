@@ -338,25 +338,37 @@ function buildPrompt(){
   p+='\n## 今日布告できる拠点\n';
   if(own.length===0&&sc!=='zero'){
     // 拠点なし＆布告権あり → 任意の★1拠点に布告可能
-    var star1 = BN.filter(function(n){return BASES[n].star===1;});
-    var enOwn2=chk('enm');
-    // 相手拠点に隣接する★1拠点を優先的にリストアップ
-    var adjacentToEnemy=[];
-    star1.forEach(function(n){
-      if(BASES[n].neighbors.some(function(nb){return enOwn2.indexOf(nb)>=0;})){
-        adjacentToEnemy.push(n);
-      }
+    // 本丸への最短ルートを計算（BFS）
+    var HONMARU = '本丸';
+    // 本丸に隣接する★2拠点（2日目に取るべき）
+    var star2nearHonmaru = BASES[HONMARU].neighbors.filter(function(n){return BASES[n]&&BASES[n].star===2;});
+    // 各★2拠点に隣接する★1拠点（1日目に取るべき）
+    var routeMap = {};
+    star2nearHonmaru.forEach(function(s2){
+      BASES[s2].neighbors.forEach(function(s1){
+        if(BASES[s1]&&BASES[s1].star===1){
+          if(!routeMap[s1]) routeMap[s1]=[];
+          if(routeMap[s1].indexOf(s2)<0) routeMap[s1].push(s2);
+        }
+      });
     });
-    p+='※自チームの保有拠点なし。布告権がある場合、任意の★1拠点に布告することができます。\n';
-    p+='【今日の推奨】翌日に相手に布告できるよう、相手拠点に隣接する★1拠点を押さえてください。\n';
-    if(adjacentToEnemy.length>0){
-      p+='相手拠点に隣接する★1拠点（優先推奨）：\n';
-      adjacentToEnemy.forEach(function(n){p+='- ★ '+n+'（+1pt/日・相手拠点に隣接）\n';});
-      p+='その他の★1拠点：\n';
-      star1.filter(function(n){return adjacentToEnemy.indexOf(n)<0;}).forEach(function(n){p+='- ★ '+n+'（+1pt/日）\n';});
-    } else {
-      p+='利用可能な★1拠点：\n';
-      star1.forEach(function(n){p+='- ★ '+n+'（+1pt/日）\n';});
+    // 本丸に直接隣接する★1拠点も追加（2日後に本丸が取れるルート）
+    var star1directHonmaru = BASES[HONMARU].neighbors.filter(function(n){return BASES[n]&&BASES[n].star===1;});
+
+    p+='※自チームの保有拠点なし。布告権がある場合、任意の★1拠点に布告することができます。\n\n';
+    p+='【基本戦略：本丸への最短3日ルート】\n';
+    p+='  1日目: ★1拠点を取る\n';
+    p+='  2日目: 隣接する★2拠点に布告して取る\n';
+    p+='  3日目: 本丸（★3）に布告して取る\n\n';
+    p+='【推奨：1日目に取るべき★1拠点（本丸最短ルート）】\n';
+    Object.keys(routeMap).forEach(function(s1){
+      p+='- ★ '+s1+' → '+routeMap[s1].join('または')+'（★2）→ 本丸（★3）のルートが開ける\n';
+    });
+    if(star1directHonmaru.length>0){
+      p+='\n【最短2日ルート：本丸に直接隣接する★1拠点】\n';
+      star1directHonmaru.forEach(function(n){
+        p+='- ★ '+n+' → 本丸（★3・1日目に★1を2つ取れば翌日布告可能）\n';
+      });
     }
   } else if(attackable.length>0){
     attackable.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});
@@ -380,7 +392,7 @@ function buildPrompt(){
   p+='- 逆転可能性はポイント計算に基づき現実的に判断すること\n';
   p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n';
   p+='- 自チームの保有拠点が0の場合は布告返しの考え方は不要\n';
-  p+='- 拠点なし時は「翌日に勝ちたい相手に布告できるよう、相手拠点に隣接する★1拠点を今日押さえる」ことを提案する\n\n';
+  p+='- 拠点なし時は布告返し不要。本丸への最短ルートを意識して「1日目★1→2日目★2→3日目本丸」の順で取れるよう、今日取るべき★1拠点を具体的に提案すること\n\n';
   p+='```json\n{\n';
   p+='  "summary": "状況の一言まとめ（20文字以内）",\n';
   p+='  "priority": "defense または attack または balance",\n';
