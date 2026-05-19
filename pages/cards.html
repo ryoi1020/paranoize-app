@@ -44,7 +44,7 @@ body{background:var(--bg);}
 .atk-tag{font-size:0.68rem;padding:2px 7px;border-radius:var(--r4);font-weight:500;background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
 
 .card-img-wrap{width:100%;overflow:hidden;border-radius:var(--r12) var(--r12) 0 0;background:var(--bg3);max-height:140px;}
-.card-img{width:100%;height:140px;object-fit:cover;object-position:center 15%;display:block;transition:transform 0.3s;}
+.card-img{width:100%;height:140px;object-fit:cover;object-position:center 20%;display:block;transition:transform 0.3s;cursor:ns-resize;}
 .card:hover .card-img{transform:scale(1.03);}
 .card-skills{padding:0 14px 12px;display:flex;flex-direction:column;gap:4px;}
 .skill-item{display:flex;gap:6px;align-items:flex-start;}
@@ -282,7 +282,9 @@ function render() {
     const activeItems = c.active.slice(0,2).map(s =>
       `<div class="skill-item"><span class="skill-label a">A</span><span class="skill-text"><span class="skill-name">${skillShort(s)}</span>${skillDesc(s) ? ' — '+skillDesc(s) : ''}</span></div>`
     ).join('');
-    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : '';
+    const imgKey = `${c.rarity}_${c.name}_${c.card}`.replace(/\s/g,'');
+    const imgPos = getImgPos(imgKey);
+    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:center ${imgPos}%" onerror="this.parentElement.style.display='none'"></div>` : '';
     return `<div class="card" onclick="openModal(${i})">
       ${imgHtml}
       <div class="card-top">
@@ -302,6 +304,104 @@ function render() {
       </div>
     </div>`;
   }).join('');
+}
+
+
+// 画像位置管理
+var imgPositions = JSON.parse(localStorage.getItem('paranoise_img_pos') || '{}');
+
+function saveImgPos(key, val) {
+  imgPositions[key] = val;
+  localStorage.setItem('paranoise_img_pos', JSON.stringify(imgPositions));
+}
+
+function getImgPos(key) {
+  return imgPositions[key] !== undefined ? imgPositions[key] : 20;
+}
+
+function applyImgPositions() {
+  document.querySelectorAll('.card-img').forEach(function(img) {
+    var key = img.dataset.key;
+    if (!key) return;
+    var pos = getImgPos(key);
+    img.style.objectPosition = 'center ' + pos + '%';
+  });
+}
+
+// 長押し・ドラッグで位置調整
+function initImgDrag(img) {
+  var key = img.dataset.key;
+  var startY = 0;
+  var startPos = 0;
+  var isDragging = false;
+  var longPressTimer = null;
+  var overlay = null;
+
+  function showOverlay() {
+    overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(107,70,245,0.25);display:flex;align-items:center;justify-content:center;border-radius:var(--r12) var(--r12) 0 0;z-index:10;pointer-events:none;';
+    overlay.innerHTML = '<div style="background:rgba(107,70,245,0.9);color:#fff;font-size:0.7rem;padding:4px 10px;border-radius:20px;font-weight:700;">↕ ドラッグして調整</div>';
+    img.parentElement.style.position = 'relative';
+    img.parentElement.appendChild(overlay);
+  }
+
+  function hideOverlay() {
+    if (overlay) { overlay.remove(); overlay = null; }
+  }
+
+  img.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+    startPos = getImgPos(key);
+    longPressTimer = setTimeout(function() {
+      isDragging = true;
+      showOverlay();
+    }, 400);
+  }, {passive:true});
+
+  img.addEventListener('touchmove', function(e) {
+    if (!isDragging) { clearTimeout(longPressTimer); return; }
+    e.preventDefault();
+    var dy = e.touches[0].clientY - startY;
+    var newPos = Math.max(0, Math.min(100, startPos + dy * 0.5));
+    img.style.objectPosition = 'center ' + newPos + '%';
+    saveImgPos(key, newPos);
+  }, {passive:false});
+
+  img.addEventListener('touchend', function() {
+    clearTimeout(longPressTimer);
+    isDragging = false;
+    hideOverlay();
+  });
+
+  // PCでもマウスドラッグ対応
+  img.addEventListener('mousedown', function(e) {
+    startY = e.clientY;
+    startPos = getImgPos(key);
+    longPressTimer = setTimeout(function() {
+      isDragging = true;
+      showOverlay();
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }, 400);
+  });
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    var dy = e.clientY - startY;
+    var newPos = Math.max(0, Math.min(100, startPos + dy * 0.5));
+    img.style.objectPosition = 'center ' + newPos + '%';
+    saveImgPos(key, newPos);
+  }
+
+  function onMouseUp() {
+    clearTimeout(longPressTimer);
+    isDragging = false;
+    hideOverlay();
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  img.addEventListener('mouseup', function() { clearTimeout(longPressTimer); });
 }
 
 function openModal(filteredIdx) {
@@ -355,7 +455,17 @@ function closeModal(e) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+function initAllImgDrag() {
+  document.querySelectorAll('.card-img').forEach(function(img) {
+    if (!img.dataset.dragInit) {
+      img.dataset.dragInit = '1';
+      initImgDrag(img);
+    }
+  });
+}
+
 render();
+setTimeout(initAllImgDrag, 100);
 </script>
 <nav class="p-tabbar">
   <a class="p-tab" href="/" id="tab-home"><span class="p-tab-icon">🏠</span>ホーム</a>
