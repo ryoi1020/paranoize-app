@@ -233,7 +233,33 @@ var BASES_TOUKAI={
 };
 
 var BASES={};
-var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:false},'シコク':{available:false},'キュウシュウ':{available:false}};
+var BASES_KINKI={
+  '本丸':{star:3,neighbors:['本屋A','鍛冶屋A','八本木ヒルズ']},
+  '八本木ヒルズ':{star:2,neighbors:['本丸','ゲームセンターA','橘家']},
+  'メゾン・ド・イエ':{star:2,neighbors:['魚屋A','肉屋B','宮本家','映画館B']},
+  'カジノ':{star:2,neighbors:['麗華のお屋敷','本屋A','肉屋B']},
+  '麗華のお屋敷':{star:2,neighbors:['鍛冶屋B','本屋A','カジノ']},
+  '本田のマンション':{star:2,neighbors:['魚屋B','ゲームセンターB','宮本家']},
+  '橘家':{star:1,neighbors:['八本木ヒルズ','肉屋A','酒場A']},
+  '酒場A':{star:1,neighbors:['橘家','ゲームセンターA']},
+  '肉屋A':{star:1,neighbors:['橘家','カシワ荘']},
+  'カシワ荘':{star:1,neighbors:['肉屋A','映画館A']},
+  '映画館A':{star:1,neighbors:['カシワ荘','鍛冶屋A']},
+  '鍛冶屋A':{star:1,neighbors:['映画館A','本丸']},
+  'ゲームセンターA':{star:1,neighbors:['酒場A','八本木ヒルズ','鍛冶屋B']},
+  '鍛冶屋B':{star:1,neighbors:['ゲームセンターA','麗華のお屋敷']},
+  '本屋A':{star:1,neighbors:['麗華のお屋敷','カジノ','本丸','魚屋A']},
+  '魚屋A':{star:1,neighbors:['本屋A','メゾン・ド・イエ']},
+  '肉屋B':{star:1,neighbors:['カジノ','メゾン・ド・イエ','本屋B']},
+  '本屋B':{star:1,neighbors:['肉屋B','魚屋B']},
+  '魚屋B':{star:1,neighbors:['本屋B','本田のマンション']},
+  'ゲームセンターB':{star:1,neighbors:['本田のマンション','酒場B']},
+  '酒場B':{star:1,neighbors:['ゲームセンターB','宮本家','映画館B']},
+  '宮本家':{star:1,neighbors:['酒場B','本田のマンション','メゾン・ド・イエ']},
+  '映画館B':{star:1,neighbors:['酒場B','メゾン・ド・イエ']}
+};
+
+var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:false},'キュウシュウ':{available:false}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
 
@@ -244,7 +270,7 @@ function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'
 function updateBases(){
   // 一旦クリア
   for(var k in BASES){ delete BASES[k]; }
-  var src = MAP==='トウカイ' ? BASES_TOUKAI : BASES_TOUHOKU;
+  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : BASES_TOUHOKU;
   Object.assign(BASES, src);
   BN = Object.keys(BASES);
 }
