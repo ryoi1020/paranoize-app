@@ -4,135 +4,262 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOISE 攻略アプリ</title>
-<link rel="stylesheet" href="/assets/common.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#08080e;color:#eeeef5;font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:80px;overflow-x:hidden;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --purple:#7c3aed;--purple2:#a855f7;--purple3:#c084fc;
+  --gold:#f59e0b;--gold2:#fbbf24;
+  --cyan:#06b6d4;--green:#10b981;
+  --bg:#000000;--bg2:#0d0d14;--bg3:#12121e;
+  --tx:#ffffff;--tx2:rgba(255,255,255,0.6);--tx3:rgba(255,255,255,0.3);
+}
+html,body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;}
+body{padding-bottom:84px;}
+
+/* CANVAS BG */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
 /* HERO */
-.hero{position:relative;padding:3.5rem 1.5rem 2.5rem;text-align:center;overflow:hidden;}
-.hero-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(107,70,245,0.25),transparent 70%);}
-.hero-eyebrow{font-size:0.65rem;letter-spacing:0.35em;color:#7c5cfc;text-transform:uppercase;font-weight:700;margin-bottom:1rem;}
-.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(3rem,12vw,5rem);font-weight:800;letter-spacing:0.04em;line-height:1;background:linear-gradient(160deg,#ffffff 0%,#c4b5fd 45%,#7c5cfc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-sub{font-size:0.78rem;color:#55556a;margin-top:0.75rem;letter-spacing:0.2em;text-transform:uppercase;}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:20px;padding:5px 14px;font-size:0.7rem;color:#b794f4;margin-top:1.25rem;}
-.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:#00d4a0;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.hero{position:relative;z-index:1;padding:3rem 1.25rem 2rem;text-align:center;}
+.hero-kicker{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);border-radius:100px;padding:5px 14px;font-size:0.65rem;letter-spacing:0.2em;color:var(--purple3);text-transform:uppercase;font-weight:700;margin-bottom:1.25rem;backdrop-filter:blur(8px);}
+.kicker-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(3.2rem,13vw,5.5rem);font-weight:800;letter-spacing:0.03em;line-height:0.95;position:relative;display:inline-block;}
+.hero-logo span{background:linear-gradient(135deg,#fff 0%,#e9d5ff 30%,#a855f7 60%,#7c3aed 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-logo-glow{position:absolute;inset:-20px;background:radial-gradient(ellipse at center,rgba(168,85,247,0.3) 0%,transparent 70%);filter:blur(20px);z-index:-1;}
+.hero-sub{font-size:0.72rem;letter-spacing:0.3em;color:var(--tx3);text-transform:uppercase;margin-top:1rem;font-weight:500;}
 
-/* MENU GRID */
-.menu-wrap{padding:0 1rem 1.5rem;}
-.section-label{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:#55556a;font-weight:700;padding:0 0.25rem;margin-bottom:0.75rem;}
-.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;}
+/* SECTION */
+.section{position:relative;z-index:1;padding:0 1rem;margin-bottom:0.75rem;}
+.section-title{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--tx3);font-weight:700;margin-bottom:0.6rem;padding-left:2px;}
 
-/* FEATURED CARD */
-.card-featured{background:linear-gradient(135deg,rgba(124,92,252,0.15) 0%,rgba(124,92,252,0.05) 100%);border:1px solid rgba(124,92,252,0.3);border-radius:20px;padding:1.5rem;text-decoration:none;color:#eeeef5;display:block;position:relative;overflow:hidden;margin-bottom:8px;transition:all 0.2s;}
-.card-featured::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(124,92,252,0.2),transparent 70%);pointer-events:none;}
-.card-featured:hover{border-color:rgba(124,92,252,0.5);transform:translateY(-2px);}
-.card-featured-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
-.card-featured-icon{font-size:2rem;}
-.card-featured-badge{font-size:0.62rem;padding:3px 10px;border-radius:20px;background:rgba(124,92,252,0.2);color:#b794f4;border:1px solid rgba(124,92,252,0.3);font-weight:600;letter-spacing:0.05em;}
-.card-featured-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:0.25rem;}
-.card-featured-desc{font-size:0.75rem;color:#6b7280;line-height:1.5;}
+/* FEATURED */
+.featured{position:relative;border-radius:24px;overflow:hidden;text-decoration:none;display:block;margin-bottom:0.75rem;}
+.featured-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a0533 0%,#0d0320 40%,#150a2e 100%);}
+.featured-border{position:absolute;inset:0;border-radius:24px;border:1px solid rgba(168,85,247,0.4);}
+.featured-glow{position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(168,85,247,0.25),transparent 70%);pointer-events:none;}
+.featured-glow2{position:absolute;bottom:-40px;left:-20px;width:150px;height:150px;background:radial-gradient(circle,rgba(6,182,212,0.15),transparent 70%);pointer-events:none;}
+.featured-content{position:relative;padding:1.5rem;}
+.featured-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.featured-icon{font-size:2.2rem;filter:drop-shadow(0 0 12px rgba(168,85,247,0.6));}
+.featured-tag{background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(168,85,247,0.2));border:1px solid rgba(168,85,247,0.5);border-radius:100px;padding:4px 12px;font-size:0.6rem;letter-spacing:0.15em;color:var(--purple3);text-transform:uppercase;font-weight:700;backdrop-filter:blur(8px);}
+.featured-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:0.4rem;letter-spacing:0.02em;}
+.featured-desc{font-size:0.73rem;color:var(--tx2);line-height:1.6;}
+.featured-arrow{display:flex;align-items:center;gap:6px;margin-top:1.1rem;font-size:0.72rem;color:var(--purple3);font-weight:600;}
+.featured-arrow::after{content:'→';transition:transform 0.2s;}
+.featured:hover .featured-arrow::after{transform:translateX(4px);}
+.featured:active{transform:scale(0.98);}
 
-/* REGULAR CARDS */
-.menu-item{background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.1rem;text-decoration:none;color:#eeeef5;display:flex;flex-direction:column;gap:8px;transition:all 0.2s;position:relative;overflow:hidden;}
-.menu-item::before{content:'';position:absolute;inset:0;opacity:0;background:linear-gradient(135deg,rgba(124,92,252,0.08),transparent);transition:opacity 0.2s;}
-.menu-item:hover{border-color:rgba(124,92,252,0.3);transform:translateY(-2px);}
-.menu-item:hover::before{opacity:1;}
-.menu-item-icon{font-size:1.5rem;line-height:1;}
-.menu-item-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;color:#eeeef5;}
-.menu-item-desc{font-size:0.68rem;color:#55556a;line-height:1.5;}
+/* GRID 2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:1.1rem;text-decoration:none;color:var(--tx);display:flex;flex-direction:column;gap:0.5rem;position:relative;overflow:hidden;transition:transform 0.15s;}
+.card:active{transform:scale(0.97);}
+.card-shine{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);}
+.card-icon{font-size:1.6rem;filter:drop-shadow(0 0 8px rgba(255,255,255,0.2));}
+.card-title{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.01em;}
+.card-desc{font-size:0.65rem;color:var(--tx3);line-height:1.5;}
+.card.purple{background:linear-gradient(135deg,#1a0f2e,#0d0814);border-color:rgba(124,58,237,0.2);}
+.card.cyan{background:linear-gradient(135deg,#0a1a20,#060e14);border-color:rgba(6,182,212,0.2);}
 
-/* FULL WIDTH CARD */
-.card-full{background:#0f0f1a;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.1rem 1.25rem;text-decoration:none;color:#eeeef5;display:flex;align-items:center;gap:14px;transition:all 0.2s;margin-bottom:8px;}
-.card-full:hover{border-color:rgba(124,92,252,0.3);transform:translateY(-1px);}
-.card-full-icon{font-size:1.5rem;flex-shrink:0;}
-.card-full-content{flex:1;}
-.card-full-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;margin-bottom:2px;}
-.card-full-desc{font-size:0.68rem;color:#55556a;line-height:1.4;}
-.card-full-arrow{color:#55556a;font-size:1rem;flex-shrink:0;}
+/* LIST CARDS */
+.list-card{background:var(--bg2);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:1rem 1.1rem;text-decoration:none;color:var(--tx);display:flex;align-items:center;gap:12px;margin-bottom:0.6rem;position:relative;overflow:hidden;transition:transform 0.15s;}
+.list-card:active{transform:scale(0.98);}
+.list-card-shine{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);}
+.list-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.list-icon-wrap.tasks{background:linear-gradient(135deg,#1a2a0a,#0a1a06);border:1px solid rgba(16,185,129,0.2);}
+.list-icon-wrap.memo{background:linear-gradient(135deg,#1a1a0a,#14140a);border:1px solid rgba(245,158,11,0.2);}
+.list-content{flex:1;}
+.list-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:700;margin-bottom:2px;}
+.list-desc{font-size:0.65rem;color:var(--tx3);line-height:1.4;}
+.list-chevron{color:var(--tx3);font-size:1.1rem;flex-shrink:0;}
 
 /* FOOTER */
-.footer{text-align:center;padding:1rem;font-size:0.62rem;color:#2a2a3a;letter-spacing:0.1em;}
+.footer{position:relative;z-index:1;text-align:center;padding:0.75rem;font-size:0.58rem;color:var(--tx3);letter-spacing:0.15em;text-transform:uppercase;}
 
 /* TAB BAR */
-.p-tabbar{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(8,8,14,0.96);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:stretch;z-index:100;}
-.p-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#55556a;font-size:0.58rem;font-weight:500;transition:color 0.15s;border:none;background:none;font-family:'Noto Sans JP',sans-serif;padding:8px 4px;position:relative;}
-.p-tab:hover{color:#9090b0;}
-.p-tab.active{color:#b794f4;}
-.p-tab-icon{font-size:1.25rem;line-height:1;}
-.p-tab.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:linear-gradient(90deg,#7c5cfc,#b794f4);border-radius:0 0 3px 3px;}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.tabbar-blur{position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.07);}
+.tabbar-inner{position:relative;display:flex;align-items:stretch;height:64px;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:rgba(255,255,255,0.3);font-size:0.56rem;font-weight:500;font-family:'Noto Sans JP',sans-serif;border:none;background:none;cursor:pointer;padding:8px 4px;position:relative;transition:color 0.15s;}
+.tab.active{color:var(--purple3);}
+.tab.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:0 0 4px 4px;}
+.tab-icon{font-size:1.2rem;line-height:1;}
 </style>
 </head>
 <body>
 
+<canvas id="bg-canvas"></canvas>
+
 <div class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-eyebrow">攻略アプリ</div>
-  <div class="hero-logo">PARANOISE</div>
-  <div class="hero-sub">Guild Strategy Tools</div>
-  <div class="hero-badge">
-    <span class="hero-badge-dot"></span>
-    AI搭載・リアルタイム攻略
+  <div class="hero-kicker">
+    <span class="kicker-dot"></span>
+    Guild Strategy Tools
+  </div>
+  <div class="hero-logo">
+    <div class="hero-logo-glow"></div>
+    <span>PARANOISE</span>
+  </div>
+  <div class="hero-sub">攻略アプリ · Powered by AI</div>
+</div>
+
+<!-- 麗華の野望 -->
+<div class="section">
+  <div class="section-title">注目機能</div>
+  <a class="featured" href="/reika">
+    <div class="featured-bg"></div>
+    <div class="featured-border"></div>
+    <div class="featured-glow"></div>
+    <div class="featured-glow2"></div>
+    <div class="featured-content">
+      <div class="featured-top">
+        <span class="featured-icon">⚔️</span>
+        <span class="featured-tag">AI Powered</span>
+      </div>
+      <div class="featured-title">麗華の野望</div>
+      <div class="featured-desc">戦況を入力するだけでAIが最適な戦略を提案。今日の立ち回り・明日以降の方針・逆転シミュレーションまで。</div>
+      <div class="featured-arrow">戦略を分析する</div>
+    </div>
+  </a>
+</div>
+
+<!-- カード検索 + 編成AI -->
+<div class="section">
+  <div class="section-title">データベース</div>
+  <div class="grid2">
+    <a class="card purple" href="/cards">
+      <div class="card-shine"></div>
+      <div class="card-icon">📖</div>
+      <div class="card-title">カード検索</div>
+      <div class="card-desc">全92枚のキャラ・スキルを即検索</div>
+    </a>
+    <a class="card cyan" href="/formation">
+      <div class="card-shine"></div>
+      <div class="card-icon">🧩</div>
+      <div class="card-title">編成AI</div>
+      <div class="card-desc">SSRを選ぶだけで4班編成を提案</div>
+    </a>
   </div>
 </div>
 
-<div class="menu-wrap">
-
-  <!-- 麗華の野望 フィーチャードカード -->
-  <a class="card-featured" href="/reika">
-    <div class="card-featured-top">
-      <span class="card-featured-icon">⚔️</span>
-      <span class="card-featured-badge">AI POWERED</span>
+<!-- タスク・メモ -->
+<div class="section">
+  <div class="section-title">ギルドツール</div>
+  <a class="list-card" href="/tasks">
+    <div class="list-card-shine"></div>
+    <div class="list-icon-wrap tasks">📅</div>
+    <div class="list-content">
+      <div class="list-title">タスク管理</div>
+      <div class="list-desc">デイリー・ウィークリー・月次イベントを管理</div>
     </div>
-    <div class="card-featured-title">麗華の野望</div>
-    <div class="card-featured-desc">AIが戦況を分析し、今日の立ち回りと班編成を提案。勝率を最大化する戦略をリアルタイムで生成。</div>
+    <span class="list-chevron">›</span>
   </a>
-
-  <!-- 2列グリッド -->
-  <div class="menu">
-    <a class="menu-item" href="/cards">
-      <div class="menu-item-icon">📖</div>
-      <div class="menu-item-title">カード検索</div>
-      <div class="menu-item-desc">全92枚のキャラ・スキルをフィルター検索</div>
-    </a>
-    <a class="menu-item" href="/formation">
-      <div class="menu-item-icon">🧩</div>
-      <div class="menu-item-title">編成AI</div>
-      <div class="menu-item-desc">手持ちSSRから最強の4班編成を提案</div>
-    </a>
-  </div>
-
-  <!-- フル幅カード -->
-  <a class="card-full" href="/tasks">
-    <span class="card-full-icon">📅</span>
-    <div class="card-full-content">
-      <div class="card-full-title">タスク管理</div>
-      <div class="card-full-desc">デイリー・ウィークリー・月次イベントを一元管理</div>
+  <a class="list-card" href="/memo">
+    <div class="list-card-shine"></div>
+    <div class="list-icon-wrap memo">📝</div>
+    <div class="list-content">
+      <div class="list-title">共有メモ</div>
+      <div class="list-desc">合言葉でギルドメンバーとメモを共有</div>
     </div>
-    <span class="card-full-arrow">›</span>
+    <span class="list-chevron">›</span>
   </a>
-
-  <a class="card-full" href="/memo">
-    <span class="card-full-icon">📝</span>
-    <div class="card-full-content">
-      <div class="card-full-title">共有メモ</div>
-      <div class="card-full-desc">合言葉でギルドメンバーとメモを共有</div>
-    </div>
-    <span class="card-full-arrow">›</span>
-  </a>
-
 </div>
 
 <div class="footer">v1.0.0 · PARANOISE GUILD TOOLS</div>
 
-<nav class="p-tabbar">
-  <a class="p-tab active" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
-  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
-  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
-  <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
-  <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
+<nav class="tabbar">
+  <div class="tabbar-blur"></div>
+  <div class="tabbar-inner">
+    <a class="tab active" href="/"><span class="tab-icon">🏠</span>ホーム</a>
+    <a class="tab" href="/cards"><span class="tab-icon">📖</span>カード</a>
+    <a class="tab" href="/formation"><span class="tab-icon">🧩</span>編成</a>
+    <a class="tab" href="/tasks"><span class="tab-icon">📅</span>タスク</a>
+    <a class="tab" href="/memo"><span class="tab-icon">📝</span>メモ</a>
+  </div>
 </nav>
 
+<script>
+// 星空＋パーティクルアニメーション
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [], particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 80; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      o: Math.random() * 0.5 + 0.1,
+      speed: Math.random() * 0.3 + 0.05,
+      twinkle: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 20; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2 + 1,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      color: Math.random() > 0.5 ? '#7c3aed' : '#06b6d4',
+      o: Math.random() * 0.3 + 0.05
+    });
+  }
+}
+
+let frame = 0;
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // 背景グラデーション
+  const grad = ctx.createRadialGradient(W/2, 0, 0, W/2, 0, H * 0.8);
+  grad.addColorStop(0, 'rgba(60,20,100,0.15)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 星
+  frame += 0.01;
+  stars.forEach(s => {
+    s.twinkle += s.speed * 0.05;
+    const o = s.o * (0.7 + 0.3 * Math.sin(s.twinkle));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${o})`;
+    ctx.fill();
+  });
+
+  // パーティクル
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0 || p.x > W) p.vx *= -1;
+    if (p.y < 0 || p.y > H) p.vy *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color + Math.round(p.o * 255).toString(16).padStart(2,'0');
+    ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+
+resize();
+initStars();
+initParticles();
+draw();
+window.addEventListener('resize', () => { resize(); initStars(); initParticles(); });
+</script>
 </body>
 </html>
