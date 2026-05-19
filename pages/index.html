@@ -79,6 +79,16 @@ body{
 
 /* 2列グリッド */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:0.75rem;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.75rem;}
+.card3{text-decoration:none;color:inherit;border-radius:16px;padding:0.9rem 0.8rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;transition:transform 0.15s;position:relative;overflow:hidden;}
+.card3:active{transform:scale(0.97);}
+.card3-shine{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
+.card3-icon{font-size:1.5rem;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.card3-icon.green{background:linear-gradient(135deg,rgba(5,150,105,0.15),rgba(4,120,87,0.08));border:1px solid rgba(5,150,105,0.2);}
+.card3-icon.amber{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.08));border:1px solid rgba(245,158,11,0.2);}
+.card3-icon.blue{background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(37,99,235,0.08));border:1px solid rgba(59,130,246,0.2);}
+.card3-title{font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;color:#1a1a2e;}
+.card3-desc{font-size:0.6rem;color:rgba(0,0,0,0.4);line-height:1.4;}
 .card{text-decoration:none;color:inherit;border-radius:20px;padding:1.1rem;display:flex;flex-direction:column;gap:0.5rem;transition:transform 0.15s;position:relative;overflow:hidden;}
 .card:active{transform:scale(0.97);}
 .card-shine{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
@@ -172,33 +182,26 @@ body{
 <!-- カード検索・ツール -->
 <div class="section">
   <div class="section-label">データ＆ツール</div>
-  <a class="list-card glass" href="/cards">
-    <div class="list-card-shine"></div>
-    <div class="list-icon" style="background:linear-gradient(135deg,rgba(5,150,105,0.15),rgba(4,120,87,0.08));border:1px solid rgba(5,150,105,0.2);">📖</div>
-    <div class="list-body">
-      <div class="list-title">カード検索</div>
-      <div class="list-desc">全92枚のキャラ・スキルをレアリティ・属性でフィルター検索</div>
-    </div>
-    <span class="list-chevron">›</span>
-  </a>
-  <a class="list-card glass" href="/tasks">
-    <div class="list-card-shine"></div>
-    <div class="list-icon green">📅</div>
-    <div class="list-body">
-      <div class="list-title">タスク管理</div>
-      <div class="list-desc">デイリー・ウィークリー・月次イベントを一元管理</div>
-    </div>
-    <span class="list-chevron">›</span>
-  </a>
-  <a class="list-card glass" href="/memo">
-    <div class="list-card-shine"></div>
-    <div class="list-icon amber">📝</div>
-    <div class="list-body">
-      <div class="list-title">共有メモ</div>
-      <div class="list-desc">合言葉でギルドメンバーとメモを共有</div>
-    </div>
-    <span class="list-chevron">›</span>
-  </a>
+  <div class="grid3">
+    <a class="card3 glass" href="/cards">
+      <div class="card3-shine"></div>
+      <div class="card3-icon green">📖</div>
+      <div class="card3-title">カード検索</div>
+      <div class="card3-desc">全92枚のキャラ・スキルを検索</div>
+    </a>
+    <a class="card3 glass" href="/tasks">
+      <div class="card3-shine"></div>
+      <div class="card3-icon amber">📅</div>
+      <div class="card3-title">タスク管理</div>
+      <div class="card3-desc">デイリー・イベントを管理</div>
+    </a>
+    <a class="card3 glass" href="/memo">
+      <div class="card3-shine"></div>
+      <div class="card3-icon blue">📝</div>
+      <div class="card3-title">合言葉付きメモ</div>
+      <div class="card3-desc">ギルドメンバーと共有</div>
+    </a>
+  </div>
 </div>
 
 <div class="footer">v1.0.0 · PARANOISE GUILD TOOLS</div>
