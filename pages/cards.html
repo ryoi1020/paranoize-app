@@ -44,7 +44,7 @@ body{background:var(--bg);}
 .atk-tag{font-size:0.68rem;padding:2px 7px;border-radius:var(--r4);font-weight:500;background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
 
 .card-img-wrap{width:100%;overflow:hidden;border-radius:var(--r12) var(--r12) 0 0;background:var(--bg3);max-height:140px;}
-.card-img{width:100%;height:140px;object-fit:cover;object-position:center 15%;display:block;transition:transform 0.3s;cursor:ns-resize;}
+.card-img{width:100%;height:140px;object-fit:cover;object-position:center 45%;display:block;transition:transform 0.3s;cursor:ns-resize;}
 .card:hover .card-img{transform:scale(1.03);}
 .card-skills{padding:0 14px 12px;display:flex;flex-direction:column;gap:4px;}
 .skill-item{display:flex;gap:6px;align-items:flex-start;}
@@ -369,9 +369,9 @@ function getImgPos(key) {
 
 function getImgStyle(filename) {
   // ファイル名からpositionを取得
-  if (!filename) return 'center 15%';
+  if (!filename) return 'center 45%';
   var name = filename.split('/').pop();
-  return IMG_POS_MAP[name] || 'center 15%';
+  return IMG_POS_MAP[name] || 'center 45%';
 }
 
 function applyImgPositions() {
@@ -479,7 +479,7 @@ function openModal(filteredIdx) {
       </div>
       <div class="modal-skill-desc">${skillDesc(s)}</div>
     </div>`).join('');
-  const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" style="width:100%;height:260px;object-fit:cover;object-position:center 15%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
+  const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" style="width:100%;height:260px;object-fit:cover;object-position:center 45%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
   modal.innerHTML = `${mImgHtml}
     <div class="modal-header">
       <span class="modal-rarity rarity-badge ${c.rarity}">${c.rarity}</span>
@@ -516,7 +516,7 @@ function toggleImgFull(wrap) {
   if (wrap.dataset.full === '1') {
     img.style.height = '260px';
     img.style.objectFit = 'cover';
-    img.style.objectPosition = 'center 15%';
+    img.style.objectPosition = 'center 45%';
     hint.textContent = 'タップで全体表示';
     wrap.dataset.full = '0';
   } else {
