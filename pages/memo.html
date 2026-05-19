@@ -138,16 +138,52 @@ body{background:var(--bg);}
 var currentKeyword = '';
 var memos = [];
 var activeTag = '';
+var SUPABASE_URL = 'https://hpyaocrnmvnnbltbazrx.supabase.co';
+var SUPABASE_KEY = 'SUPABASE_KEY_REMOVED';
 
-function loadFromStorage(kw){
+// Supabaseのanon keyを使ってメモを保存・読込
+async function loadFromStorage(kw){
   try{
-    var data = localStorage.getItem('paranoise_memo_' + kw);
-    return data ? JSON.parse(data) : [];
-  }catch(e){ return []; }
+    // まずローカルキャッシュを確認
+    var local = localStorage.getItem('paranoise_memo_' + kw);
+    var localData = local ? JSON.parse(local) : [];
+    
+    // Supabaseから取得
+    var res = await fetch(SUPABASE_URL + '/rest/v1/memo_data?keyword=eq.' + encodeURIComponent(kw) + '&select=data', {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      }
+    });
+    if(res.ok){
+      var rows = await res.json();
+      if(rows.length > 0){
+        return JSON.parse(rows[0].data);
+      }
+    }
+    return localData;
+  }catch(e){
+    // オフライン時はローカルから
+    var local = localStorage.getItem('paranoise_memo_' + currentKeyword);
+    return local ? JSON.parse(local) : [];
+  }
 }
 
-function saveToStorage(){
+async function saveToStorage(){
+  // ローカルにも保存
   localStorage.setItem('paranoise_memo_' + currentKeyword, JSON.stringify(memos));
+  try{
+    await fetch(SUPABASE_URL + '/rest/v1/memo_data', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({keyword: currentKeyword, data: JSON.stringify(memos)})
+    });
+  }catch(e){ console.log('Supabase保存エラー:', e); }
 }
 
 function getHistory(){
@@ -177,11 +213,11 @@ function quickEnter(kw){
   enterKeyword();
 }
 
-function enterKeyword(){
+async function enterKeyword(){
   var kw = document.getElementById('keywordInput').value.trim();
   if(!kw){ alert('合言葉を入力してください'); return; }
   currentKeyword = kw;
-  memos = loadFromStorage(kw);
+  memos = await loadFromStorage(kw);
   addHistory(kw);
   document.getElementById('currentKeyword').textContent = kw;
   document.getElementById('keywordScreen').style.display = 'none';
@@ -197,7 +233,7 @@ function changeKeyword(){
   renderHistory();
 }
 
-function addMemo(){
+async function addMemo(){
   var title = document.getElementById('newTitle').value.trim();
   var body = document.getElementById('newBody').value.trim();
   var tag = document.getElementById('newTag').value.trim();
@@ -211,7 +247,7 @@ function addMemo(){
     editing: false
   };
   memos.unshift(memo);
-  saveToStorage();
+  await saveToStorage();
   document.getElementById('newTitle').value = '';
   document.getElementById('newBody').value = '';
   document.getElementById('newTag').value = '';
@@ -220,10 +256,10 @@ function addMemo(){
   showToast('メモを追加しました！');
 }
 
-function deleteMemo(id){
+async function deleteMemo(id){
   if(!confirm('このメモを削除しますか？')) return;
   memos = memos.filter(function(m){ return m.id !== id; });
-  saveToStorage();
+  await saveToStorage();
   renderMemos();
   renderTags();
 }
@@ -235,14 +271,14 @@ function startEdit(id){
   renderMemos();
 }
 
-function saveEdit(id){
+async function saveEdit(id){
   var m = memos.find(function(m){ return m.id === id; });
   if(!m) return;
   m.title = document.getElementById('edit-title-'+id).value.trim();
   m.body = document.getElementById('edit-body-'+id).value.trim();
   m.tag = document.getElementById('edit-tag-'+id).value.trim();
   m.editing = false;
-  saveToStorage();
+  await saveToStorage();
   renderMemos();
   renderTags();
   showToast('保存しました！');
@@ -337,6 +373,7 @@ renderHistory();
 <nav class="p-tabbar">
   <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
   <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>麗華</a>
   <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
   <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
   <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
