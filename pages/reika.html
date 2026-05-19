@@ -416,6 +416,23 @@ function buildPrompt(){
 
   p+='## 自チームの保有拠点\n';
   if(own.length>0){own.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});p+='合計：+'+myD+'pt/日\n';}else{p+='（なし）\n';}
+
+  // 本丸保有時：本丸周辺の包囲状況を計算してプロンプトに追加
+  var HONMARU='本丸';
+  if(own.indexOf(HONMARU)>=0 && BASES[HONMARU]){
+    var honmaruNeighbors = BASES[HONMARU].neighbors;
+    var ownedAround = honmaruNeighbors.filter(function(n){return own.indexOf(n)>=0;});
+    var notOwnedAround = honmaruNeighbors.filter(function(n){return own.indexOf(n)<0;});
+    p+='\n## 本丸包囲状況（本丸を保有中）\n';
+    p+='本丸の隣接拠点：'+honmaruNeighbors.join('・')+'\n';
+    p+='自チームが保有済み：'+(ownedAround.length>0?ownedAround.join('・'):'なし')+'\n';
+    p+='未保有（敵に狙われる可能性）：'+(notOwnedAround.length>0?notOwnedAround.join('・'):'なし（完全包囲達成！）')+'\n';
+    if(notOwnedAround.length===0){
+      p+='→ 本丸周囲を完全包囲中！相手は本丸に攻め入ることができない状態です。この状態を維持することが最優先。\n';
+    } else {
+      p+='→ 未保有拠点を相手に取られると本丸が狙われる！本日の布告で'+notOwnedAround.join('・')+'を優先的に確保してください。\n';
+    }
+  }
   p+='\n## 布告されている拠点\n';
   if(atk.length>0){atk.forEach(function(n){p+='- '+sl(n)+' '+n+(own.indexOf(n)>=0?' ←自チームが保有中・布告されている！':'')+'\n';});}else{p+='（なし）\n';}
   p+='\n## 相手ギルドの保有拠点\n';
@@ -504,6 +521,9 @@ function buildPrompt(){
   p+='- 布告されている拠点を守れない場合は守るか捨てるかの現実的な判断を含めること\n';
   p+='- 逆転可能性はポイント計算に基づき現実的に判断すること\n';
   p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n';
+  p+='- 本丸を保有している場合：本丸周囲の未保有拠点を全て自ギルドで押さえる「本丸包囲戦略」を優先提案すること\n';
+  p+='- 本丸周囲を全て自ギルドが保有すると、相手は本丸に直接攻め込めなくなる。攻めるには周囲の拠点を1日かけて取り直す必要があり、時間を稼げる\n';
+  p+='- 本丸周囲を完全包囲済みの場合は「包囲完成・本丸が守られている」と明記し、包囲維持を最優先戦略として提案すること\n';
   p+='- 自チームの保有拠点が0の場合は布告返しの考え方は不要\n';
   p+='- 拠点なし時は布告返し不要\n';
   p+='- 本丸に隣接する★1拠点が2つ以上ある場合、「1日目に★1を2つ取って初日から本丸に布告する超攻撃戦略」を最優先で提案すること\n';
