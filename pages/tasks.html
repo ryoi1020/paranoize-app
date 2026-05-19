@@ -6,54 +6,108 @@
 <title>PARANOISE — デイリータスク管理</title>
 <style>
 body{background:var(--bg);}
-.page-wrap{max-width:680px;margin:0 auto;padding:1rem;position:relative;z-index:1;}
-.page-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,#064e3b,#059669);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;padding:1.25rem 0 0.75rem;}
-.glass-card{background:rgba(255,255,255,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.85);border-radius:var(--r20);padding:1.1rem;margin-bottom:0.75rem;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.wrap{max-width:720px;margin:0 auto;padding:1rem;position:relative;z-index:1;}
+
+/* ヘッダー */
+.page-hdr{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 0.75rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,#064e3b,#059669,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* 日付ヘッダー */
+.date-card{background:linear-gradient(135deg,rgba(4,120,87,0.88),rgba(5,150,105,0.82),rgba(52,211,153,0.75));border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:1.1rem 1.25rem;margin-bottom:0.75rem;box-shadow:0 8px 28px rgba(5,150,105,0.25);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;}
+.date-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent);}
+.date-main{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;}
+.date-sub{font-size:0.72rem;color:rgba(255,255,255,0.7);margin-top:2px;}
+
+/* ガラスカード */
+.glass-card{background:rgba(255,255,255,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.85);border-radius:20px;padding:1.1rem 1.25rem;margin-bottom:0.75rem;box-shadow:0 4px 20px rgba(0,0,0,0.06);position:relative;overflow:hidden;}
 .glass-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
-.section-title{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--tx);}
-.progress-text{font-size:0.72rem;color:var(--tx3);}
-.task-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;transition:opacity 0.15s;}
+
+/* セクションヘッダー */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.section-title{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:6px;}
+.section-badge{font-size:0.65rem;padding:2px 8px;border-radius:100px;background:rgba(5,150,105,0.1);color:#059669;border:1px solid rgba(5,150,105,0.2);font-weight:700;}
+
+/* プログレス */
+.progress-wrap{margin-bottom:0.75rem;}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.progress-label{font-size:0.72rem;color:var(--tx2);font-weight:600;}
+.progress-count{font-size:0.72rem;color:#059669;font-weight:700;}
+.progress-bar{height:5px;background:rgba(0,0,0,0.07);border-radius:100px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#059669,#34d399);border-radius:100px;transition:width 0.4s ease;}
+
+/* 曜日ボーナス */
+.bonus-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:0.75rem;}
+.bonus-day{background:rgba(255,255,255,0.55);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.85);border-radius:10px;padding:6px 4px;text-align:center;}
+.bonus-day.today{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;box-shadow:0 3px 10px rgba(5,150,105,0.3);}
+.bonus-day-name{font-size:0.6rem;color:var(--tx3);font-weight:700;margin-bottom:3px;}
+.bonus-day.today .bonus-day-name{color:rgba(255,255,255,0.8);}
+.bonus-item{font-size:0.58rem;color:var(--tx2);line-height:1.4;}
+.bonus-day.today .bonus-item{color:rgba(255,255,255,0.9);}
+
+/* タスクアイテム */
+.task-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;transition:opacity 0.15s;user-select:none;}
 .task-item:last-child{border-bottom:none;}
-.task-item.done{opacity:0.4;}
-.task-check{width:22px;height:22px;border-radius:50%;border:2px solid rgba(5,150,105,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;background:rgba(255,255,255,0.6);}
+.task-item.done{opacity:0.38;}
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid rgba(5,150,105,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;background:rgba(255,255,255,0.6);}
 .task-item.done .task-check{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;}
-.task-check-icon{font-size:0.7rem;color:#fff;display:none;}
-.task-item.done .task-check-icon{display:block;}
-.task-name{font-size:0.85rem;color:var(--tx);flex:1;}
+.check-icon{font-size:0.7rem;color:#fff;display:none;}
+.task-item.done .check-icon{display:block;}
+.task-name{font-size:0.85rem;color:var(--tx);flex:1;line-height:1.4;}
 .task-item.done .task-name{text-decoration:line-through;color:var(--tx3);}
-.add-task-row{display:flex;gap:8px;margin-top:0.75rem;}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
-.cal-head{font-size:0.6rem;color:var(--tx3);font-weight:700;padding:4px 0;}
-.cal-day{padding:6px 2px;border-radius:8px;font-size:0.75rem;color:var(--tx2);background:rgba(255,255,255,0.4);}
-.cal-day.today{background:linear-gradient(135deg,#059669,#34d399);color:#fff;font-weight:700;}
-.cal-day.active{background:rgba(5,150,105,0.12);color:var(--accent);font-weight:600;}
-.event-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
+.task-meta{font-size:0.62rem;color:var(--tx3);flex-shrink:0;}
+
+/* 追加フォーム */
+.add-btn{font-size:0.7rem;padding:4px 12px;border-radius:100px;background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.2);color:#059669;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:600;transition:all 0.15s;}
+.add-btn:hover{background:rgba(5,150,105,0.15);}
+.add-form{display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06);}
+.add-form.open{display:block;}
+.add-form-row{display:flex;gap:6px;margin-bottom:6px;}
+.add-input{flex:1;background:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.9);border-radius:100px;padding:7px 14px;font-size:0.82rem;color:var(--tx);font-family:'Noto Sans JP',sans-serif;outline:none;}
+.add-input:focus{border-color:rgba(5,150,105,0.4);box-shadow:0 0 0 3px rgba(5,150,105,0.08);}
+.form-submit{padding:7px 14px;border-radius:100px;background:linear-gradient(135deg,#059669,#34d399);border:none;color:#fff;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.form-cancel{font-size:0.72rem;color:var(--tx3);background:none;border:none;cursor:pointer;font-family:'Noto Sans JP',sans-serif;padding:0;}
+
+/* 通知 */
+.notice{background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.2);border-radius:12px;padding:8px 14px;font-size:0.78rem;color:#059669;margin-bottom:0.75rem;display:none;font-weight:600;}
+.notice.show{display:block;}
+
+/* イベント */
+.event-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
 .event-item:last-child{border-bottom:none;}
 .event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .event-name{font-size:0.82rem;color:var(--tx);flex:1;}
-.event-badge{font-size:0.62rem;padding:2px 8px;border-radius:var(--r99);font-weight:600;}
-.reset-btn{font-size:0.68rem;padding:4px 12px;border-radius:var(--r99);background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.15);color:var(--accent);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:600;}
+.event-badge{font-size:0.62rem;padding:2px 8px;border-radius:100px;font-weight:600;}
+
+/* リセットボタン */
+.reset-btn{font-size:0.68rem;padding:5px 14px;border-radius:100px;background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.85);color:var(--tx2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+
+/* 戻るボタン */
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.9);border-radius:100px;padding:6px 14px;color:var(--tx2);font-size:0.78rem;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.06);font-weight:600;}
+
+/* PC版レイアウト */
+@media(min-width:700px){
+  .wrap{padding:1.5rem 2rem;}
+  .pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+  .pc-full{grid-column:1/-1;}
+}
 </style>
 <link rel="stylesheet" href="/assets/common.css">
 </head>
 <body>
 
-<div class="nav">
-  <a href="/" class="nav-back">← ホーム</a>
-  <span class="nav-title">📅 デイリータスク管理</span>
-</div>
+<div class="wrap">
+  <div class="page-hdr">
+    <a href="/" class="back-btn">← ホーム</a>
+    <div class="page-title">📅 デイリータスク管理</div>
+  </div>
 
-<div class="container">
-
-  <div class="date-header">
-    <div class="date-info">
+  <div class="date-card">
+    <div>
       <div class="date-main" id="dateMain"></div>
       <div class="date-sub" id="dateSub"></div>
     </div>
     <button class="reset-btn" onclick="confirmReset()">デイリーリセット</button>
   </div>
-
 
   <p class="section-label" style="margin-bottom:8px;">📆 今週の曜日ボーナス</p>
   <div class="bonus-grid" id="bonusGrid"></div>
@@ -62,7 +116,7 @@ body{background:var(--bg);}
     📅 今週のウィークリータスクがリセットされました！
   </div>
 
-  <div class="progress-wrap">
+  <div class="glass-card progress-wrap" style="padding:0.9rem 1.25rem;">
     <div class="progress-top">
       <span class="progress-label">今日の進捗</span>
       <span class="progress-count" id="progressCount">0 / 0</span>
@@ -72,8 +126,9 @@ body{background:var(--bg);}
     </div>
   </div>
 
+  <div class="pc-grid">
   <!-- デイリータスク -->
-  <div class="section">
+  <div class="glass-card">
     <div class="section-header">
       <div class="section-title">
         <span style="color:var(--green);">●</span> デイリー
@@ -92,7 +147,7 @@ body{background:var(--bg);}
   </div>
 
   <!-- ウィークリータスク -->
-  <div class="section">
+  <div class="glass-card">
     <div class="section-header">
       <div class="section-title">
         <span style="color:var(--yellow);">●</span> ウィークリー
@@ -110,8 +165,9 @@ body{background:var(--bg);}
     </div>
   </div>
 
+  </div><!-- /pc-grid -->
   <!-- カスタムタスク -->
-  <div class="section">
+  <div class="glass-card pc-full">
     <div class="section-header">
       <div class="section-title">
         <span style="color:var(--accent2);">●</span> カスタム
@@ -129,7 +185,7 @@ body{background:var(--bg);}
     </div>
   
   <!-- 月次イベント -->
-  <div class="section monthly-section">
+  <div class="glass-card pc-full">
     <div class="section-header">
       <div class="section-title">
         <span style="color:var(--accent2);">●</span> 月次イベント
@@ -137,8 +193,6 @@ body{background:var(--bg);}
     </div>
     <div class="event-list" id="monthlyEventList"></div>
   </div>
-</div>
-
 </div>
 
 <script>
@@ -790,7 +844,7 @@ function renderTasks(listId, tasks, doneArr, type, canDelete) {
     var delBtn = canDelete ? '<div class="task-actions"><button class="task-del" onclick="event.stopPropagation();deleteTask(\''+t.id+'\')">✕</button></div>' : '';
     var meta = t.meta ? '<div class="task-meta">'+t.meta+'</div>' : '';
     return '<div class="task-item'+(done?' done':'')+'" onclick="toggleTask(\''+type+'\',\''+t.id+'\')">' +
-      '<div class="task-check"><span class="task-check-icon">✓</span></div>' +
+      '<div class="task-check"><span class="check-icon">✓</span></div>' +
       '<div class="task-content"><div class="task-name">'+t.name+'</div>'+meta+'</div>' +
       delBtn +
       '</div>';
