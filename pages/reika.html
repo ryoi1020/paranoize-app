@@ -335,8 +335,18 @@ function buildPrompt(){
   if(atk.length>0){atk.forEach(function(n){p+='- '+sl(n)+' '+n+(own.indexOf(n)>=0?' ←自チームが保有中・布告されている！':'')+'\n';});}else{p+='（なし）\n';}
   p+='\n## 相手ギルドの保有拠点\n';
   if(enOwn.length>0){enOwn.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});p+='合計：+'+enD+'pt/日\n';}else{p+='（不明）\n';}
-  p+='\n## 今日布告できる拠点（自チームの隣接拠点）\n';
-  if(attackable.length>0){attackable.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});}else{p+='（なし、または拠点未保有）\n';}
+  p+='\n## 今日布告できる拠点\n';
+  if(own.length===0&&sc!=='zero'){
+    // 拠点なし＆布告権あり → 任意の★1拠点に布告可能
+    var star1 = BN.filter(function(n){return BASES[n].star===1;});
+    p+='※自チームの保有拠点なし。布告権がある場合、好きな★1拠点に布告することができます。\n';
+    p+='布告できる★1拠点の選択肢：\n';
+    star1.forEach(function(n){p+='- ★ '+n+'（+1pt/日）\n';});
+  } else if(attackable.length>0){
+    attackable.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});
+  } else {
+    p+='（隣接拠点なし）\n';
+  }
 
   if(myP!==null||enP!==null){
     p+='\n## ポイント情報\n';
@@ -352,7 +362,8 @@ function buildPrompt(){
   p+='- 終戦（'+endT+'）まで時間がある場合、'+cutoff+'以降の駆け込み奪取の話は不要\n';
   p+='- 布告されている拠点を守れない場合は守るか捨てるかの現実的な判断を含めること\n';
   p+='- 逆転可能性はポイント計算に基づき現実的に判断すること\n';
-  p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n\n';
+  p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n';
+  p+='- 自チームの保有拠点が0の場合、布告権があれば任意の★1拠点に布告できる（隣接制限なし）\n\n';
   p+='```json\n{\n';
   p+='  "summary": "状況の一言まとめ（20文字以内）",\n';
   p+='  "priority": "defense または attack または balance",\n';
