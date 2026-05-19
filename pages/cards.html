@@ -132,6 +132,79 @@ body{background:var(--bg);}
 </nav>
 
 <script>
+let query = '';
+let filters = {rarity:[], attr:[], atk:[]};
+let filtered = [];
+
+function toggleF(type, val, btn) {
+  const arr = filters[type];
+  const idx = arr.indexOf(val);
+  if (idx >= 0) { arr.splice(idx, 1); btn.classList.remove('on'); }
+  else { arr.push(val); btn.classList.add('on'); }
+  render();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('clearBtn').classList.remove('show');
+  query = '';
+  render();
+}
+
+function matchCard(c) {
+  if (filters.rarity.length && !filters.rarity.includes(c.rarity)) return false;
+  if (filters.attr.length && !filters.attr.includes(c.attr)) return false;
+  if (filters.atk.length && !filters.atk.includes(c.atk)) return false;
+  if (!query) return true;
+  const hay = [c.name, c.card, c.series, c.attr, c.atk, c.rarity, ...c.passive, ...c.active].join(' ').toLowerCase();
+  return hay.includes(query);
+}
+
+function skillShort(s) {
+  const m = s.match(/^(.+?)\s*—\s*/);
+  return m ? m[1] : s.split('—')[0].trim();
+}
+function skillDesc(s) {
+  const parts = s.split('—');
+  return parts.length > 1 ? parts.slice(1).join('—').trim() : '';
+}
+
+function render() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  query = q;
+  document.getElementById('clearBtn').classList.toggle('show', q.length > 0);
+  filtered = CARDS.filter(matchCard);
+  document.getElementById('stats').textContent = filtered.length + ' / ' + CARDS.length + ' カード表示中';
+  const grid = document.getElementById('cardGrid');
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-text">該当するカードが見つかりませんでした</div></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map((c, i) => {
+    const imgKey = (c.rarity + '_' + c.name + '_' + c.card).replace(/\s/g,'');
+    const savedPos = getImgPos(imgKey);
+    const defaultPos = getImgStyle(c.img);
+    const imgPos = savedPos !== null ? 'center ' + savedPos + '%' : defaultPos;
+    const imgHtml = c.img ? '<div class="card-img-wrap"><img class="card-img" src="' + c.img + '" alt="' + c.name + '" loading="lazy" data-key="' + imgKey + '" style="object-position:' + imgPos + '" onerror="this.parentElement.style.display='none'"></div>' : '';
+    const passiveItems = c.passive.slice(0,2).map(s =>
+      '<div class="skill-item"><span class="skill-label p">P</span><span class="skill-text"><span class="skill-name">' + skillShort(s) + '</span>' + (skillDesc(s) ? ' — ' + skillDesc(s) : '') + '</span></div>'
+    ).join('');
+    const activeItems = c.active.slice(0,2).map(s =>
+      '<div class="skill-item"><span class="skill-label a">A</span><span class="skill-text"><span class="skill-name">' + skillShort(s) + '</span>' + (skillDesc(s) ? ' — ' + skillDesc(s) : '') + '</span></div>'
+    ).join('');
+    return '<div class="card" onclick="openModal(' + i + ')">' +
+      imgHtml +
+      '<div class="card-top">' +
+        '<span class="rarity-badge ' + c.rarity + '">' + c.rarity + '</span>' +
+        '<div><div class="card-name">' + c.name + '</div><div class="card-subname">「' + c.card + '」</div></div>' +
+        '<div class="card-tags"><span class="attr-tag attr-' + c.attr + '">' + c.attr + '</span><span class="atk-tag">' + c.atk + '</span></div>' +
+      '</div>' +
+      '<div class="card-skills">' + passiveItems + activeItems +
+        ((c.passive.length + c.active.length) > 4 ? '<div style="font-size:0.72rem;color:var(--tx3);padding-left:8px;">+ もっと見る</div>' : '') +
+      '</div></div>';
+  }).join('');
+  setTimeout(initAllImgDrag, 50);
+}
 
 const CARDS = [
   {rarity:'SSR',name:'望月 那由多',card:'ファースト・ラブ',series:'恒常',attr:'地',atk:'特殊',img:'https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_mochizuki_nayuta_first_love.PNG',passive:["入場スリープ(2体) — 増援から場に出た時、ランダムな敵2体を各一定の確率で睡眠状態にする。", "回復の遺志 — 戦闘不能になった時、HPの割合が最も低い味方1体のHPを50%回復する。"],active:["ファーストエイド 70TU/-2MP — 自身、または味方1体のHPを50%回復する。", "サバイバー 130TU — 敵1体に5倍のダメージ。300TU生存すると使用可能。", "迅速攻撃 70TU — 敵1体に0.75倍のダメージ。"]},
@@ -522,8 +595,8 @@ function initAllImgDrag() {
   });
 }
 
+filtered = [...CARDS];
 render();
-setTimeout(initAllImgDrag, 100);
 </script>
 </body>
 </html>
