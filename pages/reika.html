@@ -232,27 +232,7 @@ var BASES_TOUKAI={
   '映画館':{star:1,neighbors:['魚屋A','本屋B']}
 };
 
-var BASES={
-  '本丸':{star:3,neighbors:['肉屋A','メゾン・ド・イエ','本田のマンション','八本木ヒルズ']},
-  '八本木ヒルズ':{star:2,neighbors:['本丸','映画館A','ゲームセンターA']},
-  '温泉宿':{star:2,neighbors:['カシワ荘','映画館A','酒場','魚屋A']},
-  '本田のマンション':{star:2,neighbors:['本丸','カシワ荘','映画館B','魚屋A']},
-  'メゾン・ド・イエ':{star:2,neighbors:['本丸','カジノ']},
-  'カジノ':{star:2,neighbors:['メゾン・ド・イエ','本屋','宮本家','映画館B']},
-  '肉屋A':{star:1,neighbors:['本丸','ゲームセンターB']},
-  '肉屋B':{star:1,neighbors:['魚屋B','魚屋A']},
-  '魚屋A':{star:1,neighbors:['肉屋B','温泉宿','本田のマンション']},
-  '魚屋B':{star:1,neighbors:['肉屋B','映画館B']},
-  'ゲームセンターA':{star:1,neighbors:['橘家','八本木ヒルズ']},
-  'ゲームセンターB':{star:1,neighbors:['肉屋A','本屋']},
-  '本屋':{star:1,neighbors:['ゲームセンターB','宮本家','カジノ']},
-  '宮本家':{star:1,neighbors:['カジノ','本屋']},
-  '映画館A':{star:1,neighbors:['八本木ヒルズ','温泉宿']},
-  '映画館B':{star:1,neighbors:['カジノ','本田のマンション','魚屋B']},
-  'カシワ荘':{star:1,neighbors:['本田のマンション','温泉宿']},
-  '酒場':{star:1,neighbors:['温泉宿','橘家']},
-  '橘家':{star:1,neighbors:['酒場','ゲームセンターA']}
-};
+var BASES={};
 var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:false},'シコク':{available:false},'キュウシュウ':{available:false}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
@@ -262,15 +242,10 @@ function pts(l){return l.reduce(function(s,n){return s+(BASES[n]?BASES[n].star:0
 function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'+n);return e&&e.checked;});}
 
 function updateBases(){
-  if(MAP==='トウカイ'){
-    Object.assign(BASES, BASES_TOUKAI);
-    // トウカイ用にBASESをリセット
-    for(var k in BASES){ if(!BASES_TOUKAI[k]) delete BASES[k]; }
-    Object.assign(BASES, BASES_TOUKAI);
-  } else {
-    for(var k in BASES){ if(!BASES_TOUHOKU[k]) delete BASES[k]; }
-    Object.assign(BASES, BASES_TOUHOKU);
-  }
+  // 一旦クリア
+  for(var k in BASES){ delete BASES[k]; }
+  var src = MAP==='トウカイ' ? BASES_TOUKAI : BASES_TOUHOKU;
+  Object.assign(BASES, src);
   BN = Object.keys(BASES);
 }
 
@@ -287,9 +262,13 @@ function buildMapBtns(){
 }
 
 function buildGrids(){
+  // ★3→★2→★1の順でソート
+  var sortedBN = BN.slice().sort(function(a,b){
+    return BASES[b].star - BASES[a].star;
+  });
   [['baseGrid','own'],['attackedGrid','atk'],['enemyBaseGrid','enm']].forEach(function(g){
     var grid=document.getElementById(g[0]);grid.innerHTML='';
-    BN.forEach(function(n){
+    sortedBN.forEach(function(n){
       var s=BASES[n].star;
       var l=document.createElement('label');
       l.className='cbl'+(s===3?' s3':s===2?' s2':'');
