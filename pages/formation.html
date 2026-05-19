@@ -430,7 +430,7 @@ async function analyze() {
     var res = await fetch('/api/analyze', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt: buildPrompt()})
+      body:JSON.stringify({messages:[{role:'user',content:buildPrompt()}]})
     });
     var data = await res.json();
     var txt = (data.content||[]).map(i => i.text||'').join('');
@@ -457,7 +457,7 @@ async function followup() {
     var res = await fetch('/api/analyze', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt: conversationHistory.map(m => m.role === 'user' ? 'ユーザー: ' + m.content : 'AI: ' + m.content).join('\n\n')})
+      body:JSON.stringify({messages:conversationHistory})
     });
     var data = await res.json();
     var txt = (data.content||[]).map(i => i.text||'').join('');
