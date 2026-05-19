@@ -158,7 +158,7 @@ body{background:var(--bg);}
       <select id="sc">
         <option value="">選択してください</option>
         <option value="three" id="opt3" style="display:none;">3つ（全国版）</option>
-        <option value="two" id="opt2">2つ（1〜8位）＋★1拠点2つ持ちスタート</option>
+        <option value="two" id="opt2">2つ（1〜8位）+★1拠点2つ持ちスタート</option>
         <option value="one" id="opt1">1つ（9〜16位）</option>
         <option value="zero">0（布告権なし）</option>
       </select>
@@ -327,7 +327,7 @@ function onDaysChange(){
   var opt2=document.getElementById('opt2');
   if(!isN){
     opt2.textContent=isFirst
-      ?'2つ（1〜8位）＋★1拠点2つ持ちスタート'
+      ?'2つ（1〜8位）+★1拠点2つ持ちスタート'
       :'2つ（1〜8位）';
   }
   var ph,pc,tt,tb;
@@ -390,14 +390,14 @@ function buildPrompt(){
   var myF=myP!==null?myP+myD*d:null;var enF=enP!==null?enP+enD*d:null;
   var fd=myF!==null&&enF!==null?myF-enF:null;
   var isFirstDay=(d===max);
-  var scL={'three':'3つ（全国版）','two':isFirstDay?'2つ（1〜8位）＋★1拠点2つ持ちスタート':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
+  var scL={'three':'3つ（全国版）','two':isFirstDay?'2つ（1〜8位）+★1拠点2つ持ちスタート':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
   p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
   p+='- 野望ポイントランキングは毎日夜12時にリセットされる\n';
   p+='- 布告可能数は前日のランキング次第（通常版：1〜8位は2つ、9〜16位は1つ、全国版は3つ）\n';
-  p+='- ★1拠点2つ＋布告権2つのスタートボーナスは初日のみ（前日火曜8位以内のギルドが対象）\n';
+  p+='- ★1拠点2つ+布告権2つのスタートボーナスは初日のみ（前日火曜8位以内のギルドが対象）\n';
   p+='- 翌日以降は前日ランキング1〜8位が布告権2つ、9〜16位が布告権1つ\n';
   p+='- 拠点を持っていないギルドが前日ランキング16位以内の場合、好きな★1拠点に布告できる（初日以外も同様）\n';
   p+='- マップによって拠点数が異なるため、1〜8位に拠点を配り終えて余った場合、9位以下にも拠点が1つもらえることがある\n';
