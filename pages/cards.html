@@ -283,8 +283,10 @@ function render() {
       `<div class="skill-item"><span class="skill-label a">A</span><span class="skill-text"><span class="skill-name">${skillShort(s)}</span>${skillDesc(s) ? ' — '+skillDesc(s) : ''}</span></div>`
     ).join('');
     const imgKey = `${c.rarity}_${c.name}_${c.card}`.replace(/\s/g,'');
-    const imgPos = getImgPos(imgKey);
-    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:center ${imgPos}%" onerror="this.parentElement.style.display='none'"></div>` : '';
+    const savedPos = getImgPos(imgKey);
+    const defaultPos = getImgStyle(c.img);
+    const imgPos = savedPos !== null ? `center ${savedPos}%` : defaultPos;
+    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:${imgPos}" onerror="this.parentElement.style.display='none'"></div>` : '';
     return `<div class="card" onclick="openModal(${i})">
       ${imgHtml}
       <div class="card-top">
@@ -315,8 +317,61 @@ function saveImgPos(key, val) {
   localStorage.setItem('paranoise_img_pos', JSON.stringify(imgPositions));
 }
 
+// デフォルト画像位置マップ（コードで固定）
+var IMG_POS_MAP = {
+  "SSR_mochizuki_nayuta_first_love.PNG": "center center",
+  "SSR_amakusa_jin_looking_at_you.PNG": "center center",
+  "SSR_kurosawa_anna_misleading_liePNG.PNG": "center center",
+  "SSR_hourly_reika_evening_shower.PNG": "center center",
+  "SSR_tachibana_yui_pure_game.PNG": "center center",
+  "SSR_aoki_shoko_tonights_dessert.PNG": "center center",
+  "SSR_honda_minami_not_a_date.PNG": "center center",
+  "SSR_tachibana_tomoya_apex_predator..PNG": "center center",
+  "SSR_miyamoto_ryoko_cigarette_elegy.PNG": "center center",
+  "SSR_tachibana_yui_that_gaze.PNG": "center center",
+  "SSR_kurosawa_anna_secret_meeting.PNG": "center center",
+  "SSR_yanagiba_ryu_late_man.PNG": "center center",
+  "SSR_tachibana_tomoya_as_brother.PNG": "center center",
+  "SSR_miyamoto_renji_secret_told.PNG": "center center",
+  "SSR_aoki_shoko_hungry_meeting.PNG": "center center",
+  "SR_aoki_shoko_chemistry_teacher.PNG": "center 15%",
+  "SR_charlotte_elegant_beast.PNG": "center 40%",
+  "SR_flamingo_mission_complete.PNG": "center 25%",
+  "SR_goldmedal_luxury.PNG": "center 40%",
+  "SR_hagbit_black_rabbit.PNG": "center 40%",
+  "SR_hourly_erihana_sister_in_flames.PNG": "center 20%",
+  "SR_hourly_reika_girl_of_hourly.PNG": "center 22%",
+  "SR_kagan_zen_red_tiger.PNG": "center 28%",
+  "SR_korokonie_twin_blades.PNG": "center 40%",
+  "SR_kurosawa_anna_elite_detective.PNG": "center 20%",
+  "SR_lovataros_love_and_hate.PNG": "center 40%",
+  "SR_mikage_meisa_hidden_blade.PNG": "center 22%",
+  "SR_miyamoto_renji_dark_blade.PNG": "center 15%",
+  "SR_miyamoto_ryoko_caring_mother.PNG": "center 28%",
+  "SR_mochizuki_nayuta_genius_hacker.PNG": "center 15%",
+  "SR_mokumal_reliable_partner.PNG": "center 35%",
+  "SR_nathan_cat_agent.PNG": "center 35%",
+  "SR_nescoural_coral_guardian.PNG": "center 40%",
+  "SR_numedyusa_slimy_eyes.PNG": "center 40%",
+  "SR_ojugon_love_charm.PNG": "center 40%",
+  "SR_ryugoon_sea_lord.PNG": "center 38%",
+  "SR_sakakibara_daichi_cunning_yakuza.PNG": "center 25%",
+  "SR_sangoryu_blue_dragon.PNG": "center 38%",
+  "SR_tentacle_tangled_end.PNG": "center 38%",
+  "SR_yanagiba_ryu_outlaw.PNG": "center 18%"
+};
+
 function getImgPos(key) {
-  return imgPositions[key] !== undefined ? imgPositions[key] : 20;
+  // localStorageの調整値を優先、なければコード固定値、それもなければデフォルト
+  if (imgPositions[key] !== undefined) return imgPositions[key];
+  return null; // マップはobject-positionで直接処理
+}
+
+function getImgStyle(filename) {
+  // ファイル名からpositionを取得
+  if (!filename) return 'center 15%';
+  var name = filename.split('/').pop();
+  return IMG_POS_MAP[name] || 'center 15%';
 }
 
 function applyImgPositions() {
