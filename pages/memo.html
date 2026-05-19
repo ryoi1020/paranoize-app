@@ -143,7 +143,7 @@ async function loadFromStorage(kw){
   try{
     var local = localStorage.getItem('paranoise_memo_' + kw);
     var localData = local ? JSON.parse(local) : [];
-    var res = await fetch('/api/memo?action=load&keyword=' + encodeURIComponent(kw));
+    var res = await fetch('/api/memo?keyword=' + encodeURIComponent(kw));
     if(res.ok){
       var result = await res.json();
       if(result.data) return JSON.parse(result.data);
