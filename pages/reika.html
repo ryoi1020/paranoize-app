@@ -549,13 +549,11 @@ updateBases();buildMapBtns();buildGrids();onDaysChange();
 <script>
 (function(){
   var path = location.pathname;
-  var map = {'/':[document.getElementById('tab-home')],'/cards':['tab-cards'],'/reika':['tab-reika'],'/tasks':['tab-tasks'],'/memo':['tab-memo'],'/board':['tab-board']};
-  var tabs = {'tab-home':'tab-home','tab-cards':'tab-cards','tab-reika':'tab-reika','tab-tasks':'tab-tasks','tab-memo':'tab-memo','tab-board':'tab-board'};
-  Object.keys(tabs).forEach(function(id){
-    var el = document.getElementById(id);
-    if(!el) return;
-    var href = el.getAttribute('href');
-    if(path === href || (href !== '/' && path.startsWith(href))) el.classList.add('active');
+  document.querySelectorAll('.p-tab').forEach(function(tab){
+    var href = tab.getAttribute('href');
+    if(href && (path === href || (href !== '/' && path.startsWith(href)))){
+      tab.classList.add('active');
+    }
   });
 })();
 </script>
