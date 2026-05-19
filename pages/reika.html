@@ -154,11 +154,11 @@ body{background:var(--bg);}
     </div>
 
     <div class="fld" style="margin-bottom:1rem;">
-      <span>布告可能数（前日火曜ランキング）</span>
+      <span id="scLabel">布告可能数（前日火曜ランキング）</span>
       <select id="sc">
         <option value="">選択してください</option>
         <option value="three" id="opt3" style="display:none;">3つ（全国版）</option>
-        <option value="two" id="opt2">2つ（1〜8位）※初日は★1拠点2つ持ちスタート</option>
+        <option value="two" id="opt2">2つ（1〜8位）＋★1拠点2つ持ちスタート</option>
         <option value="one" id="opt1">1つ（9〜16位）</option>
         <option value="zero">0（布告権なし）</option>
       </select>
@@ -310,7 +310,8 @@ function onModeChange(){
   document.getElementById('opt3').style.display=isN?'block':'none';
   document.getElementById('opt2').style.display=isN?'none':'block';
   document.getElementById('opt1').textContent=isN?'2つ（全国版：9位以下）':'1つ（9〜16位）';
-  document.getElementById('opt2').textContent=isN?'3つ（全国版）':'2つ（上位8ギルド）';
+  if(isN) document.getElementById('opt2').textContent='3つ（全国版）';
+  // opt2の通常版ラベルはonDaysChangeで制御するのでここでは触らない
   onDaysChange();
 }
 
@@ -318,6 +319,17 @@ function onDaysChange(){
   var d=parseInt(document.getElementById('daysLeft').value)||1;
   var isN=document.getElementById('mode').value==='national';
   var max=isN?7:14;var r=d/max;
+  // 初日かどうかで布告可能数のラベルを切り替え
+  var isFirst=(d===max);
+  document.getElementById('scLabel').textContent=isFirst
+    ?'布告可能数（前日火曜ランキング）'
+    :'布告可能数（前日ランキング）';
+  var opt2=document.getElementById('opt2');
+  if(!isN){
+    opt2.textContent=isFirst
+      ?'2つ（1〜8位）＋★1拠点2つ持ちスタート'
+      :'2つ（1〜8位）';
+  }
   var ph,pc,tt,tb;
   if(r>0.6){ph='序盤';pc='#2f9e44';tt='残り'+d+'日（序盤）— 拠点を広げてポイントの土台を作れ';tb='序盤は拠点の確保が最優先です。布告権を使って★1・★2拠点を積極的に押さえ、本丸を狙うルートを作ってください。';}
   else if(r>0.3){ph='中盤';pc='#e67700';tt='残り'+d+'日（中盤）— ポイント差を計算して攻守を判断せよ';tb='中盤は相手とのポイント差と1日あたりの獲得ポイントを計算しながら戦略を立てる時期です。';}
@@ -377,7 +389,8 @@ function buildPrompt(){
   var vuln=own.filter(function(n){return atk.indexOf(n)>=0;});
   var myF=myP!==null?myP+myD*d:null;var enF=enP!==null?enP+enD*d:null;
   var fd=myF!==null&&enF!==null?myF-enF:null;
-  var scL={'three':'3つ（全国版）','two':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
+  var isFirstDay=(d===max);
+  var scL={'three':'3つ（全国版）','two':isFirstDay?'2つ（1〜8位）＋★1拠点2つ持ちスタート':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
