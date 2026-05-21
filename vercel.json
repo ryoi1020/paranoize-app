@@ -8,6 +8,16 @@
     { "source": "/memo", "destination": "/pages/memo.html" },
     { "source": "/board", "destination": "/pages/board.html" },
     { "source": "/formation", "destination": "/pages/formation.html" },
+    { "source": "/wiki", "destination": "/pages/wiki/index.html" },
+    { "source": "/wiki/beginner", "destination": "/pages/wiki/beginner.html" },
+    { "source": "/wiki/training", "destination": "/pages/wiki/training.html" },
+    { "source": "/wiki/diamond", "destination": "/pages/wiki/diamond.html" },
+    { "source": "/wiki/finance", "destination": "/pages/wiki/finance.html" },
+    { "source": "/wiki/reika-guide", "destination": "/pages/wiki/reika-guide.html" },
+    { "source": "/wiki/guild", "destination": "/pages/wiki/guild.html" },
+    { "source": "/wiki/gacha", "destination": "/pages/wiki/gacha.html" },
+    { "source": "/wiki/reroll", "destination": "/pages/wiki/reroll.html" },
+    { "source": "/wiki/daily", "destination": "/pages/wiki/daily.html" },
     { "source": "/(.*)", "destination": "/pages/index.html" }
   ]
 }
