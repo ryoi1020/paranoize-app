@@ -114,6 +114,14 @@ body{
 /* フッター */
 .footer{position:relative;z-index:1;text-align:center;padding:0.75rem;font-size:0.58rem;color:rgba(0,0,0,0.2);letter-spacing:0.15em;text-transform:uppercase;}
 
+/* キャラスライダー */
+.chara-slider-wrap{position:relative;z-index:1;margin-bottom:1.25rem;overflow:hidden;}
+.chara-slider{display:flex;gap:10px;padding:0 1rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
+.chara-slider::-webkit-scrollbar{display:none;}
+.chara-card{flex-shrink:0;width:100px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.chara-card img{width:100px;height:100px;object-fit:cover;object-position:center 25%;border-radius:16px;border:2px solid rgba(255,255,255,0.85);box-shadow:0 4px 16px rgba(0,0,0,0.1);background:rgba(255,255,255,0.3);}
+.chara-name{font-size:0.6rem;font-weight:700;color:rgba(0,0,0,0.5);letter-spacing:0.02em;text-align:center;}
+
 /* タブバー */
 .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;}
 .tabbar-inner{
@@ -145,7 +153,36 @@ body{
     Powered by eサプリ
   </div>
   <div class="hero-logo">PARANOIZE</div>
+</div>
 
+<!-- キャラクタースライダー -->
+<div class="chara-slider-wrap">
+  <div class="chara-slider">
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_mochizuki_nayuta_first_love.PNG" alt="望月なゆた" loading="lazy">
+      <div class="chara-name">望月なゆた</div>
+    </div>
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_kurosawa_anna_misleading_liePNG.PNG" alt="黒澤アンナ" loading="lazy">
+      <div class="chara-name">黒澤アンナ</div>
+    </div>
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_tachibana_tomoya_apex_predator_.PNG" alt="橘智弥" loading="lazy">
+      <div class="chara-name">橘智弥</div>
+    </div>
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_yanagiba_ryo_dark_emperor.PNG" alt="柳葉凌" loading="lazy">
+      <div class="chara-name">柳葉凌</div>
+    </div>
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_kisaragi_shoko_blue_butterfly.PNG" alt="如月翔子" loading="lazy">
+      <div class="chara-name">如月翔子</div>
+    </div>
+    <div class="chara-card">
+      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_tachibana_yui_innocent_angel.PNG" alt="橘結衣" loading="lazy">
+      <div class="chara-name">橘結衣</div>
+    </div>
+  </div>
 </div>
 
 <!-- AI機能 -->
@@ -183,6 +220,49 @@ body{
   </a>
 </div>
 
+<!-- 攻略Wiki -->
+<div class="section">
+  <div class="section-label">攻略Wiki</div>
+  <div class="grid3">
+    <a class="card3 glass" href="/wiki/beginner">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(5,150,105,0.15),rgba(4,120,87,0.08));border:1px solid rgba(5,150,105,0.2);">🎮</div>
+      <div class="card3-title">序盤ガイド</div>
+      <div class="card3-desc">最初にやること7選</div>
+    </a>
+    <a class="card3 glass" href="/wiki/training">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.08));border:1px solid rgba(245,158,11,0.2);">📈</div>
+      <div class="card3-title">育成ガイド</div>
+      <div class="card3-desc">最短最強の育成法</div>
+    </a>
+    <a class="card3 glass" href="/wiki/diamond">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(37,99,235,0.08));border:1px solid rgba(59,130,246,0.2);">💎</div>
+      <div class="card3-title">ダイヤ収集</div>
+      <div class="card3-desc">無課金で3万貯める</div>
+    </a>
+    <a class="card3 glass" href="/wiki/reika-guide">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(220,38,38,0.07));border:1px solid rgba(239,68,68,0.18);">⚔️</div>
+      <div class="card3-title">野望ルール</div>
+      <div class="card3-desc">布告・拠点の仕組み</div>
+    </a>
+    <a class="card3 glass" href="/wiki/finance">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(147,51,234,0.07));border:1px solid rgba(168,85,247,0.18);">🏦</div>
+      <div class="card3-title">ワニなし金融</div>
+      <div class="card3-desc">3万ダイヤの使い方</div>
+    </a>
+    <a class="card3 glass" href="/wiki">
+      <div class="card3-shine"></div>
+      <div class="card3-icon" style="background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(16,185,129,0.08));border:1px solid rgba(52,211,153,0.2);">📚</div>
+      <div class="card3-title">Wiki一覧</div>
+      <div class="card3-desc">全攻略記事を見る</div>
+    </a>
+  </div>
+</div>
+
 <!-- カード検索・ツール -->
 <div class="section">
   <div class="section-label">データ＆ツール</div>
@@ -208,23 +288,7 @@ body{
   </div>
 </div>
 
-<!-- 攻略Wiki -->
-<div class="section" style="position:relative;z-index:1;padding:0 1rem;margin-bottom:0.75rem;">
-  <div class="section-label">攻略Wiki</div>
-  <a class="featured featured-wiki" href="/wiki">
-    <div class="featured-inner featured-inner-wiki">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">📚</span>
-        <span class="featured-badge">全鯖No.1監修</span>
-      </div>
-      <div class="featured-title">完全攻略Wiki</div>
-      <div class="featured-desc">序盤の進め方・育成・ダイヤ収集・麗華の野望まで網羅。初心者から上級者まで役立つ情報が満載！</div>
-      <div class="featured-cta">Wikiを見る <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
-</div>
+
 
 <div class="footer">v1.0.0 · PARANOIZE GUILD TOOLS</div>
 
@@ -233,7 +297,7 @@ body{
     <a class="tab active" href="/"><span class="tab-icon">🏠</span>ホーム</a>
     <a class="tab" href="/cards"><span class="tab-icon">📖</span>カード</a>
     <a class="tab" href="/reika"><span class="tab-icon">⚔️</span>野望</a>
-    <a class="tab" href="/formation"><span class="tab-icon">🧩</span>編成</a>
+    <a class="tab" href="/wiki"><span class="tab-icon">📚</span>Wiki</a>
     <a class="tab" href="/tasks"><span class="tab-icon">📅</span>タスク</a>
     <a class="tab" href="/memo"><span class="tab-icon">📝</span>メモ</a>
   </div>
