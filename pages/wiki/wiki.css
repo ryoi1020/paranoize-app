@@ -34,7 +34,7 @@
 }
 .wiki-toc-title{font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:800;color:var(--tx);margin-bottom:10px;display:flex;align-items:center;gap:6px;letter-spacing:0.02em;}
 .wiki-toc-list{list-style:none;display:flex;flex-direction:column;gap:2px;}
-.wiki-toc-list li a{font-size:0.78rem;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;transition:background 0.15s;}
+.wiki-toc-list li a{font-size:0.81rem;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;transition:background 0.15s;}
 .wiki-toc-list li a:hover{background:rgba(5,150,105,0.06);}
 .wiki-toc-list li a::before{content:'#';font-weight:800;opacity:0.4;font-size:0.68rem;font-family:'Syne',sans-serif;}
 
@@ -72,11 +72,12 @@
 .wiki-ol li::before{
   content:counter(wiki-counter);
   background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;font-size:0.62rem;font-weight:800;
-  width:21px;height:21px;border-radius:50%;
+  color:#fff;font-size:0.72rem;font-weight:800;
+  width:24px;height:24px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;font-family:'Syne',sans-serif;
-  box-shadow:0 2px 6px rgba(5,150,105,0.3);
+  flex-shrink:0;margin-top:0px;font-family:'Syne',sans-serif;
+  box-shadow:0 2px 8px rgba(5,150,105,0.35);
+  line-height:1;
 }
 
 /* ── CALLOUT BOXES ── */
@@ -105,8 +106,8 @@
 .wiki-table-wrap{overflow-x:auto;margin-bottom:0.75rem;border-radius:14px;border:1px solid rgba(0,0,0,0.06);}
 .wiki-table{width:100%;border-collapse:collapse;font-size:0.78rem;min-width:280px;}
 .wiki-table thead{background:linear-gradient(135deg,rgba(5,150,105,0.1),rgba(16,185,129,0.07));}
-.wiki-table th{color:var(--tx);font-weight:700;padding:9px 13px;text-align:left;border-bottom:1px solid rgba(5,150,105,0.15);font-family:'Syne',sans-serif;font-size:0.76rem;letter-spacing:0.02em;white-space:nowrap;}
-.wiki-table td{padding:9px 13px;border-bottom:1px solid rgba(0,0,0,0.04);color:rgba(26,26,46,0.82);vertical-align:top;line-height:1.5;}
+.wiki-table th{color:var(--tx);font-weight:700;padding:9px 13px;text-align:left;border-bottom:1px solid rgba(5,150,105,0.15);font-family:'Syne',sans-serif;font-size:0.79rem;letter-spacing:0.02em;white-space:nowrap;}
+.wiki-table td{padding:9px 13px;border-bottom:1px solid rgba(0,0,0,0.04);color:rgba(26,26,46,0.85);vertical-align:top;line-height:1.5;font-size:0.8rem;}
 .wiki-table tr:last-child td{border-bottom:none;}
 .wiki-table tbody tr:nth-child(even) td{background:rgba(5,150,105,0.025);}
 .wiki-table tbody tr:hover td{background:rgba(5,150,105,0.05);}
@@ -150,7 +151,7 @@
 /* ── STEP BOX ── */
 .wiki-step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
 .wiki-step:last-child{border-bottom:none;}
-.wiki-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(5,150,105,0.3);}
+.wiki-step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(5,150,105,0.3);line-height:1;}
 .wiki-step-body{flex:1;}
 .wiki-step-title{font-family:'Syne',sans-serif;font-size:0.83rem;font-weight:700;color:var(--tx);margin-bottom:2px;}
 .wiki-step-desc{font-size:0.77rem;color:rgba(26,26,46,0.82);line-height:1.6;}
