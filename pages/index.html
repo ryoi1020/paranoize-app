@@ -114,14 +114,6 @@ body{
 /* フッター */
 .footer{position:relative;z-index:1;text-align:center;padding:0.75rem;font-size:0.58rem;color:rgba(0,0,0,0.2);letter-spacing:0.15em;text-transform:uppercase;}
 
-/* キャラスライダー */
-.chara-slider-wrap{position:relative;z-index:1;margin-bottom:1.25rem;overflow:hidden;}
-.chara-slider{display:flex;gap:10px;padding:0 1rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
-.chara-slider::-webkit-scrollbar{display:none;}
-.chara-card{flex-shrink:0;width:100px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:5px;}
-.chara-card img{width:100px;height:100px;object-fit:cover;object-position:center 25%;border-radius:16px;border:2px solid rgba(255,255,255,0.85);box-shadow:0 4px 16px rgba(0,0,0,0.1);background:rgba(255,255,255,0.3);}
-.chara-name{font-size:0.6rem;font-weight:700;color:rgba(0,0,0,0.5);letter-spacing:0.02em;text-align:center;}
-
 /* タブバー */
 .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;}
 .tabbar-inner{
@@ -155,35 +147,6 @@ body{
   <div class="hero-logo">PARANOIZE</div>
 </div>
 
-<!-- キャラクタースライダー -->
-<div class="chara-slider-wrap">
-  <div class="chara-slider">
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_mochizuki_nayuta_first_love.PNG" alt="望月なゆた" loading="lazy">
-      <div class="chara-name">望月なゆた</div>
-    </div>
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_kurosawa_anna_misleading_liePNG.PNG" alt="黒澤アンナ" loading="lazy">
-      <div class="chara-name">黒澤アンナ</div>
-    </div>
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_tachibana_tomoya_apex_predator_.PNG" alt="橘智弥" loading="lazy">
-      <div class="chara-name">橘智弥</div>
-    </div>
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_yanagiba_ryo_dark_emperor.PNG" alt="柳葉凌" loading="lazy">
-      <div class="chara-name">柳葉凌</div>
-    </div>
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_kisaragi_shoko_blue_butterfly.PNG" alt="如月翔子" loading="lazy">
-      <div class="chara-name">如月翔子</div>
-    </div>
-    <div class="chara-card">
-      <img src="https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/SSR_tachibana_yui_innocent_angel.PNG" alt="橘結衣" loading="lazy">
-      <div class="chara-name">橘結衣</div>
-    </div>
-  </div>
-</div>
 
 <!-- AI機能 -->
 <div class="section">
