@@ -351,8 +351,15 @@ function switchTab(type, el) {
   document.querySelectorAll('.content-panel').forEach(function(p){ p.classList.remove('show'); });
   el.classList.add('active');
   document.getElementById('panel-' + type).classList.add('show');
+  sessionStorage.removeItem('daily-tab');
 }
 (function(){
+  // トップページからのタブ指定を受け取る
+  var initTab = sessionStorage.getItem('daily-tab');
+  if(initTab){
+    var tabEl = document.querySelector('.type-tab[onclick*="' + initTab + '"]');
+    if(tabEl) switchTab(initTab, tabEl);
+  }
   var path = location.pathname;
   document.querySelectorAll('.p-tab').forEach(function(tab){
     var href = tab.getAttribute('href');
