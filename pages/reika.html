@@ -368,7 +368,70 @@ function updateSim(){
     if(ef!==null){h+='<div class="sc"><p class="ss">相手ギルド（'+d+'日後）</p><p class="sv">'+ef+'pt</p><p class="sd">+'+enD+'pt/日 × '+d+'日</p></div>';}
     else{h+='<div class="sc" style="display:flex;align-items:center;justify-content:center;"><p class="ss">相手ポイントを入力してください</p></div>';}
     h+='</div>';
-    if(fd!==null){var rc,rt;if(fd>0){rc='#2f9e44';rt='現状維持で +'+fd+'pt フィニッシュ — 逃げ切れます';}else if(fd<0){rc='#c92a2a';rt='現状維持では '+Math.abs(fd)+'pt 届かない';}else{rc='#e67700';rt='現状維持で同点フィニッシュ';}h+='<p class="sr" style="color:'+rc+';">'+rt+'</p>';}
+    if(fd!==null){
+      var rc,rt;
+      if(fd>0){
+        rc='#2f9e44';
+        rt='現状維持で <strong>+'+fd+'pt</strong> フィニッシュ — 逃げ切れます';
+      } else if(fd<0){
+        rc='#c92a2a';
+        rt='現状維持では <strong>'+Math.abs(fd)+'pt 届かない</strong>';
+        // 逆転シミュレーション：何日以内にどの拠点を取れば逆転できるか
+        var deficit = Math.abs(fd);
+        // 取れていない拠点のうち、現在取れる（攻撃可能な）拠点を計算
+        var availBases = BN.filter(function(n){ return own.indexOf(n)<0; });
+        // 各拠点を取った場合の追加pt×残り日数
+        var reverseOptions = [];
+        availBases.forEach(function(n){
+          if(!BASES[n]) return;
+          // 各日数で逆転可能か計算（1日目〜残り日数）
+          for(var day=1; day<=d; day++){
+            var extraPt = BASES[n].star * (d - day + 1); // day日目に取った場合の追加pt
+            // 1拠点追加で逆転できるか
+            if(extraPt >= deficit){
+              reverseOptions.push({name:n, star:BASES[n].star, day:day, gain:extraPt});
+              break;
+            }
+          }
+        });
+        // 2拠点追加で逆転できる組み合わせも探す
+        var twoBaseOptions = [];
+        if(reverseOptions.length === 0){
+          for(var i=0; i<availBases.length; i++){
+            for(var j=i+1; j<availBases.length; j++){
+              var n1=availBases[i], n2=availBases[j];
+              if(!BASES[n1]||!BASES[n2]) continue;
+              var gain2 = (BASES[n1].star + BASES[n2].star) * d;
+              if(gain2 >= deficit){
+                twoBaseOptions.push({n1:n1,n2:n2,gain:gain2});
+                if(twoBaseOptions.length>=3) break;
+              }
+            }
+            if(twoBaseOptions.length>=3) break;
+          }
+        }
+        h += '<div style="margin-top:8px;padding:10px 12px;background:rgba(201,42,42,0.06);border:1px solid rgba(201,42,42,0.15);border-radius:12px;">';
+        h += '<p style="font-size:0.75rem;font-weight:700;color:#c92a2a;margin-bottom:6px;">🔄 逆転シミュレーション</p>';
+        if(reverseOptions.length > 0){
+          h += '<p style="font-size:0.72rem;color:rgba(26,26,46,0.8);margin-bottom:4px;">以下の拠点を取れば1拠点だけで逆転可能：</p>';
+          reverseOptions.slice(0,3).forEach(function(r){
+            h += '<p style="font-size:0.75rem;font-weight:600;color:#c92a2a;">★'.repeat(r.star)+' '+r.name+' を今日から'+r.day+'日以内に取ると +'+r.gain+'pt → 逆転可能</p>';
+          });
+        } else if(twoBaseOptions.length > 0){
+          h += '<p style="font-size:0.72rem;color:rgba(26,26,46,0.8);margin-bottom:4px;">2拠点同時に取ることで逆転可能：</p>';
+          twoBaseOptions.forEach(function(r){
+            h += '<p style="font-size:0.75rem;font-weight:600;color:#e67700;">'+r.n1+' ＋ '+r.n2+' を確保すると +'+r.gain+'pt → 逆転の可能性あり</p>';
+          });
+        } else {
+          h += '<p style="font-size:0.72rem;color:rgba(26,26,46,0.6);">現状の残り日数では拠点追加だけでの逆転は厳しい状況です。</p>';
+        }
+        h += '</div>';
+      } else {
+        rc='#e67700';
+        rt='現状維持で同点フィニッシュ';
+      }
+      h+='<p class="sr" style="color:'+rc+';">'+rt+'</p>';
+    }
     sc.innerHTML=h;
   }else{sb.style.display='none';}
 }
@@ -395,6 +458,7 @@ function buildPrompt(){
 
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
   p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
+  p+='- 【薄積み戦術】拠点を弱い班2〜3つだけで守る戦術。相手の強い班がその拠点を取っても、取った強い班はその日もう攻めに行けなくなる（布告の制限のため）。相手の攻撃ルートを絞る有効な守備戦術。\n';
   p+='- 野望ポイントランキングは毎日夜12時にリセットされる\n';
   p+='- 布告可能数は前日のランキング次第（通常版：1〜8位は2つ、9〜16位は1つ、全国版は3つ）\n';
   p+='- ★1拠点2つ+布告権2つのスタートボーナスは初日のみ（前日火曜8位以内のギルドが対象）\n';
@@ -522,6 +586,8 @@ function buildPrompt(){
   p+='- 逆転可能性はポイント計算に基づき現実的に判断すること\n';
   p+='- 今日取れない拠点（隣接していない・布告条件を満たさない）は提案しないこと\n';
   p+='- 本丸を保有している場合：本丸周囲の未保有拠点を全て自ギルドで押さえる「本丸包囲戦略」を優先提案すること\n';
+  p+='- 【薄積み戦術】拠点を守る際、あえて弱い班（2〜3班のみ）だけを配置することで、相手の強い班で攻めてきたとしても、その強い班が次の日に他の拠点に攻め込めなくなる。結果として相手の攻撃力を抑制できる守備戦術。戦力差がある相手に対して有効。\n';
+  p+='- 逆転が必要な場合：残り日数と取れる拠点のポイントを計算し「何日以内にどの拠点を取れば逆転できるか」を具体的に提案すること\n';
   p+='- 本丸周囲を全て自ギルドが保有すると、相手は本丸に直接攻め込めなくなる。攻めるには周囲の拠点を1日かけて取り直す必要があり、時間を稼げる\n';
   p+='- 本丸周囲を完全包囲済みの場合は「包囲完成・本丸が守られている」と明記し、包囲維持を最優先戦略として提案すること\n';
   p+='- 自チームの保有拠点が0の場合は布告返しの考え方は不要\n';
