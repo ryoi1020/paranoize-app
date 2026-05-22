@@ -81,6 +81,10 @@
       "destination": "/pages/wiki/whale.html"
     },
     {
+      "source": "/daily-guide",
+      "destination": "/pages/daily-guide.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/pages/index.html"
     }

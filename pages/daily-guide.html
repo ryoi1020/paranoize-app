@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARANOIZE — 日々のすすめ</title>
+<link rel="stylesheet" href="/assets/common.css">
+<style>
+body{background:var(--bg);}
+.wrap{max-width:680px;margin:0 auto;padding:1rem;position:relative;z-index:1;}
+
+/* ヘッダー */
+.page-hero{
+  background:linear-gradient(135deg,#047857 0%,#059669 55%,#10b981 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:22px;padding:1.4rem 1.5rem;margin-bottom:0.75rem;
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(5,150,105,0.28);
+}
+.page-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.45),transparent);}
+.page-hero::after{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,255,255,0.1),transparent 70%);pointer-events:none;}
+.hero-eyebrow{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:700;}
+.hero-title{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;color:#fff;margin-bottom:5px;}
+.hero-desc{font-size:0.76rem;color:rgba(255,255,255,0.8);line-height:1.6;}
+
+/* タブ切り替え */
+.type-tabs{display:flex;gap:6px;margin-bottom:0.75rem;}
+.type-tab{flex:1;padding:10px 6px;border-radius:14px;border:1px solid rgba(255,255,255,0.85);background:rgba(255,255,255,0.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);text-align:center;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;}
+.type-tab-icon{font-size:1.4rem;display:block;margin-bottom:3px;}
+.type-tab-label{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;color:var(--tx);display:block;margin-bottom:2px;}
+.type-tab-sub{font-size:0.58rem;color:var(--tx3);}
+.type-tab.active{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;box-shadow:0 4px 16px rgba(5,150,105,0.35);}
+.type-tab.active .type-tab-label{color:#fff;}
+.type-tab.active .type-tab-sub{color:rgba(255,255,255,0.75);}
+
+/* コンテンツ */
+.content-panel{display:none;}
+.content-panel.show{display:block;}
+
+/* ガラスカード */
+.g-card{background:rgba(255,255,255,0.58);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.88);border-radius:20px;padding:1.2rem 1.3rem;margin-bottom:0.65rem;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);}
+.g-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
+
+.card-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--tx);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;padding-bottom:9px;border-bottom:1px solid rgba(0,0,0,0.05);}
+.card-title span{font-size:1.1rem;}
+
+/* 強調ボックス */
+.highlight{background:linear-gradient(135deg,#059669,#34d399);border-radius:14px;padding:1rem 1.1rem;margin-bottom:0.65rem;position:relative;overflow:hidden;}
+.highlight::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);}
+.highlight-title{font-family:'Syne',sans-serif;font-size:0.88rem;font-weight:800;color:#fff;margin-bottom:4px;}
+.highlight-text{font-size:0.76rem;color:rgba(255,255,255,0.9);line-height:1.7;}
+
+/* チップリスト */
+.tip-box{background:rgba(5,150,105,0.07);border:1px solid rgba(5,150,105,0.18);border-left:3px solid #059669;border-radius:0 12px 12px 0;padding:9px 13px;margin-bottom:0.6rem;display:flex;gap:9px;}
+.tip-icon{font-size:0.95rem;flex-shrink:0;margin-top:1px;}
+.tip-text{font-size:0.78rem;color:rgba(26,26,46,0.85);line-height:1.65;}
+.tip-text strong{color:var(--tx);font-weight:700;}
+
+.warn-box{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.22);border-left:3px solid #f59e0b;border-radius:0 12px 12px 0;padding:9px 13px;margin-bottom:0.6rem;display:flex;gap:9px;}
+.warn-text{font-size:0.78rem;color:rgba(26,26,46,0.85);line-height:1.65;}
+.warn-text strong{color:var(--tx);font-weight:700;}
+
+/* リスト */
+.step-list{display:flex;flex-direction:column;gap:9px;margin-bottom:0.65rem;counter-reset:step-cnt;}
+.step-item{display:flex;align-items:flex-start;gap:11px;counter-increment:step-cnt;}
+.step-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#059669,#34d399);color:#fff;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(5,150,105,0.32);line-height:1;}
+.step-body{flex:1;}
+.step-title{font-family:'Syne',sans-serif;font-size:0.84rem;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.step-desc{font-size:0.76rem;color:rgba(26,26,46,0.82);line-height:1.65;}
+
+.dot-list{display:flex;flex-direction:column;gap:5px;margin-bottom:0.65rem;}
+.dot-item{display:flex;align-items:flex-start;gap:9px;font-size:0.8rem;color:rgba(26,26,46,0.82);line-height:1.6;}
+.dot-item::before{content:'';width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#059669,#34d399);flex-shrink:0;margin-top:6px;}
+
+/* テーブル */
+.tbl-wrap{overflow-x:auto;border-radius:13px;border:1px solid rgba(0,0,0,0.06);margin-bottom:0.65rem;}
+.tbl{width:100%;border-collapse:collapse;font-size:0.78rem;min-width:260px;}
+.tbl thead{background:linear-gradient(135deg,rgba(5,150,105,0.1),rgba(16,185,129,0.06));}
+.tbl th{font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;color:var(--tx);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(5,150,105,0.15);white-space:nowrap;}
+.tbl td{padding:8px 12px;border-bottom:1px solid rgba(0,0,0,0.04);color:rgba(26,26,46,0.85);vertical-align:top;line-height:1.5;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:nth-child(even) td{background:rgba(5,150,105,0.025);}
+
+/* サブヘッダー */
+.sub-title{font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;color:var(--tx);margin:0.75rem 0 0.4rem;display:flex;align-items:center;gap:6px;}
+.sub-title::before{content:'';width:3px;height:13px;background:linear-gradient(to bottom,#059669,#34d399);border-radius:2px;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="page-hero">
+    <div class="hero-eyebrow">毎日の攻略</div>
+    <div class="hero-title">📋 日々のすすめ</div>
+    <div class="hero-desc">あなたのプレイスタイルに合わせた毎日の行動ガイド。無課金・微課金から廃課金まで完全対応！</div>
+  </div>
+
+  <!-- タイプ選択 -->
+  <div class="type-tabs">
+    <div class="type-tab active" onclick="switchTab('f2p', this)">
+      <span class="type-tab-icon">💪</span>
+      <span class="type-tab-label">無課金・微課金</span>
+      <span class="type-tab-sub">コスパ重視で強くなる</span>
+    </div>
+    <div class="type-tab" onclick="switchTab('whale', this)">
+      <span class="type-tab-icon">👑</span>
+      <span class="type-tab-label">廃課金</span>
+      <span class="type-tab-sub">最速・最強を目指す</span>
+    </div>
+  </div>
+
+  <!-- 無課金・微課金パネル -->
+  <div class="content-panel show" id="panel-f2p">
+
+    <div class="highlight">
+      <div class="highlight-title">🎯 最重要目標：ダイヤ3万個を貯めよう！</div>
+      <div class="highlight-text">3万個貯まればワニなし金融で世界が変わります。焦らずコツコツ積み上げることが最強の戦略です！</div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>📖</span>まずはストーリーを楽しもう！</div>
+      <div class="dot-list">
+        <div class="dot-item">ストーリーを進めるだけでダイヤがたくさん溜まる！楽しみながら資産を積み上げよう</div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><div class="tip-text">ストーリーは序盤の最大のダイヤ源です。まず一気に進めることをおすすめします！</div></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>💎</span>ダイヤ3万個が目標！</div>
+      <div class="dot-list">
+        <div class="dot-item">貯まるのに<strong>3日〜1週間</strong>くらいかかるが、世界が変わる！</div>
+        <div class="dot-item">3万個を維持することで毎月ダイヤをたくさん手に入れられる</div>
+        <div class="dot-item">3万貯まったら<strong>ワニなし金融</strong>を最大限活用してSSRを狙おう</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🏰</span>ギルドに入って釣りをしよう！</div>
+      <div class="dot-list">
+        <div class="dot-item"><strong>人と関わりたくない人</strong>は300ダイヤで1人ギルドを作るのもあり！</div>
+        <div class="dot-item">育成素材をたくさん集めたいなら<strong>野望ランキング16位以内のギルド</strong>がおすすめ。麗華の野望に参加していて素材が入りやすい</div>
+        <div class="dot-item">ギルドに入ると<strong>ギルドショップ</strong>が使える。交換は<strong>鍵シリーズ</strong>優先！</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🎒</span>合宿をしよう！</div>
+      <div class="dot-list">
+        <div class="dot-item">ダイヤ合宿の<strong>1日1回無料分</strong>を必ずやること</div>
+      </div>
+      <div class="warn-box"><div class="tip-icon">⚠️</div><div class="warn-text">ストップウォッチは<strong>2.5倍・2倍・1.5倍のボーナス日以外は使わない！</strong>もったいないので温存しよう</div></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🏟️</span>闘技場</div>
+      <div class="dot-list">
+        <div class="dot-item">1日<strong>5回まで</strong>戦える。<strong>勝てる相手とだけ戦うと報酬が増える！</strong></div>
+        <div class="dot-item">初期でも<strong>2,000位くらい</strong>まで目指せる。順位報酬もあり！</div>
+        <div class="dot-item">闘技場ショップでは<strong>鍵シリーズ</strong>を交換しよう</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🛒</span>プレミアムショップ</div>
+      <div class="highlight">
+        <div class="highlight-title">毎日必ず買うもの</div>
+        <div class="highlight-text">100ダイヤで虹リンゴをGET！毎日必ず購入しよう！</div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">🍎</div><div class="tip-text">ガチャ画面の<strong>もくまる</strong>を毎日タップすると育成素材がもらえる。<strong>たまにハムがもらえる</strong>ので見逃さないで！ハムとしか交換できないめちゃお得なパックがある！</div></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🔍</span>調査・バイト・遺跡</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>コンテンツ</th><th>回数</th><th>主な報酬</th></tr></thead>
+        <tbody>
+          <tr><td>調査</td><td>1日3回無料</td><td>武器・育成素材</td></tr>
+          <tr><td>ヤナバさんのバイト</td><td>毎日</td><td>育成素材・装備素材</td></tr>
+          <tr><td>本田さんの捜査</td><td>毎日</td><td>育成素材</td></tr>
+          <tr><td>謎の遺跡</td><td>制限なし</td><td>ダイヤ・育成素材</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🏘️</span>町レベルを上げよう！</div>
+      <div class="highlight">
+        <div class="highlight-title">✨ めっちゃお得！</div>
+        <div class="highlight-text">施設を強化して町レベルを上げるとダイヤがもらえます！放置収入を全て施設強化に使いましょう。</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>📈</span>育て方の鉄則</div>
+      <div class="highlight">
+        <div class="highlight-title">1体集中！</div>
+        <div class="highlight-text">他のキャラを育てられる状況でも育てずに、SSRをガンガン育てよう！3万ダイヤ貯まるまでは最初にもらえるSRを育てましょう。</div>
+      </div>
+      <div class="warn-box"><div class="tip-icon">⚠️</div><div class="warn-text">リセマラより3万貯めてワニなし金融の方が断然お得！続けるほど育成素材は溜まります。</div></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>💰</span>少しだけ課金できる人へ</div>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">7Days bigボーナス＋miniボーナス</div>
+            <div class="step-desc">最初の7日間限定！必ず買おう</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">初心者ショップのものは全部おすすめ</div>
+            <div class="step-desc">期間限定なので見逃さないで！</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">マンスリーパック</div>
+            <div class="step-desc">月間パックはお得すぎる。毎月継続がおすすめ</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">週間サブスク ナイスギフト</div>
+            <div class="step-desc">すっごくお得！VIP3到達で経験値パックも解放</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /f2p panel -->
+
+  <!-- 廃課金パネル -->
+  <div class="content-panel" id="panel-whale">
+
+    <div class="highlight">
+      <div class="highlight-title">👑 廃課金の基本方針</div>
+      <div class="highlight-text">1体集中で最強を目指すのは無課金と同じ。完凸・SSR装備・闘技場1位を狙って圧倒的な差をつけよう！</div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🛒</span>毎日買えるものは買おう！</div>
+      <div class="sub-title">優先順位</div>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">鉱山バイトのピッケル</div>
+            <div class="step-desc">あったら必ず買おう。SSR装備集めに直結する最重要アイテム</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">ガチャチケット</div>
+            <div class="step-desc">余裕がある人は毎日買おう</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">その他全部</div>
+            <div class="step-desc">さらにいける人は全部買おう！</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>⭐</span>育てているキャラは必ず完凸させよう</div>
+      <div class="dot-list">
+        <div class="dot-item">完凸することでキャラの性能を最大限に引き出せる</div>
+        <div class="dot-item">完凸が増えると<strong>闘魂共鳴</strong>のボーナスも強くなる</div>
+        <div class="dot-item">メインキャラの完凸を最優先で進めよう</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>⚔️</span>1キャラ分のSSR装備を全て確保しよう</div>
+      <div class="highlight">
+        <div class="highlight-title">SSR武器・鎧・盾の3点セット</div>
+        <div class="highlight-text">鉱山バイト（ヤナバさんのバイト）をひたすら回してSSR装備を集めよう！3点セットが揃うと戦力が激変します。</div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><div class="tip-text">鉱山バイトはSSR装備素材だけでなくメモリー育成素材も入手できるのでタイパ最高！</div></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🏛️</span>遺跡とショップの使い方</div>
+      <div class="highlight">
+        <div class="highlight-title">遺跡160階を目安に</div>
+        <div class="highlight-text">闘技場ショップでは<strong>S級パラノイズコアだけ</strong>を買いましょう。あとあと楽になります。</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>🏆</span>闘技場は1位を目指そう！</div>
+      <div class="highlight">
+        <div class="highlight-title">🥇 1位維持で毎月24,000ダイヤ！</div>
+        <div class="highlight-text">順位報酬が素晴らしく、1位を維持するだけで毎月24,000ダイヤが溜まります。これを再投資してさらに強くなる好循環が生まれます！</div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>順位</th><th>月間ダイヤ報酬（目安）</th></tr></thead>
+        <tbody>
+          <tr><td>🥇 1位</td><td>約24,000ダイヤ</td></tr>
+          <tr><td>2〜3位</td><td>多め</td></tr>
+          <tr><td>4〜10位</td><td>中程度</td></tr>
+          <tr><td>11位以下</td><td>少なめ</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>📈</span>1体をどこまでも強くしよう</div>
+      <div class="dot-list">
+        <div class="dot-item">廃課金でも基本方針は<strong>1体集中</strong></div>
+        <div class="dot-item">レベル200など<strong>上限に達した項目から次のキャラ</strong>を育て始める</div>
+        <div class="dot-item">中途半端に複数を育てると全体の伸びが遅くなる</div>
+      </div>
+    </div>
+
+    <div class="g-card">
+      <div class="card-title"><span>✨</span>積極的に闘魂共鳴を狙おう</div>
+      <div class="dot-list">
+        <div class="dot-item">SSRの完凸が増えると<strong>共鳴ボーナス</strong>で大幅に戦力が底上げされる</div>
+        <div class="dot-item">完凸を積み上げることで<strong>指数関数的</strong>に強くなれる</div>
+        <div class="dot-item">廃課金の醍醐味はここにある！</div>
+      </div>
+    </div>
+
+  </div><!-- /whale panel -->
+
+</div>
+
+<nav class="p-tabbar">
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>野望</a>
+  <a class="p-tab" href="/daily-guide"><span class="p-tab-icon">📋</span>日々</a>
+  <a class="p-tab" href="/tasks"><span class="p-tab-icon">📅</span>タスク</a>
+  <a class="p-tab" href="/memo"><span class="p-tab-icon">📝</span>メモ</a>
+</nav>
+<script>
+function switchTab(type, el) {
+  document.querySelectorAll('.type-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.content-panel').forEach(function(p){ p.classList.remove('show'); });
+  el.classList.add('active');
+  document.getElementById('panel-' + type).classList.add('show');
+}
+(function(){
+  var path = location.pathname;
+  document.querySelectorAll('.p-tab').forEach(function(tab){
+    var href = tab.getAttribute('href');
+    if(href && (path === href || (href !== '/' && path.startsWith(href)))){
+      tab.classList.add('active');
+    }
+  });
+})();
+</script>
+</body>
+</html>
