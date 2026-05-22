@@ -72,10 +72,10 @@
 .wiki-ol li::before{
   content:counter(wiki-counter);
   background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;font-size:0.72rem;font-weight:800;
-  width:24px;height:24px;border-radius:50%;
+  color:#fff;font-size:0.8rem;font-weight:800;
+  width:26px;height:26px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:0px;font-family:'Syne',sans-serif;
+  flex-shrink:0;margin-top:0px;font-family:'Inter','DM Sans',sans-serif;
   box-shadow:0 2px 8px rgba(5,150,105,0.35);
   line-height:1;
 }
@@ -151,7 +151,7 @@
 /* ── STEP BOX ── */
 .wiki-step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);}
 .wiki-step:last-child{border-bottom:none;}
-.wiki-step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(5,150,105,0.3);line-height:1;}
+.wiki-step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Inter','DM Sans',sans-serif;font-size:0.85rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(5,150,105,0.3);line-height:1;}
 .wiki-step-body{flex:1;}
 .wiki-step-title{font-family:'Syne',sans-serif;font-size:0.83rem;font-weight:700;color:var(--tx);margin-bottom:2px;}
 .wiki-step-desc{font-size:0.77rem;color:rgba(26,26,46,0.82);line-height:1.6;}
