@@ -37,6 +37,10 @@
       "destination": "/pages/collection.html"
     },
     {
+      "source": "/arena",
+      "destination": "/pages/arena.html"
+    },
+    {
       "source": "/wiki",
       "destination": "/pages/wiki/index.html"
     },

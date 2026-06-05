@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>闘技場AI - パラノイズ</title>
+<link rel="stylesheet" href="/assets/common.css">
+<style>
+:root{
+  --bg:linear-gradient(135deg,#f7f5f2 0%,#e8f0ee 50%,#f0e8d8 100%);
+  --bg2:rgba(255,255,255,0.55);
+  --bg3:rgba(255,255,255,0.7);
+  --tx:#1a1a1a;--tx2:#374151;--tx3:#6b7280;
+  --accent:#dc2626;--accent2:#ef4444;--accent3:rgba(220,38,38,0.1);
+  --my:#059669;--my2:#10b981;--my3:rgba(5,150,105,0.1);
+  --border:rgba(255,255,255,0.85);
+  --border2:rgba(0,0,0,0.08);
+  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--r99:99px;
+  --shadow:0 2px 8px rgba(0,0,0,0.04);
+  --shadow2:0 4px 16px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:5rem;}
+
+.p-nav{padding:0.75rem 1rem;}
+.p-nav-back{text-decoration:none;color:var(--tx2);font-size:0.85rem;}
+
+.p-wrap{max-width:900px;margin:0 auto;padding:0.5rem 1rem 1rem;}
+.page-header{text-align:center;margin-bottom:1.5rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:0.04em;}
+.page-desc{font-size:0.82rem;color:var(--tx2);margin-top:6px;line-height:1.6;}
+
+/* タブ切替 */
+.tabs{display:flex;gap:6px;margin-bottom:1rem;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:4px;}
+.tab{flex:1;padding:11px 8px;background:transparent;border:none;border-radius:var(--r8);font-size:0.85rem;font-weight:700;cursor:pointer;color:var(--tx3);font-family:inherit;transition:all 0.15s;}
+.tab.active.mine{background:var(--my3);color:var(--my);}
+.tab.active.opp{background:var(--accent3);color:var(--accent);}
+.tab-count{font-size:0.7rem;font-weight:600;margin-left:4px;}
+
+/* セクション */
+.section{display:none;}
+.section.active{display:block;}
+
+.p-label{font-size:0.84rem;font-weight:700;color:var(--tx);margin-bottom:8px;}
+.sel-count{font-size:0.72rem;font-weight:700;}
+.sel-count.mine{color:var(--my);}
+.sel-count.opp{color:var(--accent);}
+
+/* 選択エリア */
+.selected-area{min-height:52px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--r12);padding:10px 12px;display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem;box-shadow:var(--shadow);}
+.selected-empty{color:var(--tx3);font-size:0.78rem;align-self:center;}
+.sel-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.7);border:1px solid var(--border2);border-radius:99px;padding:4px 10px;font-size:0.72rem;font-weight:600;}
+.sel-chip.mine{border-color:rgba(5,150,105,0.4);}
+.sel-chip.opp{border-color:rgba(220,38,38,0.4);}
+.sel-chip-x{cursor:pointer;color:var(--tx3);font-weight:700;}
+.sel-chip-x:hover{color:#b91c1c;}
+
+/* フィルター */
+.card-search-box{display:flex;gap:8px;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:99px;padding:0 14px;margin-bottom:8px;}
+.card-search-input{flex:1;background:none;border:none;outline:none;padding:9px 0;font-size:0.85rem;font-family:inherit;color:var(--tx);}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.fbtn{background:var(--bg3);border:1px solid var(--border2);color:var(--tx2);border-radius:99px;padding:4px 11px;font-size:0.72rem;cursor:pointer;font-family:inherit;}
+.fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.section.mine .fbtn.on{background:var(--my);border-color:var(--my);}
+
+/* カードグリッド */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:340px;overflow-y:auto;margin-bottom:1.25rem;padding:2px;}
+.card-option{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:8px 10px;cursor:pointer;transition:all 0.15s;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.card-option:hover{border-color:var(--accent);transform:translateY(-1px);}
+.card-option.on.mine{border-color:var(--my);background:var(--my3);}
+.card-option.on.mine::after{content:'✓';position:absolute;top:5px;right:7px;color:var(--my);font-weight:800;font-size:0.8rem;}
+.card-option.on.opp{border-color:var(--accent);background:var(--accent3);}
+.card-option.on.opp::after{content:'⚔';position:absolute;top:5px;right:7px;color:var(--accent);font-weight:800;font-size:0.8rem;}
+.opt-rarity{font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block;margin-bottom:3px;}
+.opt-rarity.SSR{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.opt-rarity.SR{background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;}
+.opt-rarity.R{background:#fef3c7;color:#78350f;border:1px solid #fcd34d;opacity:0.7;}
+.opt-name{font-size:0.78rem;font-weight:700;color:var(--tx);line-height:1.3;}
+.opt-card{font-size:0.63rem;color:var(--tx3);margin-top:2px;line-height:1.3;}
+.opt-tags{display:flex;gap:3px;margin-top:4px;}
+.tag-xs{font-size:0.6rem;padding:1px 5px;border-radius:3px;font-weight:500;}
+.attr-地{background:rgba(16,185,129,0.1);color:#065f46;}
+.attr-光{background:rgba(245,158,11,0.1);color:#92400e;}
+.attr-闇{background:rgba(5,150,105,0.1);color:#065f46;}
+.atk-xs{background:rgba(59,130,246,0.1);color:#1e40af;}
+.opt-power{font-size:0.6rem;color:var(--my);margin-top:3px;font-weight:600;}
+
+/* メモ */
+.memo-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r12);padding:10px 12px;color:var(--tx);font-size:0.85rem;font-family:inherit;outline:none;min-height:70px;resize:vertical;margin-bottom:1rem;}
+.memo-input:focus{border-color:var(--accent);}
+
+/* 分析ボタン */
+.analyze-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--r12);color:#fff;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(220,38,38,0.3);margin-bottom:1.5rem;}
+.analyze-btn:hover{opacity:0.9;transform:translateY(-1px);}
+.analyze-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* 結果 */
+.result-wrap{display:none;margin-bottom:4rem;}
+.result-wrap.show{display:block;}
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r16);overflow:hidden;box-shadow:var(--shadow2);}
+.result-header{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.result-icon{font-size:1.4rem;}
+.result-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;}
+.result-body{padding:1.25rem 1.5rem;}
+.result-text{font-size:0.88rem;color:var(--tx);line-height:1.9;white-space:pre-wrap;}
+.loading-wrap{text-align:center;padding:2.5rem;}
+.p-spin{width:36px;height:36px;border:3px solid rgba(220,38,38,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:0.85rem;color:var(--tx2);margin-top:12px;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ガイドボックス */
+.guide-box{padding:10px 14px;background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:var(--r12);font-size:0.76rem;color:var(--tx2);line-height:1.7;margin-bottom:1.25rem;}
+.guide-box strong{color:var(--accent);}
+
+/* タブバー */
+.p-tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;z-index:50;}
+.p-tab{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--tx3);font-size:0.62rem;padding:4px 6px;}
+.p-tab.active{color:var(--accent);}
+.p-tab-icon{font-size:1.15rem;}
+</style>
+</head>
+<body>
+
+<div class="p-nav">
+  <a href="/" class="p-nav-back">← ホーム</a>
+</div>
+
+<div class="p-wrap">
+  <div class="page-header">
+    <div class="page-title">🏆 闘技場AI</div>
+    <div class="page-desc">勝ちたい相手の編成を入力すると、勝率と必勝戦術をAIが提案！<br>育成方針もアドバイスします。</div>
+  </div>
+
+  <div class="guide-box">
+    💡 <strong>使い方</strong>：①自分の手持ち編成を選択 → ②相手の編成を入力 → ③AIに分析させる<br>
+    <strong>出力</strong>：勝率予測 / 班編成案 / 立ち回り / 汎用育成方針 / この相手専用の対策
+  </div>
+
+  <!-- タブ切替 -->
+  <div class="tabs">
+    <button class="tab active mine" id="tabMine" onclick="switchTab('mine')">
+      ✅ 自分の編成<span class="tab-count" id="mineCount">（0）</span>
+    </button>
+    <button class="tab opp" id="tabOpp" onclick="switchTab('opp')">
+      ⚔️ 相手の編成<span class="tab-count" id="oppCount">（0）</span>
+    </button>
+  </div>
+
+  <!-- 自分の編成セクション -->
+  <div class="section active mine" id="sectionMine">
+    <div class="p-label">
+      自分の編成カードを選んでください
+      <span class="sel-count mine">（最大24枚 = 6×4班）</span>
+    </div>
+    <div class="selected-area" id="selectedAreaMine">
+      <span class="selected-empty" id="selectedEmptyMine">自分の所持カードから選んでください</span>
+    </div>
+    <div class="card-search-box">
+      <span style="color:var(--tx3);">🔍</span>
+      <input class="card-search-input" id="searchMine" placeholder="カード名・キャラ名で検索..." oninput="renderCards('mine')">
+    </div>
+    <div class="filter-row" id="filtersMine">
+      <button class="fbtn on" data-type="rarity" data-val="SSR" onclick="toggleF('mine','rarity','SSR',this)">SSR</button>
+      <button class="fbtn on" data-type="rarity" data-val="SR" onclick="toggleF('mine','rarity','SR',this)">SR</button>
+      <button class="fbtn on" data-type="rarity" data-val="R" onclick="toggleF('mine','rarity','R',this)">R</button>
+      <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
+      <button class="fbtn" data-type="own" onclick="toggleOwnFilter('mine',this)">✓ 所持のみ</button>
+      <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
+      <button class="fbtn" data-type="attr" data-val="地" onclick="toggleF('mine','attr','地',this)">🟢 地</button>
+      <button class="fbtn" data-type="attr" data-val="光" onclick="toggleF('mine','attr','光',this)">🟡 光</button>
+      <button class="fbtn" data-type="attr" data-val="闇" onclick="toggleF('mine','attr','闇',this)">🟣 闇</button>
+    </div>
+    <div class="card-grid" id="cardGridMine"></div>
+  </div>
+
+  <!-- 相手の編成セクション -->
+  <div class="section opp" id="sectionOpp">
+    <div class="p-label">
+      勝ちたい相手の編成カードを入力してください
+      <span class="sel-count opp">（少なくとも3〜6枚あればOK）</span>
+    </div>
+    <div class="selected-area" id="selectedAreaOpp">
+      <span class="selected-empty" id="selectedEmptyOpp">相手のSSR/SRなど、わかる範囲で選択してください</span>
+    </div>
+    <div class="card-search-box">
+      <span style="color:var(--tx3);">🔍</span>
+      <input class="card-search-input" id="searchOpp" placeholder="相手のカードを検索..." oninput="renderCards('opp')">
+    </div>
+    <div class="filter-row" id="filtersOpp">
+      <button class="fbtn on" data-type="rarity" data-val="SSR" onclick="toggleF('opp','rarity','SSR',this)">SSR</button>
+      <button class="fbtn on" data-type="rarity" data-val="SR" onclick="toggleF('opp','rarity','SR',this)">SR</button>
+      <button class="fbtn on" data-type="rarity" data-val="R" onclick="toggleF('opp','rarity','R',this)">R</button>
+      <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
+      <button class="fbtn" data-type="attr" data-val="地" onclick="toggleF('opp','attr','地',this)">🟢 地</button>
+      <button class="fbtn" data-type="attr" data-val="光" onclick="toggleF('opp','attr','光',this)">🟡 光</button>
+      <button class="fbtn" data-type="attr" data-val="闇" onclick="toggleF('opp','attr','闇',this)">🟣 闇</button>
+    </div>
+    <div class="card-grid" id="cardGridOpp"></div>
+  </div>
+
+  <!-- 補足メモ -->
+  <div class="p-label" style="margin-bottom:8px;">補足情報（任意）</div>
+  <textarea class="memo-input" id="memoInput" placeholder="例：相手は毒パ多め／前回はスリープで負けた／相手の戦力は自分より高い 等..."></textarea>
+
+  <!-- 分析ボタン -->
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">⚔️ 勝率と必勝戦術を分析する</button>
+
+  <!-- 結果 -->
+  <div class="result-wrap" id="resultWrap">
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-icon">🏆</span>
+        <span class="result-title">闘技場AI分析結果</span>
+      </div>
+      <div class="result-body" id="resultContent"></div>
+    </div>
+  </div>
+</div>
+
+<nav class="p-tabbar">
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab" href="/collection"><span class="p-tab-icon">📕</span>所持</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧠</span>編成</a>
+  <a class="p-tab active" href="/arena"><span class="p-tab-icon">🏆</span>闘技場</a>
+</nav>
+
+<script src="/assets/cards-data.js"></script>
+<script>
+const CARDS = window.CARDS;
+
+// スキル名抽出
+function skillShort(s){
+  if (!s) return '';
+  var m = String(s).match(/^(.+?)\s*—\s*/);
+  return m ? m[1] : String(s).split('—')[0].trim();
+}
+
+// 五十音順ソート
+var NAME_READINGS = {
+  '剛田':'ごうだ','天草':'あまくさ','宮本':'みやもと','小早川':'こばやかわ',
+  '小松':'こまつ','嶋':'しま','望月':'もちづき','本田':'ほんだ',
+  '柳葉':'やなぎば','榊原':'さかきばら','橘':'たちばな','水野':'みずの',
+  '火神':'ひかみ','美影':'みかげ','蒼木':'あおき','鰐島':'わじま',
+  '輪島':'わじま','鳳梨':'ほうり','黒澤':'くろさわ','黒田':'くろだ'
+};
+function _sortKey(name){
+  var fam = String(name).split(/[\s 　]/)[0];
+  return (NAME_READINGS[fam] || fam) + ' ' + name;
+}
+(function(){
+  var rarityOrder = {SSR:0, SR:1, R:2};
+  var coll = (typeof Intl !== 'undefined' && Intl.Collator) ? new Intl.Collator('ja') : null;
+  var cmp = function(a, b){ return coll ? coll.compare(a, b) : (a < b ? -1 : a > b ? 1 : 0); };
+  CARDS.sort(function(a, b){
+    var ra = (a.rarity in rarityOrder) ? rarityOrder[a.rarity] : 99;
+    var rb = (b.rarity in rarityOrder) ? rarityOrder[b.rarity] : 99;
+    if (ra !== rb) return ra - rb;
+    var nc = cmp(_sortKey(a.name), _sortKey(b.name));
+    if (nc !== 0) return nc;
+    return cmp(a.card, b.card);
+  });
+})();
+
+// コレクション読み取り
+var COLLECTION_KEY = 'paranoize_collection_v1';
+var collection = {};
+try { collection = JSON.parse(localStorage.getItem(COLLECTION_KEY) || '{}'); } catch(e){}
+function _cardKey(c){ return c.rarity + '_' + c.name + '_' + c.card; }
+function isOwned(c){ var e = collection[_cardKey(c)]; return !!(e && e.owned); }
+function getPower(c){ var e = collection[_cardKey(c)]; return (e && e.power) || 0; }
+function fmtNum(n){ return n ? Number(n).toLocaleString('ja-JP') : '0'; }
+
+// 状態
+var state = {
+  mine: { selected:[], filters:{rarity:['SSR','SR','R'], attr:[]}, ownFilter:false, filteredCards:[] },
+  opp:  { selected:[], filters:{rarity:['SSR','SR','R'], attr:[]}, ownFilter:false, filteredCards:[] }
+};
+var activeTab = 'mine';
+var conversationHistory = [];
+
+// localStorage（闘技場用）
+var STORAGE_KEY = 'paranoize_arena_v1';
+function saveState(){
+  try {
+    var memoEl = document.getElementById('memoInput');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      mineSelected: state.mine.selected,
+      oppSelected: state.opp.selected,
+      memo: memoEl ? memoEl.value : ''
+    }));
+  } catch(e){}
+}
+function loadState(){
+  try {
+    var d = localStorage.getItem(STORAGE_KEY);
+    if (!d) return;
+    var s = JSON.parse(d);
+    if (Array.isArray(s.mineSelected)) state.mine.selected = s.mineSelected;
+    if (Array.isArray(s.oppSelected)) state.opp.selected = s.oppSelected;
+    var memoEl = document.getElementById('memoInput');
+    if (memoEl && s.memo) memoEl.value = s.memo;
+  } catch(e){}
+}
+
+// タブ切替
+function switchTab(which){
+  activeTab = which;
+  document.getElementById('tabMine').classList.toggle('active', which === 'mine');
+  document.getElementById('tabOpp').classList.toggle('active', which === 'opp');
+  document.getElementById('sectionMine').classList.toggle('active', which === 'mine');
+  document.getElementById('sectionOpp').classList.toggle('active', which === 'opp');
+}
+
+// フィルタ
+function toggleF(side, type, val, btn){
+  var arr = state[side].filters[type];
+  var idx = arr.indexOf(val);
+  if (idx >= 0) { arr.splice(idx, 1); btn.classList.remove('on'); }
+  else { arr.push(val); btn.classList.add('on'); }
+  renderCards(side);
+}
+function toggleOwnFilter(side, btn){
+  state[side].ownFilter = !state[side].ownFilter;
+  btn.classList.toggle('on', state[side].ownFilter);
+  renderCards(side);
+}
+
+// カード選択
+function toggleCard(side, idx){
+  var c = state[side].filteredCards[idx];
+  var key = c.rarity + '_' + c.name + '_' + c.card;
+  var sel = state[side].selected;
+  var ex = sel.findIndex(function(s){ return s.key === key; });
+  if (ex >= 0) sel.splice(ex, 1);
+  else sel.push({key:key, name:c.name, card:c.card, rarity:c.rarity, attr:c.attr, atk:c.atk, passive:c.passive, active:c.active});
+  renderSelected(side);
+  renderCards(side);
+  updateCounts();
+  saveState();
+}
+function removeSelected(side, key){
+  state[side].selected = state[side].selected.filter(function(s){ return s.key !== key; });
+  renderSelected(side);
+  renderCards(side);
+  updateCounts();
+  saveState();
+}
+
+function updateCounts(){
+  document.getElementById('mineCount').textContent = '（' + state.mine.selected.length + '）';
+  document.getElementById('oppCount').textContent = '（' + state.opp.selected.length + '）';
+}
+
+// 選択カード表示
+function renderSelected(side){
+  var sel = state.mine.selected;
+  var areaId = 'selectedAreaMine';
+  var emptyId = 'selectedEmptyMine';
+  var chipClass = 'mine';
+  if (side === 'opp') {
+    sel = state.opp.selected;
+    areaId = 'selectedAreaOpp';
+    emptyId = 'selectedEmptyOpp';
+    chipClass = 'opp';
+  }
+  var area = document.getElementById(areaId);
+  if (sel.length === 0) {
+    area.innerHTML = '<span class="selected-empty" id="' + emptyId + '">' +
+      (side === 'mine' ? '自分の所持カードから選んでください' : '相手のSSR/SRなど、わかる範囲で選択してください') + '</span>';
+    return;
+  }
+  area.innerHTML = sel.map(function(s){
+    return '<span class="sel-chip ' + chipClass + '">' +
+      '<span>' + s.rarity + ' ' + s.name + '</span>' +
+      '<span class="sel-chip-x" onclick="removeSelected(\'' + side + '\', \'' + s.key.replace(/'/g,"\\'") + '\')">✕</span>' +
+      '</span>';
+  }).join('');
+}
+
+// カードグリッド表示
+function renderCards(side){
+  var st = state[side];
+  var searchId = side === 'mine' ? 'searchMine' : 'searchOpp';
+  var gridId = side === 'mine' ? 'cardGridMine' : 'cardGridOpp';
+  var q = (document.getElementById(searchId).value || '').toLowerCase();
+  st.filteredCards = CARDS.filter(function(c){
+    if (side === 'mine' && st.ownFilter && !isOwned(c)) return false;
+    if (st.filters.rarity.length && st.filters.rarity.indexOf(c.rarity) < 0) return false;
+    if (st.filters.attr.length && st.filters.attr.indexOf(c.attr) < 0) return false;
+    if (q) {
+      var hay = (c.name + c.card + c.attr + c.atk).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+  var grid = document.getElementById(gridId);
+  grid.innerHTML = st.filteredCards.map(function(c, i){
+    var key = c.rarity + '_' + c.name + '_' + c.card;
+    var isOn = st.selected.some(function(s){ return s.key === key; });
+    var p = getPower(c);
+    var powerHtml = (side === 'mine' && p) ? '<div class="opt-power">戦力 ' + fmtNum(p) + '</div>' : '';
+    return '<div class="card-option ' + (isOn ? 'on ' + side : '') + '" onclick="toggleCard(\'' + side + '\', ' + i + ')">' +
+      '<span class="opt-rarity ' + c.rarity + '">' + c.rarity + '</span>' +
+      '<div class="opt-name">' + c.name + '</div>' +
+      '<div class="opt-card">「' + c.card + '」</div>' +
+      '<div class="opt-tags">' +
+        '<span class="tag-xs attr-' + c.attr + '">' + c.attr + '</span>' +
+        '<span class="tag-xs atk-xs">' + c.atk + '</span>' +
+      '</div>' +
+      powerHtml +
+    '</div>';
+  }).join('');
+}
+
+// プロンプト構築
+function buildPrompt(){
+  var fmtMine = function(c){
+    var p = getPower(c);
+    var powerStr = p ? ' [戦力:' + fmtNum(p) + ']' : '';
+    var passList = (c.passive || []).map(skillShort).join(', ');
+    var actList = (c.active || []).map(skillShort).join(', ');
+    return '・' + c.rarity + ' ' + c.name + '「' + c.card + '」(' + c.attr + '/' + c.atk + ')' + powerStr + ' P:[' + passList + '] A:[' + actList + ']';
+  };
+  var fmtOpp = function(c){
+    var passList = (c.passive || []).map(skillShort).join(', ');
+    var actList = (c.active || []).map(skillShort).join(', ');
+    return '・' + c.rarity + ' ' + c.name + '「' + c.card + '」(' + c.attr + '/' + c.atk + ') P:[' + passList + '] A:[' + actList + ']';
+  };
+  var mineList = state.mine.selected.map(fmtMine).join('\n');
+  var oppList = state.opp.selected.map(fmtOpp).join('\n');
+  var memo = (document.getElementById('memoInput').value || '').trim();
+
+  // 戦力情報
+  var mineTotal = state.mine.selected.reduce(function(s, c){ return s + getPower(c); }, 0);
+  var powerSummary = mineTotal > 0 ? '\n【自分の合計戦力】: ' + fmtNum(mineTotal) : '';
+
+  return 'あなたはパラノイズ（モバイルゲーム）の闘技場専門コーチです。\n' +
+'以下の対戦情報をもとに、勝率と必勝戦術を分析してください。\n\n' +
+'【ゲームの基本ルール】\n' +
+'- ターン制バトル、TU(タイムユニット)が少ないスキルほど早く使える\n' +
+'- 属性相性: 地→光→闇→地（与ダメ+50%、被ダメ-50%）\n' +
+'- 攻撃種: 物理/特殊\n' +
+'- スキル: パッシブ(常時) / アクティブ(手動)\n' +
+'- 編成は6枚×4班(計24枚)。各班の5・6番目に入場スキル持ちを配置\n' +
+'- 1〜4番目は最初から場に出ているため入場スキルは発動しない\n' +
+'- キル数増加でシリアルキラー系が解放、HP30%以下で逆境系が発動\n' +
+'- 闘技場ルールは麗華の野望と同じ\n\n' +
+'【自分の手持ち編成カード】:\n' + (mineList || 'なし') + powerSummary + '\n\n' +
+'【勝ちたい相手の編成カード】:\n' + (oppList || 'なし') + '\n\n' +
+(memo ? '【補足】: ' + memo + '\n\n' : '') +
+'以下の5項目を明確に分けて出力してください。\n\n' +
+'## 1. 勝率予測\n' +
+'相手に勝てる確率を%で算出（例：65%）。算出根拠を簡潔に：\n' +
+'- 属性相性の優劣\n' +
+'- スキル相性（毒vs毒耐性、スリープvsスリープ耐性など）\n' +
+'- 戦力差（情報があれば）\n' +
+'- 編成バランス（火力/耐久/状態異常）\n\n' +
+'## 2. 第1班〜第4班のおすすめ編成\n' +
+'各班6枚・出撃順(1番目〜6番目)を明記。入場スキル持ちは5・6番目に配置。\n' +
+'相手の編成を意識した班順（例: 「相手の闇染めには第1班は光メインで」）。\n\n' +
+'## 3. 立ち回り戦略\n' +
+'- 最初に倒すべき相手カードと理由\n' +
+'- TU管理のコツ（誰のアクティブを優先発動するか）\n' +
+'- 注意すべき相手のスキルとその対処\n\n' +
+'## 4. 汎用育成方針 TOP5\n' +
+'闘技場で常に活躍できるカードのレベル/メモリーアップ優先度TOP5（手持ち基準）。\n\n' +
+'## 5. この相手専用の対策\n' +
+'今の相手に勝つために、特に伸ばすべきカード3枚と、強化すべきスキル/ステータス。\n\n' +
+'実践的・具体的にお願いします。';
+}
+
+// 分析実行
+async function analyze(){
+  if (state.mine.selected.length === 0) {
+    alert('自分の編成カードを1枚以上選んでください！');
+    return;
+  }
+  if (state.opp.selected.length === 0) {
+    alert('相手の編成カードを1枚以上入力してください！');
+    return;
+  }
+  var btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 分析中...';
+  var resultWrap = document.getElementById('resultWrap');
+  var resultContent = document.getElementById('resultContent');
+  resultWrap.classList.add('show');
+  resultContent.innerHTML = '<div class="loading-wrap"><div class="p-spin" style="margin:0 auto;"></div><div class="loading-text">AIが闘技場戦術を分析しています...</div></div>';
+  resultWrap.scrollIntoView({behavior:'smooth', block:'start'});
+
+  conversationHistory = [{role:'user', content: buildPrompt()}];
+
+  try {
+    var res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: conversationHistory, max_tokens: 3500 })
+    });
+    var data = await res.json();
+    var txt = (data.content || []).map(function(i){ return i.text || ''; }).join('');
+    conversationHistory.push({role:'assistant', content:txt});
+    resultContent.innerHTML = '<div class="result-text">' + txt.replace(/\n/g, '<br>') + '</div>';
+  } catch(e){
+    resultContent.innerHTML = '<div style="color:#b91c1c;">エラー: ' + e.message + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚔️ 勝率と必勝戦術を分析する';
+  }
+}
+
+// 初期化
+loadState();
+renderSelected('mine');
+renderSelected('opp');
+renderCards('mine');
+renderCards('opp');
+updateCounts();
+var memoEl = document.getElementById('memoInput');
+if (memoEl) memoEl.addEventListener('input', saveState);
+</script>
+</body>
+</html>
