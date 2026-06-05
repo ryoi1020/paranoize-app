@@ -259,7 +259,32 @@ var BASES_KINKI={
   '映画館B':{star:1,neighbors:['酒場B','メゾン・ド・イエ']}
 };
 
-var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:false},'キュウシュウ':{available:false}};
+var BASES_SHIKOKU={
+  '本丸':{star:3,neighbors:['本田のマンション','酒場A','橘家','メゾン・ド・イエ']},
+  '麗華のお屋敷':{star:2,neighbors:['メゾン・ド・イエ','映画館A','肉屋A','ゲームセンターA']},
+  '八本木ヒルズ':{star:2,neighbors:['ゲームセンターA','映画館B','鍛冶屋A']},
+  'メゾン・ド・イエ':{star:2,neighbors:['本丸','橘家','映画館B','麗華のお屋敷']},
+  '本田のマンション':{star:2,neighbors:['酒場A','肉屋B','魚屋B','カシワ荘','本丸']},
+  '橘家':{star:1,neighbors:['本丸','カシワ荘','メゾン・ド・イエ','映画館B']},
+  '宮本家':{star:1,neighbors:['映画館A','肉屋A','魚屋A']},
+  'カシワ荘':{star:1,neighbors:['本田のマンション','酒場B','橘家']},
+  '酒場A':{star:1,neighbors:['肉屋B','本丸','本田のマンション']},
+  '酒場B':{star:1,neighbors:['魚屋B','カシワ荘']},
+  'ゲームセンターA':{star:1,neighbors:['麗華のお屋敷','八本木ヒルズ']},
+  'ゲームセンターB':{star:1,neighbors:['肉屋B','鍛冶屋B','本屋B']},
+  '映画館A':{star:1,neighbors:['麗華のお屋敷','宮本家']},
+  '映画館B':{star:1,neighbors:['橘家','メゾン・ド・イエ','八本木ヒルズ']},
+  '肉屋A':{star:1,neighbors:['宮本家','麗華のお屋敷','本屋A']},
+  '肉屋B':{star:1,neighbors:['ゲームセンターB','本屋B','酒場A','本田のマンション','鍛冶屋B']},
+  '魚屋A':{star:1,neighbors:['宮本家','本屋A']},
+  '魚屋B':{star:1,neighbors:['本屋B','鍛冶屋B','本田のマンション','酒場B']},
+  '本屋A':{star:1,neighbors:['肉屋A','鍛冶屋A','魚屋A']},
+  '本屋B':{star:1,neighbors:['肉屋B','魚屋B','ゲームセンターB']},
+  '鍛冶屋A':{star:1,neighbors:['本屋A','八本木ヒルズ']},
+  '鍛冶屋B':{star:1,neighbors:['肉屋B','魚屋B','ゲームセンターB']}
+};
+
+var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:true},'キュウシュウ':{available:false}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
 
@@ -270,7 +295,7 @@ function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'
 function updateBases(){
   // 一旦クリア
   for(var k in BASES){ delete BASES[k]; }
-  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : BASES_TOUHOKU;
+  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : MAP==='シコク' ? BASES_SHIKOKU : BASES_TOUHOKU;
   Object.assign(BASES, src);
   BN = Object.keys(BASES);
 }
