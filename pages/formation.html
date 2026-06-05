@@ -99,7 +99,7 @@ body{background:var(--bg);}
 <div class="p-wrap">
   <div class="page-header">
     <div class="page-title">編成アドバイザーAI</div>
-    <div class="page-desc">持っているSSRを選ぶだけでAIが最強編成を提案！<br>SR・Rは全部持っている前提で4班分を提案します。</div>
+    <div class="page-desc">手持ちカードを選ぶだけでAIが最強編成を提案！<br>SSR・SR・Rから自由に選択できます。</div>
   </div>
 
   <!-- 用途選択 -->
@@ -139,7 +139,7 @@ body{background:var(--bg);}
 
   <!-- 手持ちカード選択 -->
   <div class="p-label" style="margin-bottom:8px;">
-    ② 持っているSSRを選択
+    ② 持っているカードを選択
     <span class="sel-count" id="selCount">（0枚）</span>
   </div>
   <div class="selected-area" id="selectedArea">
@@ -152,7 +152,10 @@ body{background:var(--bg);}
     <input class="card-search-input" id="searchInput" placeholder="カード名・キャラ名で検索..." oninput="renderCards()">
   </div>
   <div class="filter-row">
-
+    <button class="fbtn on" onclick="toggleF('rarity','SSR',this)">SSR</button>
+    <button class="fbtn on" onclick="toggleF('rarity','SR',this)">SR</button>
+    <button class="fbtn on" onclick="toggleF('rarity','R',this)">R</button>
+    <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
     <button class="fbtn" onclick="toggleF('attr','地',this)">🟢 地</button>
     <button class="fbtn" onclick="toggleF('attr','光',this)">🟡 光</button>
     <button class="fbtn" onclick="toggleF('attr','闇',this)">🟣 闇</button>
@@ -209,7 +212,7 @@ body{background:var(--bg);}
 
 <script>
 var selectedCards = [];
-var filters = {rarity:['SSR'], attr:[], atk:[]};
+var filters = {rarity:['SSR','SR','R'], attr:[], atk:[]};
 var purpose = '麗華の野望';
 var conversationHistory = [];
 
@@ -386,61 +389,19 @@ function renderCards() {
 }
 
 function buildPrompt() {
-  var cardList = selectedCards.map(c =>
-    `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk}) パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`
-  ).join('\n');
+  var fmt = function(c) {
+    return `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk}) パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`;
+  };
+  var ssrSel = selectedCards.filter(c => c.rarity === 'SSR').map(fmt).join('\n');
+  var srSel  = selectedCards.filter(c => c.rarity === 'SR' ).map(fmt).join('\n');
+  var rSel   = selectedCards.filter(c => c.rarity === 'R'  ).map(fmt).join('\n');
   var memo = document.getElementById('memoInput').value.trim();
-  // SR・R全リスト
-var SR_ALL = [
-  'SR 鳳梨恵理華(地/特殊) ギブターンEX・サバイバー',
-  'SR 柳葉龍(地/物理) 強化アタック',
-  'SR 宮本涼子(地/特殊) 復讐スリープ・強化アタック',
-  'SR 榊原大地(光/物理) タイムストライク・スタンガン',
-  'SR 黒澤アンナ(闇/特殊) 復讐ポイズン・ポイズンイーター',
-  'SR 蒼木祥子(闇/物理) 復讐ポイズン・ポイズンイーター',
-  'SR 望月那由多(光/特殊) 入場スタン・強化アタック(2体)',
-  'SR 火神禅(闇/物理) 孤軍奮闘・強化アタック',
-  'SR 美影メイサ(地/特殊) 入場スリープ・強化アタック(2体)',
-  'SR 橘智弥(光/物理) オートガード・強化アタック(2体)',
-  'SR 天草仁(闇/特殊) 根性・サバイバー・強化アタック(全体)',
-  'SR 宮本蓮士(闇/物理) 根性・孤軍奮闘・タイムストライク',
-  'SR 鳳梨麗華(地/特殊) 根性・シリアルキラー・強化アタック(2体)',
-  'SR 本田美波(光/物理) 根性・シリアルキラー',
-  'SR 橘結衣(光/特殊) 根性・サバイバー',
-  'SR モクマル(光/特殊) 復讐スタン・強化アタック(2体)',
-  'SR フラミンゴ(光/特殊) EXエクスチェンジ・タイムストライク',
-  'SR バニッシャー(地/物理) シリアルキラー・強化アタック',
-  'SR ドクトパス(闇/特殊) ポイズンイーター・ポイズンアサルト',
-  'SR ホーリーカウ(光/特殊) 浄化・アタック(2体)',
-  'SR ネスコーラル(闇/特殊) 強化アタック(全体)',
-  'SR フォーテイル(地/物理) 強化アタック(2体)',
-  'SR ジュテムゴン(光/特殊) 強化アタック(2体)',
-  'SR イントヨウ(光/物理) 自爆スタン',
-  'SR ゴルメダル(地/物理) タイムフリップEX',
-  'SR ベアボッコ(光/物理) 根性・HP反転EX',
-  'SR カピバーン(光/物理) 根性',
-  'SR カウディナル(地/特殊) 浄化の遺志',
-  'SR リューグーン(闇/特殊)',
-  'SR ネイサン(闇/特殊)',
-  'SR ピューマルゴ(闇/物理)',
-  'SR コロコニー(地/物理)',
-  'SR ハグビット(地/物理) 自爆ポイズン',
-  'SR シャルロッテ(闇/物理)',
-  'SR オージュゴン(地/特殊)',
-  'SR エクソホーン(闇/特殊) 自爆ヒール',
-  'SR テンタクル(闇/特殊)',
-  'SR ラブタロス(光/特殊)',
-  'SR ヌメデューサ(光/特殊)',
-  'SR ドレシャット(地/物理) 自爆スリープ',
-  'SR サンゴリュー(地/特殊)',
-  'SR ジェームソン(地/特殊)',
-  'SR ウサシン(光/物理)',
-  'SR シルバルド(地/物理)',
-  'SR ナンノヨウ(光/物理)',
-  'SR ペルシャラン(地/物理)',
-].join('\n');
 
-var R_ALL = 'R ポーランチャ(地/物理)ビッグボム, R ペングラス(闇/特殊)自爆ヒール, R ラムーマ(地/物理)自爆スリープ, R モフレイム(光/特殊)自爆スタン, R ニャルネード(闇/物理)自爆ギブターン, R ブラコロネ(闇/物理)ポイズンアタック, R ドリップル(地/特殊), R ウィスパラ(地/特殊), R ワントム(闇/物理), R その他多数';
+  var sections = [];
+  if (ssrSel) sections.push('【手持ちSSRカード】:\n' + ssrSel);
+  if (srSel)  sections.push('【手持ちSRカード】:\n' + srSel);
+  if (rSel)   sections.push('【手持ちRカード】:\n' + rSel);
+  var cardsBlock = sections.length ? sections.join('\n\n') : '【手持ちカード】: なし';
 
 return `あなたはパラノイズというモバイルゲームの編成アドバイザーです。
 以下のゲーム情報を踏まえてアドバイスしてください。
@@ -462,26 +423,19 @@ return `あなたはパラノイズというモバイルゲームの編成アド
 
 【用途】: ${purpose}
 
-【手持ちSSRカード】（SR・Rは全種類所持している前提）:
-${cardList || 'なし'}
-
-【使用可能なSRカード（全種所持）】:
-${SR_ALL}
-
-【使用可能なRカード（全種所持）】:
-${R_ALL}
+${cardsBlock}
 
 ${memo ? '【補足】: ' + memo : ''}
 
 以下の内容でアドバイスしてください：
 1. 第1班〜第4班のおすすめ編成（各班6枚・出撃順1〜6番目も明記）
    ※入場スキル持ちは必ず各班の5番目か6番目に配置すること
-   ※SR・Rは全種類持っている前提で自由に使ってよい。SSRは選択したもののみ使用可能
+   ※手持ちカード（SSR/SR/R）からのみ使用可能。同じカードを複数班に配置してはいけない
 2. 各カードの役割と配置理由
 3. 立ち回りのポイント
-4. 足りていない役割・改善案（手持ちカードが24枚に満たない場合は、残り枠はSRやRで補う旨も記載）
+4. 足りていない役割・改善案（手持ちが24枚に満たない場合は、組める班数のみ提案。優先的に入手すべきカードがあれば言及）
 
-わかりやすく、実践的に教えてください。手持ちが少ない場合は持っているカードを優先的に使った編成を提案してください。`;
+わかりやすく、実践的に教えてください。`;
 }
 
 async function analyze() {
