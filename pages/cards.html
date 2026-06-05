@@ -315,6 +315,32 @@ const CARDS = [
   {rarity:'R',name:'黒田 源',card:'極道界の超大物',series:'ガチャ',attr:'地',atk:'物理',img:'https://hpyaocrnmvnnbltbazrx.supabase.co/storage/v1/object/public/card-images/R_kuroda_gen_big_shot.PNG',passive:[],active:["アタック 130TU — 敵1体に1倍のダメージ。"]}
 ];
 
+// レアリティ→キャラ名のあいうえお順でソート（漢字姓は読み辞書を使用）
+const NAME_READINGS = {
+  '剛田':'ごうだ', '天草':'あまくさ', '宮本':'みやもと', '小早川':'こばやかわ',
+  '小松':'こまつ', '嶋':'しま', '望月':'もちづき', '本田':'ほんだ',
+  '柳葉':'やなぎば', '榊原':'さかきばら', '橘':'たちばな', '水野':'みずの',
+  '火神':'ひかみ', '美影':'みかげ', '蒼木':'あおき', '鰐島':'わじま',
+  '輪島':'わじま', '鳳梨':'ほうり', '黒澤':'くろさわ', '黒田':'くろだ'
+};
+function _sortKey(name){
+  const fam = String(name).split(/[\s 　]/)[0];
+  return (NAME_READINGS[fam] || fam) + ' ' + name;
+}
+(function(){
+  const rarityOrder = {SSR:0, SR:1, R:2};
+  const coll = (typeof Intl !== 'undefined' && Intl.Collator) ? new Intl.Collator('ja') : null;
+  const cmp = (a, b) => coll ? coll.compare(a, b) : (a < b ? -1 : a > b ? 1 : 0);
+  CARDS.sort((a, b) => {
+    const ra = (a.rarity in rarityOrder) ? rarityOrder[a.rarity] : 99;
+    const rb = (b.rarity in rarityOrder) ? rarityOrder[b.rarity] : 99;
+    if (ra !== rb) return ra - rb;
+    const nc = cmp(_sortKey(a.name), _sortKey(b.name));
+    if (nc !== 0) return nc;
+    return cmp(a.card, b.card);
+  });
+})();
+
 var IMG_POS_MAP = {
   "SSR_mochizuki_nayuta_first_love.PNG": "center center",
   "SSR_amakusa_jin_looking_at_you.PNG": "center center",

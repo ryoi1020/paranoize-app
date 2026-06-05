@@ -141,6 +141,7 @@ body{background:var(--bg);}
   <div class="p-label" style="margin-bottom:8px;">
     ② 持っているカードを選択
     <span class="sel-count" id="selCount">（0枚）</span>
+    <button type="button" onclick="clearSelection()" style="margin-left:8px;font-size:0.7rem;padding:2px 8px;background:transparent;border:1px solid var(--border2);border-radius:99px;color:var(--tx3);cursor:pointer;">クリア</button>
   </div>
   <div class="selected-area" id="selectedArea">
     <span class="selected-empty" id="selectedEmpty">カードを選んでください（タップで解除できます）</span>
@@ -311,10 +312,68 @@ var CARDS = [
   {rarity:'R',name:'ニャンベルト',card:'蝶のように舞い、猫のように鳴く',attr:'光',atk:'物理',passive:[],active:['アタック']},
 ];
 
+// レアリティ→キャラ名のあいうえお順でソート（漢字姓は読み辞書を使用）
+var NAME_READINGS = {
+  '剛田':'ごうだ', '天草':'あまくさ', '宮本':'みやもと', '小早川':'こばやかわ',
+  '小松':'こまつ', '嶋':'しま', '望月':'もちづき', '本田':'ほんだ',
+  '柳葉':'やなぎば', '榊原':'さかきばら', '橘':'たちばな', '水野':'みずの',
+  '火神':'ひかみ', '美影':'みかげ', '蒼木':'あおき', '鰐島':'わじま',
+  '輪島':'わじま', '鳳梨':'ほうり', '黒澤':'くろさわ', '黒田':'くろだ'
+};
+function _sortKey(name){
+  var fam = String(name).split(/[\s 　]/)[0];
+  return (NAME_READINGS[fam] || fam) + ' ' + name;
+}
+(function(){
+  var rarityOrder = {SSR:0, SR:1, R:2};
+  var coll = (typeof Intl !== 'undefined' && Intl.Collator) ? new Intl.Collator('ja') : null;
+  var cmp = function(a, b){ return coll ? coll.compare(a, b) : (a < b ? -1 : a > b ? 1 : 0); };
+  CARDS.sort(function(a, b){
+    var ra = (a.rarity in rarityOrder) ? rarityOrder[a.rarity] : 99;
+    var rb = (b.rarity in rarityOrder) ? rarityOrder[b.rarity] : 99;
+    if (ra !== rb) return ra - rb;
+    var nc = cmp(_sortKey(a.name), _sortKey(b.name));
+    if (nc !== 0) return nc;
+    return cmp(a.card, b.card);
+  });
+})();
+
+// localStorage 永続化
+var STORAGE_KEY = 'paranoize_formation_v1';
+function saveState(){
+  try {
+    var memoEl = document.getElementById('memoInput');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      selectedCards: selectedCards,
+      purpose: purpose,
+      memo: memoEl ? memoEl.value : ''
+    }));
+  } catch(e){}
+}
+function loadState(){
+  try {
+    var data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return;
+    var s = JSON.parse(data);
+    if (Array.isArray(s.selectedCards)) selectedCards = s.selectedCards;
+    if (s.purpose) {
+      purpose = s.purpose;
+      document.querySelectorAll('.purpose-btn').forEach(function(b){
+        var lab = b.querySelector('.purpose-label');
+        var match = lab && lab.textContent.trim() === s.purpose;
+        b.classList.toggle('active', !!match);
+      });
+    }
+    var memoEl = document.getElementById('memoInput');
+    if (memoEl && s.memo) memoEl.value = s.memo;
+  } catch(e){}
+}
+
 function selectPurpose(el, val) {
   document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   purpose = val;
+  saveState();
 }
 
 function toggleF(type, val, btn) {
@@ -336,12 +395,14 @@ function toggleCard(idx) {
   }
   renderSelected();
   renderCards();
+  saveState();
 }
 
 function removeSelected(key) {
   selectedCards = selectedCards.filter(s => s.key !== key);
   renderSelected();
   renderCards();
+  saveState();
 }
 
 function renderSelected() {
@@ -498,7 +559,21 @@ async function followup() {
   }
 }
 
+// クリアボタン: 全選択を解除
+function clearSelection(){
+  if (selectedCards.length === 0) return;
+  if (!confirm('選択中のカードを全てクリアしますか？')) return;
+  selectedCards = [];
+  renderSelected();
+  renderCards();
+  saveState();
+}
+
+loadState();
+renderSelected();
 renderCards();
+var memoElInit = document.getElementById('memoInput');
+if (memoElInit) memoElInit.addEventListener('input', saveState);
 </script>
 </body>
 </html>
