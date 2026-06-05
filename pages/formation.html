@@ -120,19 +120,41 @@ body{background:var(--bg);}
 
   <!-- プリセット選択（折りたたみ） -->
   <details class="preset-details" style="margin-bottom:1.25rem;">
-    <summary style="cursor:pointer;font-size:0.78rem;color:var(--tx2);padding:8px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);list-style:none;display:flex;align-items:center;gap:8px;">
-      <span>📋 編成プリセット</span>
+    <summary style="cursor:pointer;font-size:0.82rem;color:var(--tx2);padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);list-style:none;display:flex;align-items:center;gap:8px;">
+      <span>📋</span>
+      <span>編集中:</span>
       <span id="presetCurrentName" style="color:var(--accent);font-weight:700;flex:1;"></span>
-      <span style="font-size:0.7rem;color:var(--tx3);">タップで管理 ▼</span>
+      <span style="font-size:0.7rem;color:var(--tx3);">他の編成も使う ▼</span>
     </summary>
-    <div class="preset-bar" style="margin-top:8px;">
-      <select class="preset-select" id="presetSelect" onchange="switchPreset(this.value)"></select>
-      <button class="preset-btn" type="button" onclick="newPreset()">➕ 新規</button>
-      <button class="preset-btn" type="button" onclick="renamePreset()">✏️ 名前変更</button>
-      <button class="preset-btn danger" type="button" onclick="deletePreset()">🗑 削除</button>
-    </div>
-    <div style="font-size:0.7rem;color:var(--tx3);margin-top:6px;padding:0 4px;">
-      💡 複数の編成（麗華用・レイド用など）を保存できます。普段は気にせずOK。
+
+    <div style="background:rgba(5,150,105,0.06);border:1px solid rgba(5,150,105,0.18);border-radius:var(--r12);padding:14px;margin-top:10px;">
+      <div style="font-size:0.82rem;font-weight:700;color:var(--tx);margin-bottom:6px;">💡 「編成プリセット」とは？</div>
+      <div style="font-size:0.76rem;color:var(--tx2);line-height:1.7;margin-bottom:14px;">
+        複数の編成を別々に保存できる機能です。例えば<strong>「麗華の野望用」「レイド用」「闘技場用」</strong>の3種類を別々に保存しておけば、目的に応じてワンタップで切り替えできます。<br>
+        <span style="color:var(--tx3);">※普段の利用だけなら気にしなくてOK。1つだけでも使えます。</span>
+      </div>
+
+      <div style="font-size:0.76rem;font-weight:700;color:var(--tx);margin-bottom:8px;">🎛 切替・編集</div>
+
+      <div style="margin-bottom:10px;">
+        <label style="font-size:0.72rem;color:var(--tx3);display:block;margin-bottom:4px;">編成を切り替える</label>
+        <select class="preset-select" id="presetSelect" onchange="switchPreset(this.value)" style="width:100%;"></select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+        <button class="preset-btn" type="button" onclick="newPreset()" style="padding:10px 8px;text-align:center;">
+          <div style="font-weight:700;font-size:0.78rem;">➕ 新しい編成を作る</div>
+          <div style="font-size:0.65rem;color:var(--tx3);margin-top:2px;">別の用途用に新しく</div>
+        </button>
+        <button class="preset-btn" type="button" onclick="renamePreset()" style="padding:10px 8px;text-align:center;">
+          <div style="font-weight:700;font-size:0.78rem;">✏️ 名前を変更</div>
+          <div style="font-size:0.65rem;color:var(--tx3);margin-top:2px;">わかりやすい名前に</div>
+        </button>
+      </div>
+      <button class="preset-btn danger" type="button" onclick="deletePreset()" style="padding:8px;text-align:center;width:100%;">
+        <span style="font-weight:700;font-size:0.78rem;">🗑 今の編成を削除</span>
+        <span style="font-size:0.65rem;color:var(--tx3);margin-left:6px;">不要になった場合</span>
+      </button>
     </div>
   </details>
 
@@ -373,7 +395,7 @@ function loadState(){
         var old = JSON.parse(oldData);
         presetsData.presets = [{
           id: String(Date.now()),
-          name: 'デフォルト',
+          name: 'メイン編成',
           selectedCards: old.selectedCards || [],
           purpose: old.purpose || '麗華の野望',
           memo: old.memo || ''
@@ -385,7 +407,7 @@ function loadState(){
   // 空ならデフォルトを作成
   if (!presetsData.presets || presetsData.presets.length === 0) {
     presetsData = {
-      presets: [{id: String(Date.now()), name:'デフォルト', selectedCards:[], purpose:'麗華の野望', memo:''}],
+      presets: [{id: String(Date.now()), name:'メイン編成', selectedCards:[], purpose:'麗華の野望', memo:''}],
       activeId: null
     };
     presetsData.activeId = presetsData.presets[0].id;
@@ -404,7 +426,7 @@ function switchPreset(id){
 }
 
 function newPreset(){
-  var name = prompt('新しいプリセット名を入力してください:', '新規編成');
+  var name = prompt('新しい編成の名前を入力してください\n\n例:\n・麗華メイン\n・レイド用\n・闘技場\n・水着キャラ縛り\n\n名前:', '');
   if (!name) return;
   var id = String(Date.now());
   presetsData.presets.push({id:id, name:name, selectedCards:[], purpose:'麗華の野望', memo:''});
@@ -414,26 +436,28 @@ function newPreset(){
   _applyActivePreset();
   renderSelected();
   renderCards();
+  alert('「' + name + '」を作成しました！\nこの編成にカードを選んでいってください。');
 }
 
 function renamePreset(){
   var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
   if (!active) return;
-  var name = prompt('プリセット名を変更:', active.name);
-  if (!name) return;
+  var name = prompt('編成の名前を変更します\n現在: 「' + active.name + '」\n\n新しい名前:', active.name);
+  if (!name || name === active.name) return;
   active.name = name;
   try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
   _renderPresetSelect();
+  _applyActivePreset();
 }
 
 function deletePreset(){
   if (presetsData.presets.length <= 1) {
-    alert('最後のプリセットは削除できません');
+    alert('最後の1つは削除できません\n（最低1つは残す必要があります）');
     return;
   }
   var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
   if (!active) return;
-  if (!confirm('「' + active.name + '」を削除しますか？')) return;
+  if (!confirm('編成「' + active.name + '」を削除しますか？\n\n⚠️ この編成に登録したカードと用途・メモも消えます。\nこの操作は取り消せません。')) return;
   presetsData.presets = presetsData.presets.filter(function(p){ return p.id !== presetsData.activeId; });
   presetsData.activeId = presetsData.presets[0].id;
   try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}

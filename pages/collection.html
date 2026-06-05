@@ -69,6 +69,25 @@ body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var
 
 .empty-state{text-align:center;padding:3rem 1rem;color:var(--tx3);}
 
+/* 同期セクション */
+.sync-section{max-width:900px;margin:2rem auto 1rem;padding:1.25rem;background:rgba(255,255,255,0.6);border:1px solid var(--border);border-radius:var(--r16);}
+.sync-title{font-size:1rem;font-weight:700;color:var(--tx);margin-bottom:6px;}
+.sync-desc{font-size:0.78rem;color:var(--tx2);line-height:1.6;margin-bottom:1rem;}
+.sync-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.sync-input{flex:1;min-width:200px;padding:10px 14px;border:1px solid var(--border2);border-radius:var(--r12);font-size:0.9rem;font-family:inherit;outline:none;background:rgba(255,255,255,0.8);}
+.sync-input:focus{border-color:var(--accent);}
+.sync-btn{flex:1;padding:11px;border-radius:var(--r12);font-size:0.85rem;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.sync-btn.save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.sync-btn.load{background:rgba(255,255,255,0.8);color:var(--tx);border:1px solid var(--border2);}
+.sync-btn:hover{transform:translateY(-1px);}
+.sync-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.sync-note{font-size:0.7rem;color:var(--tx3);line-height:1.6;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.03);border-radius:8px;}
+.sync-status{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:0.8rem;display:none;}
+.sync-status.show{display:block;}
+.sync-status.ok{background:rgba(5,150,105,0.1);color:var(--accent);border:1px solid rgba(5,150,105,0.25);}
+.sync-status.err{background:rgba(220,38,38,0.08);color:#b91c1c;border:1px solid rgba(220,38,38,0.2);}
+.sync-status.loading{background:rgba(59,130,246,0.08);color:#1e40af;border:1px solid rgba(59,130,246,0.2);}
+
 /* タブバー */
 .p-tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;z-index:50;}
 .p-tab{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--tx3);font-size:0.62rem;padding:4px 6px;}
@@ -117,6 +136,27 @@ body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var
 </div>
 
 <div class="list-wrap" id="listWrap"></div>
+
+<!-- 別端末と同期 -->
+<div class="sync-section">
+  <div class="sync-title">🔄 別の端末・ブラウザと同期する</div>
+  <div class="sync-desc">
+    合言葉を設定すると、別の端末・ブラウザでも同じコレクションを呼び出せます。<br>
+    端末が変わっても同じ合言葉を入力すれば復元できます。
+  </div>
+  <div class="sync-row">
+    <input id="syncPassphrase" class="sync-input" type="text" placeholder="合言葉を入力（4文字以上 例: paranoize123）" autocomplete="off">
+  </div>
+  <div class="sync-row">
+    <button class="sync-btn save" onclick="saveBackup()">💾 この合言葉で保存</button>
+    <button class="sync-btn load" onclick="loadBackup()">📥 この合言葉で復元</button>
+  </div>
+  <div class="sync-note">
+    💡 合言葉は<strong>あなただけが知る言葉</strong>にしてください（例: 名前+誕生日、好きなキャラ名など）<br>
+    保存内容：所持カード・戦力・編成プリセット
+  </div>
+  <div class="sync-status" id="syncStatus"></div>
+</div>
 
 <nav class="p-tabbar">
   <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
@@ -288,6 +328,91 @@ function render(){
 
 loadCollection();
 render();
+
+// ===== 別端末との同期（合言葉） =====
+const SYNC_KEYWORD_PREFIX = 'coll_sync_v1_';
+const PRESETS_KEY = 'paranoize_presets_v1';
+
+async function hashPassphrase(pw){
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function setSyncStatus(msg, kind){
+  const el = document.getElementById('syncStatus');
+  el.className = 'sync-status show ' + (kind || 'ok');
+  el.textContent = msg;
+}
+function clearSyncStatus(){
+  const el = document.getElementById('syncStatus');
+  el.className = 'sync-status';
+  el.textContent = '';
+}
+function validatePassphrase(pw){
+  if (!pw || pw.length < 4) {
+    setSyncStatus('❌ 合言葉は4文字以上で入力してください', 'err');
+    return false;
+  }
+  return true;
+}
+
+async function saveBackup(){
+  const pw = document.getElementById('syncPassphrase').value.trim();
+  if (!validatePassphrase(pw)) return;
+  setSyncStatus('⏳ 保存中...', 'loading');
+  try {
+    const hash = await hashPassphrase(pw);
+    const keyword = SYNC_KEYWORD_PREFIX + hash;
+    const payload = {
+      collection: JSON.parse(localStorage.getItem(COLLECTION_KEY) || '{}'),
+      presets: JSON.parse(localStorage.getItem(PRESETS_KEY) || 'null'),
+      saved_at: new Date().toISOString()
+    };
+    const res = await fetch('/api/memo', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ keyword, data: payload })
+    });
+    if (res.ok) {
+      const ownedCount = Object.values(payload.collection).filter(e => e.owned).length;
+      setSyncStatus('✅ 合言葉「' + pw + '」で保存しました！（所持' + ownedCount + '枚）別端末でも同じ合言葉で復元できます', 'ok');
+    } else {
+      setSyncStatus('❌ 保存に失敗しました（' + res.status + '）', 'err');
+    }
+  } catch(e){
+    setSyncStatus('❌ エラー: ' + e.message, 'err');
+  }
+}
+
+async function loadBackup(){
+  const pw = document.getElementById('syncPassphrase').value.trim();
+  if (!validatePassphrase(pw)) return;
+  setSyncStatus('⏳ 復元中...', 'loading');
+  try {
+    const hash = await hashPassphrase(pw);
+    const keyword = SYNC_KEYWORD_PREFIX + hash;
+    const res = await fetch('/api/memo?keyword=' + encodeURIComponent(keyword));
+    const json = await res.json();
+    if (!json || !json.data) {
+      setSyncStatus('❌ この合言葉のデータが見つかりませんでした（初回の場合は「保存」を先に押してください）', 'err');
+      return;
+    }
+    const payload = json.data;
+    const ownedCount = payload.collection ? Object.values(payload.collection).filter(e => e.owned).length : 0;
+    const savedDate = payload.saved_at ? new Date(payload.saved_at).toLocaleString('ja-JP') : '不明';
+    if (!confirm('合言葉「' + pw + '」のデータを復元しますか？\n\n保存日時: ' + savedDate + '\n所持カード: ' + ownedCount + '枚\n\n⚠️ 現在のコレクションは上書きされます')) {
+      clearSyncStatus();
+      return;
+    }
+    if (payload.collection) localStorage.setItem(COLLECTION_KEY, JSON.stringify(payload.collection));
+    if (payload.presets) localStorage.setItem(PRESETS_KEY, JSON.stringify(payload.presets));
+    setSyncStatus('✅ 復元完了！ページをリロードします...', 'ok');
+    setTimeout(() => location.reload(), 1000);
+  } catch(e){
+    setSyncStatus('❌ エラー: ' + e.message, 'err');
+  }
+}
 </script>
 </body>
 </html>
