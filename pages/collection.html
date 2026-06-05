@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>マイコレクション - パラノイズ</title>
+<link rel="stylesheet" href="/assets/common.css">
+<style>
+:root{
+  --bg:linear-gradient(135deg,#f7f5f2 0%,#e8f0ee 50%,#f0e8d8 100%);
+  --bg2:rgba(255,255,255,0.55);
+  --bg3:rgba(255,255,255,0.7);
+  --tx:#1a1a1a;--tx2:#374151;--tx3:#6b7280;
+  --accent:#059669;--accent2:#10b981;
+  --border:rgba(255,255,255,0.85);
+  --border2:rgba(0,0,0,0.08);
+  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--r99:99px;
+  --shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:5rem;}
+
+.header{padding:1rem 1rem 0.75rem;text-align:center;border-bottom:1px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:40;}
+.logo{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;letter-spacing:0.08em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:0.7rem;color:var(--tx3);margin-top:2px;}
+
+.back-link{position:absolute;left:1rem;top:1.1rem;text-decoration:none;color:var(--tx2);font-size:0.85rem;}
+
+.guide-box{max-width:900px;margin:0.75rem auto;padding:10px 14px;background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.2);border-radius:var(--r12);font-size:0.78rem;color:var(--tx2);line-height:1.6;}
+.guide-box strong{color:var(--accent);}
+
+.stats-bar{max-width:900px;margin:0 auto;padding:8px 1rem;display:flex;gap:10px;flex-wrap:wrap;font-size:0.78rem;}
+.stat-chip{padding:5px 12px;background:rgba(255,255,255,0.65);border:1px solid var(--border);border-radius:99px;}
+.stat-chip strong{color:var(--accent);font-weight:700;}
+
+.search-wrap{max-width:900px;margin:0 auto;padding:0.5rem 1rem;}
+.search-box{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.65);border:1px solid var(--border);border-radius:99px;padding:0 14px;}
+.search-input{flex:1;background:none;border:none;outline:none;padding:10px 0;font-size:0.9rem;font-family:inherit;color:var(--tx);}
+.search-input::placeholder{color:var(--tx3);}
+
+.filter-row{max-width:900px;margin:0 auto;padding:0.25rem 1rem 0.75rem;display:flex;flex-wrap:wrap;gap:5px;}
+.fchip{background:rgba(255,255,255,0.5);border:1px solid var(--border);color:var(--tx2);border-radius:99px;padding:5px 12px;font-size:0.75rem;cursor:pointer;font-family:inherit;}
+.fchip:hover{border-color:var(--accent);color:var(--accent);}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+.list-wrap{max-width:900px;margin:0 auto;padding:0 1rem;}
+.coll-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.55);border:1px solid var(--border);border-radius:var(--r12);margin-bottom:6px;}
+.coll-img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#eee;}
+.coll-info{flex:1;min-width:0;}
+.coll-row-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.coll-rarity{font-family:'Syne',sans-serif;font-size:0.6rem;font-weight:700;padding:1px 7px;border-radius:99px;letter-spacing:0.04em;}
+.coll-rarity.SSR{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;border:1px solid rgba(245,158,11,0.3);}
+.coll-rarity.SR{background:rgba(107,114,128,0.1);color:#4b5563;border:1px solid rgba(107,114,128,0.2);}
+.coll-rarity.R{background:rgba(120,83,20,0.08);color:#78350f;border:1px solid rgba(120,83,20,0.15);}
+.coll-name{font-size:0.85rem;font-weight:700;line-height:1.2;}
+.coll-card{font-size:0.7rem;color:var(--tx3);margin-top:2px;}
+.coll-tags{display:flex;gap:4px;margin-top:4px;}
+.tag-xs{font-size:0.6rem;padding:1px 6px;border-radius:4px;font-weight:600;}
+.tag-attr-地{background:rgba(16,185,129,0.1);color:#065f46;}
+.tag-attr-光{background:rgba(245,158,11,0.1);color:#92400e;}
+.tag-attr-闇{background:rgba(5,150,105,0.1);color:#065f46;}
+.tag-atk{background:rgba(59,130,246,0.1);color:#1e40af;}
+.coll-controls{display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;}
+.own-btn{font-size:0.7rem;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);background:rgba(255,255,255,0.7);color:var(--tx2);cursor:pointer;font-weight:600;white-space:nowrap;font-family:inherit;}
+.own-btn.owned{background:var(--accent);color:#fff;border-color:var(--accent);}
+.power-input{font-size:0.78rem;padding:5px 8px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,0.7);width:115px;text-align:right;font-family:inherit;outline:none;}
+.power-input:focus{border-color:var(--accent);}
+.power-input:disabled{opacity:0.4;}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--tx3);}
+
+/* タブバー */
+.p-tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;z-index:50;}
+.p-tab{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--tx3);font-size:0.62rem;padding:4px 6px;}
+.p-tab.active{color:var(--accent);}
+.p-tab-icon{font-size:1.15rem;}
+
+@media(max-width:600px){
+  .coll-controls{flex-direction:column;}
+  .power-input{width:100px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" class="back-link">← ホーム</a>
+  <div class="logo">PARANOIZE</div>
+  <div class="logo-sub">マイコレクション</div>
+</div>
+
+<div class="guide-box">
+  💡 <strong>使い方</strong>：所持しているカードの <strong>「所持」ボタン</strong> をタップしてON、戦力（HPの数値）を入力してください。<br>
+  ここで入力した内容は<strong>図鑑・編成アドバイザーと自動で同期</strong>されます。
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <span>🔍</span>
+    <input class="search-input" id="searchInput" placeholder="キャラ名で検索..." oninput="render()">
+  </div>
+</div>
+
+<div class="filter-row">
+  <button class="fchip on" id="rSSR" onclick="toggleF('rarity','SSR',this)">SSR</button>
+  <button class="fchip on" id="rSR" onclick="toggleF('rarity','SR',this)">SR</button>
+  <button class="fchip on" id="rR" onclick="toggleF('rarity','R',this)">R</button>
+  <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;"></span>
+  <button class="fchip" onclick="toggleF('attr','地',this)">🟢 地</button>
+  <button class="fchip" onclick="toggleF('attr','光',this)">🟡 光</button>
+  <button class="fchip" onclick="toggleF('attr','闇',this)">🟣 闇</button>
+  <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;"></span>
+  <button class="fchip" onclick="toggleOwnFilter(this)">✓ 所持のみ</button>
+  <button class="fchip" onclick="toggleUnownFilter(this)">未所持のみ</button>
+</div>
+
+<div class="list-wrap" id="listWrap"></div>
+
+<nav class="p-tabbar">
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>カード</a>
+  <a class="p-tab active" href="/collection"><span class="p-tab-icon">📦</span>所持</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧠</span>編成</a>
+  <a class="p-tab" href="/daily-guide"><span class="p-tab-icon">📋</span>日々</a>
+</nav>
+
+<script src="/assets/cards-data.js"></script>
+<script>
+const CARDS = window.CARDS;
+
+// 五十音順ソート（cards.htmlと同じ）
+const NAME_READINGS = {
+  '剛田':'ごうだ','天草':'あまくさ','宮本':'みやもと','小早川':'こばやかわ',
+  '小松':'こまつ','嶋':'しま','望月':'もちづき','本田':'ほんだ',
+  '柳葉':'やなぎば','榊原':'さかきばら','橘':'たちばな','水野':'みずの',
+  '火神':'ひかみ','美影':'みかげ','蒼木':'あおき','鰐島':'わじま',
+  '輪島':'わじま','鳳梨':'ほうり','黒澤':'くろさわ','黒田':'くろだ'
+};
+function _sortKey(name){
+  const fam = String(name).split(/[\s 　]/)[0];
+  return (NAME_READINGS[fam] || fam) + ' ' + name;
+}
+(function(){
+  const rarityOrder = {SSR:0, SR:1, R:2};
+  const coll = (typeof Intl !== 'undefined' && Intl.Collator) ? new Intl.Collator('ja') : null;
+  const cmp = (a, b) => coll ? coll.compare(a, b) : (a < b ? -1 : a > b ? 1 : 0);
+  CARDS.sort((a, b) => {
+    const ra = (a.rarity in rarityOrder) ? rarityOrder[a.rarity] : 99;
+    const rb = (b.rarity in rarityOrder) ? rarityOrder[b.rarity] : 99;
+    if (ra !== rb) return ra - rb;
+    const nc = cmp(_sortKey(a.name), _sortKey(b.name));
+    if (nc !== 0) return nc;
+    return cmp(a.card, b.card);
+  });
+})();
+
+// コレクションデータ（cards.htmlと共有）
+const COLLECTION_KEY = 'paranoize_collection_v1';
+let collection = {};
+function _cardKey(c){ return c.rarity + '_' + c.name + '_' + c.card; }
+function loadCollection(){
+  try {
+    const d = localStorage.getItem(COLLECTION_KEY);
+    if (d) collection = JSON.parse(d) || {};
+  } catch(e){}
+}
+function saveCollection(){
+  try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(collection)); } catch(e){}
+}
+function isOwned(c){ const e = collection[_cardKey(c)]; return !!(e && e.owned); }
+function getPower(c){ const e = collection[_cardKey(c)]; return (e && e.power) || 0; }
+function fmtNum(n){ return n ? Number(n).toLocaleString('ja-JP') : ''; }
+function parseNum(v){ return Number(String(v||'').replace(/[^0-9]/g,'')) || 0; }
+
+let filters = {rarity:['SSR','SR','R'], attr:[]};
+let ownFilter = false;
+let unownFilter = false;
+
+function toggleF(type, val, btn){
+  const arr = filters[type];
+  const i = arr.indexOf(val);
+  if (i >= 0) { arr.splice(i, 1); btn.classList.remove('on'); }
+  else { arr.push(val); btn.classList.add('on'); }
+  render();
+}
+function toggleOwnFilter(btn){
+  ownFilter = !ownFilter;
+  if (ownFilter) unownFilter = false;
+  document.querySelectorAll('.fchip').forEach(b => {
+    if (b.textContent.indexOf('未所持') >= 0) b.classList.remove('on');
+  });
+  btn.classList.toggle('on', ownFilter);
+  render();
+}
+function toggleUnownFilter(btn){
+  unownFilter = !unownFilter;
+  if (unownFilter) ownFilter = false;
+  document.querySelectorAll('.fchip').forEach(b => {
+    if (b.textContent.indexOf('✓ 所持のみ') >= 0) b.classList.remove('on');
+  });
+  btn.classList.toggle('on', unownFilter);
+  render();
+}
+
+function toggleOwn(idx){
+  const c = filtered[idx];
+  const k = _cardKey(c);
+  if (!collection[k]) collection[k] = {};
+  collection[k].owned = !collection[k].owned;
+  saveCollection();
+  render();
+}
+
+function savePower(idx, val){
+  const c = filtered[idx];
+  const k = _cardKey(c);
+  if (!collection[k]) collection[k] = {};
+  const p = parseNum(val);
+  collection[k].power = p;
+  if (p > 0) collection[k].owned = true;
+  saveCollection();
+  render();
+}
+
+let filtered = [];
+function render(){
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  filtered = CARDS.filter(c => {
+    if (filters.rarity.length && !filters.rarity.includes(c.rarity)) return false;
+    if (filters.attr.length && !filters.attr.includes(c.attr)) return false;
+    if (ownFilter && !isOwned(c)) return false;
+    if (unownFilter && isOwned(c)) return false;
+    if (q) {
+      const hay = (c.name + c.card + c.attr + c.atk + c.rarity).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // 統計バー
+  const groups = {SSR:[0,0], SR:[0,0], R:[0,0]};
+  CARDS.forEach(c => {
+    if (groups[c.rarity]) {
+      groups[c.rarity][1]++;
+      if (isOwned(c)) groups[c.rarity][0]++;
+    }
+  });
+  let totalPower = 0;
+  CARDS.forEach(c => { if (isOwned(c)) totalPower += getPower(c); });
+  const sb = document.getElementById('statsBar');
+  sb.innerHTML = ['SSR','SR','R'].map(r => {
+    const [own, total] = groups[r];
+    return `<span class="stat-chip">${r}: <strong>${own}</strong>/${total}</span>`;
+  }).join('') + (totalPower > 0 ? `<span class="stat-chip">戦力合計: <strong>${fmtNum(totalPower)}</strong></span>` : '');
+
+  // リスト
+  const wrap = document.getElementById('listWrap');
+  if (filtered.length === 0) {
+    wrap.innerHTML = '<div class="empty-state">該当するカードがありません</div>';
+    return;
+  }
+  wrap.innerHTML = filtered.map((c, i) => {
+    const owned = isOwned(c);
+    const power = getPower(c);
+    const img = c.img ? `<img class="coll-img" src="${c.img}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div class="coll-img"></div>';
+    return `<div class="coll-row">
+      ${img}
+      <div class="coll-info">
+        <div class="coll-row-top">
+          <span class="coll-rarity ${c.rarity}">${c.rarity}</span>
+          <span class="coll-name">${c.name}</span>
+        </div>
+        <div class="coll-card">「${c.card}」</div>
+        <div class="coll-tags">
+          <span class="tag-xs tag-attr-${c.attr}">${c.attr}</span>
+          <span class="tag-xs tag-atk">${c.atk}</span>
+        </div>
+      </div>
+      <div class="coll-controls">
+        <button class="own-btn${owned?' owned':''}" onclick="toggleOwn(${i})">${owned?'✓ 所持':'未所持'}</button>
+        <input class="power-input" type="text" inputmode="numeric" placeholder="戦力" value="${power?fmtNum(power):''}" onchange="savePower(${i}, this.value)" ${!owned && !power ? '' : ''}>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+loadCollection();
+render();
+</script>
+</body>
+</html>

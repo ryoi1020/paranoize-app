@@ -33,6 +33,10 @@
       "destination": "/pages/formation.html"
     },
     {
+      "source": "/collection",
+      "destination": "/pages/collection.html"
+    },
+    {
       "source": "/wiki",
       "destination": "/pages/wiki/index.html"
     },

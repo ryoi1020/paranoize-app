@@ -118,14 +118,23 @@ body{background:var(--bg);}
     <div class="page-desc">手持ちカードを選ぶだけでAIが最強編成を提案！<br>SSR・SR・Rから自由に選択できます。</div>
   </div>
 
-  <!-- プリセット選択 -->
-  <div class="preset-bar">
-    <span class="preset-bar-label">📋 編成プリセット</span>
-    <select class="preset-select" id="presetSelect" onchange="switchPreset(this.value)"></select>
-    <button class="preset-btn" type="button" onclick="newPreset()">➕ 新規</button>
-    <button class="preset-btn" type="button" onclick="renamePreset()">✏️ 名前変更</button>
-    <button class="preset-btn danger" type="button" onclick="deletePreset()">🗑 削除</button>
-  </div>
+  <!-- プリセット選択（折りたたみ） -->
+  <details class="preset-details" style="margin-bottom:1.25rem;">
+    <summary style="cursor:pointer;font-size:0.78rem;color:var(--tx2);padding:8px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);list-style:none;display:flex;align-items:center;gap:8px;">
+      <span>📋 編成プリセット</span>
+      <span id="presetCurrentName" style="color:var(--accent);font-weight:700;flex:1;"></span>
+      <span style="font-size:0.7rem;color:var(--tx3);">タップで管理 ▼</span>
+    </summary>
+    <div class="preset-bar" style="margin-top:8px;">
+      <select class="preset-select" id="presetSelect" onchange="switchPreset(this.value)"></select>
+      <button class="preset-btn" type="button" onclick="newPreset()">➕ 新規</button>
+      <button class="preset-btn" type="button" onclick="renamePreset()">✏️ 名前変更</button>
+      <button class="preset-btn danger" type="button" onclick="deletePreset()">🗑 削除</button>
+    </div>
+    <div style="font-size:0.7rem;color:var(--tx3);margin-top:6px;padding:0 4px;">
+      💡 複数の編成（麗華用・レイド用など）を保存できます。普段は気にせずOK。
+    </div>
+  </details>
 
   <!-- 用途選択 -->
   <div class="p-label" style="margin-bottom:10px;">① 何のための編成？</div>
@@ -243,106 +252,21 @@ body{background:var(--bg);}
 })();
 </script>
 
+<script src="/assets/cards-data.js"></script>
 <script>
 var selectedCards = [];
 var filters = {rarity:['SSR','SR','R'], attr:[], atk:[]};
 var purpose = '麗華の野望';
 var conversationHistory = [];
 
-var CARDS = [
-  {rarity:'SSR',name:'望月 那由多',card:'ファースト・ラブ',attr:'地',atk:'特殊',passive:['入場スリープ(2体)','回復の遺志'],active:['ファーストエイド','サバイバー','迅速攻撃']},
-  {rarity:'SSR',name:'天草 仁',card:'あなたを見ていると',attr:'闇',atk:'物理',passive:['ポイズンスキン','EX反撃体勢'],active:['シリアルキラー(2体)','強化アタック(2体)','アタック(2体)']},
-  {rarity:'SSR',name:'黒澤 アンナ',card:'心を惑わす嘘',attr:'地',atk:'特殊',passive:['復讐スリープ(2体)','逆境の一撃EX(2体)'],active:['ドリームハンター','スリープタッチ','迅速攻撃']},
-  {rarity:'SSR',name:'鳳梨 麗華',card:'夕立の迷子',attr:'地',atk:'特殊',passive:['反撃態勢','根性'],active:['逆境ドレイン','サバイバー','アタック(2体)']},
-  {rarity:'SSR',name:'橘 結衣',card:'ピュアな駆け引き',attr:'光',atk:'物理',passive:['反撃態勢','回復の遺志'],active:['HP反転','タイムストライク','アタック(全体)']},
-  {rarity:'SSR',name:'蒼木 祥子',card:'今夜のデザートは…',attr:'光',atk:'特殊',passive:['入場スタン(2体)','HP反転'],active:['シリアルキラー','タイムストライク','アタック(2体)']},
-  {rarity:'SSR',name:'本田 美波',card:'デートじゃないよね？',attr:'光',atk:'物理',passive:['オートスタン','根性'],active:['ヒール&デトックス','サバイバー','迅速攻撃(全体)']},
-  {rarity:'SSR',name:'橘 智弥',card:'頂点捕食者',attr:'闇',atk:'物理',passive:['入場ポイズン(全体)','逆境ドレイン(2体)'],active:['シリアルキラー','ポイズンイーター','アタック(2体)']},
-  {rarity:'SSR',name:'宮本 涼子',card:'咥えタバコの弔い酒',attr:'光',atk:'特殊',passive:['入場スタン(2体)','逆境ドレイン(2体)'],active:['タイムストライク','EX戦術的撤退','迅速攻撃']},
-  {rarity:'SSR',name:'橘 結衣',card:'その視線の先に',attr:'地',atk:'特殊',passive:['復讐スリープ(2体)','HP反転'],active:['EXスリープ(2体)','サバイバー','アタック']},
-  {rarity:'SSR',name:'黒澤 アンナ',card:'密室のミーティング',attr:'闇',atk:'物理',passive:['ポイズンスキン','EXチャージ'],active:['ポイズンイーター','ポイズンタッチ','ポイズンアタック']},
-  {rarity:'SSR',name:'柳葉 龍',card:'遅れてきた男',attr:'地',atk:'特殊',passive:['オートスリープ','EXチャージ'],active:['ドリームハンター','強化迅速攻撃(全体)','アタック(2体)']},
-  {rarity:'SSR',name:'橘 智弥',card:'兄として、友として',attr:'光',atk:'物理',passive:['スタンスキン','HP反転'],active:['サバイバー','スタンアサルトEX(2体)','アタック']},
-  {rarity:'SSR',name:'宮本 蓮士',card:'打ち明けた秘密',attr:'地',atk:'特殊',passive:['入場スリープ(2体)','孤軍奮闘'],active:['ドリームハンター','EX戦術的撤退','アタック']},
-  {rarity:'SSR',name:'蒼木 祥子',card:'空腹の打ち合わせ',attr:'闇',atk:'物理',passive:['オートポイズン','復讐ポイズン'],active:['逆境ドレイン','ポイズンイーター','アタック(2体)']},
-  {rarity:'SR',name:'モクマル',card:'レンジの頼れる？相棒',attr:'光',atk:'特殊',passive:['復讐スタン'],active:['強化アタック(2体)','アタック']},
-  {rarity:'SR',name:'鳳梨 恵理華',card:'炎と共に消えた姉',attr:'地',atk:'特殊',passive:[],active:['ギブターンEX','サバイバー','アタック']},
-  {rarity:'SR',name:'柳葉 龍',card:'反骨のアウトロー',attr:'地',atk:'物理',passive:[],active:['強化アタック','アタック']},
-  {rarity:'SR',name:'宮本 涼子',card:'家族思いの元ヤンドライバー',attr:'地',atk:'特殊',passive:['復讐スリープ'],active:['強化アタック','アタック']},
-  {rarity:'SR',name:'榊原 大地',card:'器用に生きる曲者ヤクザ',attr:'光',atk:'物理',passive:[],active:['タイムストライク','スタンガン']},
-  {rarity:'SR',name:'黒澤 アンナ',card:'特殊犯罪六課のエリート刑事',attr:'闇',atk:'特殊',passive:['復讐ポイズン'],active:['ポイズンイーター','アタック(2体)','ポイズンアタック']},
-  {rarity:'SR',name:'蒼木 祥子',card:'欲望を秘めた化学教師',attr:'闇',atk:'物理',passive:['復讐ポイズン'],active:['ポイズンイーター','アタック(2体)','ポイズンアタック']},
-  {rarity:'SR',name:'望月 那由多',card:'気だるげ天才ハッカー',attr:'光',atk:'特殊',passive:['入場スタン'],active:['強化アタック(2体)','アタック(2体)']},
-  {rarity:'SR',name:'火神 禅',card:'戦地を統べる赤き虎',attr:'闇',atk:'物理',passive:[],active:['孤軍奮闘','強化アタック','アタック']},
-  {rarity:'SR',name:'美影 メイサ',card:'闇に舞う鳳梨の隠し刀',attr:'地',atk:'特殊',passive:['入場スリープ'],active:['強化アタック(2体)','アタック(2体)']},
-  {rarity:'SR',name:'橘 智弥',card:'誰もが慕う頼れる主将',attr:'光',atk:'物理',passive:['オートガード'],active:['強化アタック(2体)','アタック']},
-  {rarity:'SR',name:'天草 仁',card:'鳳梨に忠誠を誓った男',attr:'闇',atk:'特殊',passive:['根性'],active:['サバイバー','強化アタック(全体)','アタック']},
-  {rarity:'SR',name:'宮本 蓮士',card:'黒き刃を振るう青年',attr:'闇',atk:'物理',passive:['根性'],active:['孤軍奮闘','タイムストライク','アタック']},
-  {rarity:'SR',name:'鳳梨 麗華',card:'鳳梨の名を背負う少女',attr:'地',atk:'特殊',passive:['根性'],active:['シリアルキラー','強化アタック(2体)','アタック']},
-  {rarity:'SR',name:'本田 美波',card:'神奈川県警の若きエース',attr:'光',atk:'物理',passive:['根性'],active:['シリアルキラー','強化アタック','アタック']},
-  {rarity:'SR',name:'橘 結衣',card:'天真爛漫な剣道女子',attr:'光',atk:'特殊',passive:['根性'],active:['サバイバー','強化アタック','アタック(2体)']},
-  {rarity:'SR',name:'フラミンゴ',card:'ミッション・コンプリート',attr:'光',atk:'特殊',passive:[],active:['EXエクスチェンジ','タイムストライク','迅速攻撃']},
-  {rarity:'SR',name:'バニッシャー',card:'悪い子にはお仕置を',attr:'地',atk:'物理',passive:[],active:['シリアルキラー','強化アタック','アタック']},
-  {rarity:'SR',name:'ドクトパス',card:'まさかの二足歩行',attr:'闇',atk:'特殊',passive:[],active:['ポイズンイーター','ポイズンアサルト','アタック(2体)']},
-  {rarity:'SR',name:'ホーリーカウ',card:'聖なる乳牛',attr:'光',atk:'特殊',passive:[],active:['浄化','アタック(2体)']},
-  {rarity:'SR',name:'ネスコーラル',card:'サンゴの海の守り神',attr:'闇',atk:'特殊',passive:[],active:['強化アタック(全体)','アタック(全体)']},
-  {rarity:'SR',name:'フォーテイル',card:'牙よりも恐ろしい武器',attr:'地',atk:'物理',passive:[],active:['強化アタック(2体)','アタック(2体)']},
-  {rarity:'SR',name:'ジュテムゴン',card:'愛を歌う海のアイドル',attr:'光',atk:'特殊',passive:[],active:['強化アタック(2体)','アタック(2体)']},
-  {rarity:'SR',name:'イントヨウ',card:'ぐるぐる回るモノクローム',attr:'光',atk:'物理',passive:[],active:['自爆スタン','アタック']},
-  {rarity:'SR',name:'ゴルメダル',card:'ハンパじゃない高級感',attr:'地',atk:'物理',passive:[],active:['タイムフリップEX','アタック(全体)']},
-  {rarity:'SR',name:'ベアボッコ',card:'出会って2秒でフルパン',attr:'光',atk:'物理',passive:['根性'],active:['HP反転EX','アタック(2体)']},
-  {rarity:'SR',name:'カピバーン',card:'身を焦がすほどのユルさ',attr:'光',atk:'物理',passive:['根性'],active:['アタック']},
-  {rarity:'SR',name:'カウディナル',card:'ミルクしたたる枢機卿',attr:'地',atk:'特殊',passive:['浄化の遺志'],active:['アタック']},
-  {rarity:'SR',name:'リューグーン',card:'時を忘れた海底の主',attr:'闇',atk:'特殊',passive:[],active:['アタック']},
-  {rarity:'SR',name:'ネイサン',card:'ネコ科最強のエージェント',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ピューマルゴ',card:'不可触な黄金の毛皮',attr:'闇',atk:'物理',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'コロコニー',card:'暗躍する二本の刃',attr:'地',atk:'物理',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ハグビット',card:'キュートな見た目の腹黒ウサギ',attr:'地',atk:'物理',passive:[],active:['自爆ポイズン','アタック']},
-  {rarity:'SR',name:'シャルロッテ',card:'とってもお上品な猛獣',attr:'闇',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'SR',name:'オージュゴン',card:'見れば必ず恋愛成就',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'エクソホーン',card:'悪魔泣かせのキトウシ',attr:'闇',atk:'特殊',passive:[],active:['自爆ヒール','アタック']},
-  {rarity:'SR',name:'テンタクル',card:'絡まれたら一巻の終わり',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ラブタロス',card:'愛と憎悪は表裏一体',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ヌメデューサ',card:'ヌメった瞳にとりこまれるな',attr:'光',atk:'特殊',passive:[],active:['アタック(全体)']},
-  {rarity:'SR',name:'ドレシャット',card:'踊るシッポを鞭にして',attr:'地',atk:'物理',passive:[],active:['自爆スリープ','アタック']},
-  {rarity:'SR',name:'サンゴリュー',card:'命を育む蒼きドラゴン',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ジェームソン',card:'コードネームはC.A.T.',attr:'地',atk:'特殊',passive:[],active:['アタック(全体)']},
-  {rarity:'SR',name:'ウサシン',card:'漆黒の殺戮マスコット',attr:'光',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'SR',name:'シルバルド',card:'銀毛のヒョウは走らない',attr:'地',atk:'物理',passive:[],active:['アタック(全体)']},
-  {rarity:'SR',name:'ナンノヨウ',card:'ジト目で相手を完全拒否',attr:'光',atk:'物理',passive:[],active:['アタック(2体)']},
-  {rarity:'SR',name:'ペルシャラン',card:'華麗なるムチさばき',attr:'地',atk:'物理',passive:[],active:['アタック(全体)']},
-  {rarity:'R',name:'ポーランチャ',card:'ホワイト・ベアナックル',attr:'地',atk:'物理',passive:[],active:['ビッグボム']},
-  {rarity:'R',name:'ペングラス',card:'氷点下のその先へ',attr:'闇',atk:'特殊',passive:[],active:['自爆ヒール','アタック']},
-  {rarity:'R',name:'ラムーマ',card:'眠りに誘う触り心地',attr:'地',atk:'物理',passive:[],active:['自爆スリープ','アタック']},
-  {rarity:'R',name:'モフレイム',card:'2000℃のたてがみ',attr:'光',atk:'特殊',passive:[],active:['自爆スタン','アタック']},
-  {rarity:'R',name:'ブラコロネ',card:'ほどける刃で敵を切り裂く',attr:'闇',atk:'物理',passive:[],active:['ポイズンアタック']},
-  {rarity:'R',name:'ドリップル',card:'ニャフェイン満タン',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'ウィスパラ',card:'燃え盛るカピバラ',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'ワントム',card:'ご主人想いのゴースト犬',attr:'闇',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'ニャルネード',card:'小さな竜巻にご用心',attr:'闇',atk:'物理',passive:[],active:['自爆ギブターン','アタック(2体)']},
-  {rarity:'R',name:'オツキミミ',card:'一年中食欲の秋',attr:'闇',atk:'物理',passive:[],active:['ポイズンアタック']},
-  {rarity:'R',name:'小松 彩',card:'組を見守る姉貴分',attr:'光',atk:'物理',passive:[],active:['ヘビーアタック(2体)']},
-  {rarity:'R',name:'小早川 紗季',card:'エネルギッシュな広島娘',attr:'闇',atk:'物理',passive:[],active:['迅速攻撃(全体)']},
-  {rarity:'R',name:'剛田 剣信',card:'剣道大好き真っ直ぐ青年',attr:'光',atk:'特殊',passive:[],active:['アタック']},
-  {rarity:'R',name:'鰐島 誠司',card:'未来を憂う鰐梨組組長',attr:'地',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'水野 ヒロト',card:'血気盛んな切り込み隊長',attr:'地',atk:'特殊',passive:[],active:['アタック(全体)']},
-  {rarity:'R',name:'嶋 大輔',card:'昔気質な相談役',attr:'光',atk:'特殊',passive:[],active:['アタック(全体)']},
-  {rarity:'R',name:'黒田 源',card:'極道界の超大物',attr:'地',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'カピメテオ',card:'脱力系隕石',attr:'地',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'デスロップ',card:'飛び跳ねるのはおまえだ',attr:'闇',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'ヘビー',card:'その拳は超重量級',attr:'闇',atk:'物理',passive:[],active:['アタック(全体)']},
-  {rarity:'R',name:'ネコヒー',card:'一杯の癒しをあなたに',attr:'光',atk:'特殊',passive:[],active:['アタック']},
-  {rarity:'R',name:'ニャプチーノ',card:'甘さ控えめ可愛さマシマシ',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'カッチギン',card:'氷上のブラックダイヤ',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'フローギン',card:'羽毛を捨てた氷の化身',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'アクムートン',card:'数えたら最期',attr:'光',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'ネムートン',card:'進化した肌触り',attr:'闇',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'スプーキー',card:'飼い主呪わば穴二つ',attr:'地',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'バウロスキー',card:'無重力のおさんぽへ',attr:'光',atk:'物理',passive:[],active:['アタック']},
-  {rarity:'R',name:'シンバーン',card:'闇にきらめく百獣の王',attr:'光',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'モエフレア',card:'ピンクの炎で獲物を狩る',attr:'闇',atk:'特殊',passive:[],active:['アタック(2体)']},
-  {rarity:'R',name:'ニャンベルト',card:'蝶のように舞い、猫のように鳴く',attr:'光',atk:'物理',passive:[],active:['アタック']},
-];
+var CARDS = window.CARDS;
+
+// スキル名抽出（"○○○ 130TU — 説明文" → "○○○"）
+function skillShort(s){
+  if (!s) return '';
+  var m = String(s).match(/^(.+?)\s*—\s*/);
+  return m ? m[1] : String(s).split('—')[0].trim();
+}
 
 // レアリティ→キャラ名のあいうえお順でソート（漢字姓は読み辞書を使用）
 var NAME_READINGS = {
@@ -423,6 +347,9 @@ function _applyActivePreset(){
   // ドロップダウン反映
   var sel = document.getElementById('presetSelect');
   if (sel) sel.value = active.id;
+  // サマリー名表示
+  var nameEl = document.getElementById('presetCurrentName');
+  if (nameEl) nameEl.textContent = active.name || '';
 }
 
 function _renderPresetSelect(){
@@ -690,7 +617,9 @@ function buildPrompt() {
   var fmt = function(c) {
     var p = getPower(c);
     var powerStr = p ? ' [戦力:' + fmtNum(p) + ']' : '';
-    return `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk})${powerStr} パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`;
+    var passList = (c.passive || []).map(skillShort).join(', ');
+    var actList = (c.active || []).map(skillShort).join(', ');
+    return `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk})${powerStr} パッシブ:[${passList}] アクティブ:[${actList}]`;
   };
   var ssrSel = selectedCards.filter(c => c.rarity === 'SSR').map(fmt).join('\n');
   var srSel  = selectedCards.filter(c => c.rarity === 'SR' ).map(fmt).join('\n');
