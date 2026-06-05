@@ -56,6 +56,36 @@ body{background:var(--bg);}
 .attr-闇{background:rgba(5,150,105,0.1);color:#065f46;border:1px solid rgba(5,150,105,0.2);}
 .atk-tag{font-size:0.62rem;padding:2px 6px;border-radius:var(--r4,4px);font-weight:500;background:rgba(59,130,246,0.1);color:#1e40af;border:1px solid rgba(59,130,246,0.2);}
 
+/* コレクション UI */
+.own-toggle{
+  position:absolute;top:8px;right:8px;z-index:5;
+  font-size:0.65rem;padding:3px 9px;border-radius:99px;
+  background:rgba(255,255,255,0.85);border:1px solid rgba(0,0,0,0.08);
+  color:var(--tx2);cursor:pointer;font-weight:600;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:all 0.15s;
+}
+.own-toggle:hover{transform:scale(1.05);}
+.own-toggle.owned{background:rgba(5,150,105,0.92);color:#fff;border-color:rgba(5,150,105,1);}
+.card-power{
+  font-size:0.7rem;color:var(--accent);padding:2px 8px;margin:0 12px 8px;
+  background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.15);
+  border-radius:6px;display:inline-block;font-weight:600;
+}
+.collection-stats{
+  display:flex;gap:10px;flex-wrap:wrap;font-size:0.72rem;color:var(--tx2);
+  padding:0 1rem 0.5rem;max-width:1400px;margin:0 auto;position:relative;z-index:1;
+}
+.coll-stat{padding:3px 10px;background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.85);border-radius:99px;}
+.coll-stat strong{color:var(--accent);}
+.modal-power-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,0.06);margin-top:6px;}
+.modal-power-row label{font-size:0.8rem;font-weight:600;color:var(--tx2);flex-shrink:0;}
+.modal-power-input{flex:1;padding:6px 10px;border:1px solid rgba(0,0,0,0.1);border-radius:8px;font-size:0.9rem;font-family:inherit;outline:none;background:rgba(255,255,255,0.7);}
+.modal-power-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(5,150,105,0.1);}
+.modal-own-btn{padding:6px 14px;border-radius:99px;font-size:0.8rem;font-weight:600;cursor:pointer;border:1px solid rgba(0,0,0,0.08);background:rgba(255,255,255,0.7);}
+.modal-own-btn.owned{background:rgba(5,150,105,0.92);color:#fff;border-color:rgba(5,150,105,1);}
+.card{position:relative;}
+
 .card-skills{padding:0 12px 10px;display:flex;flex-direction:column;gap:3px;}
 .skill-item{display:flex;gap:5px;align-items:flex-start;}
 .skill-label{font-size:0.58rem;padding:2px 5px;border-radius:4px;flex-shrink:0;margin-top:1px;font-weight:700;}
@@ -114,7 +144,10 @@ body{background:var(--bg);}
   <button class="p-chip" onclick="toggleF('attr','闇',this)">🟣 闇</button>
   <button class="p-chip" onclick="toggleF('atk','物理',this)">物理</button>
   <button class="p-chip" onclick="toggleF('atk','特殊',this)">特殊</button>
+  <button class="p-chip" onclick="toggleOwnFilter(this)">✓ 所持のみ</button>
 </div>
+
+<div class="collection-stats" id="collStats"></div>
 
 <div class="stats" id="stats"></div>
 <div class="grid" id="cardGrid"></div>
@@ -146,7 +179,75 @@ body{background:var(--bg);}
 <script>
 let query = '';
 let filters = {rarity:[], attr:[], atk:[]};
+let ownFilter = false; // 所持のみフィルタ
 let filtered = [];
+
+// ===== コレクション管理 =====
+const COLLECTION_KEY = 'paranoize_collection_v1';
+let collection = {};
+function _cardKey(c){ return c.rarity + '_' + c.name + '_' + c.card; }
+function loadCollection(){
+  try {
+    const d = localStorage.getItem(COLLECTION_KEY);
+    if (d) collection = JSON.parse(d) || {};
+  } catch(e){}
+}
+function saveCollection(){
+  try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(collection)); } catch(e){}
+}
+function getOwnEntry(c){ return collection[_cardKey(c)] || null; }
+function isOwned(c){ const e = getOwnEntry(c); return !!(e && e.owned); }
+function toggleOwn(idx){
+  const c = filtered[idx];
+  const k = _cardKey(c);
+  if (!collection[k]) collection[k] = {};
+  collection[k].owned = !collection[k].owned;
+  saveCollection();
+  render();
+}
+function setPower(c, power){
+  const k = _cardKey(c);
+  if (!collection[k]) collection[k] = {};
+  const p = Number(String(power).replace(/[^0-9]/g, '')) || 0;
+  collection[k].power = p;
+  if (p > 0) collection[k].owned = true;
+  saveCollection();
+  render();
+}
+function fmtNum(n){
+  if (!n) return '0';
+  return Number(n).toLocaleString('ja-JP');
+}
+function toggleOwnFilter(btn){
+  ownFilter = !ownFilter;
+  btn.classList.toggle('on', ownFilter);
+  render();
+}
+function updateCollectionStats(){
+  const groups = {SSR:[0,0], SR:[0,0], R:[0,0]};
+  CARDS.forEach(c => {
+    if (groups[c.rarity]) {
+      groups[c.rarity][1]++;
+      if (isOwned(c)) groups[c.rarity][0]++;
+    }
+  });
+  const el = document.getElementById('collStats');
+  if (!el) return;
+  const parts = ['SSR','SR','R'].map(r => {
+    const [own, total] = groups[r];
+    return `<span class="coll-stat">${r}: <strong>${own}</strong>/${total}</span>`;
+  });
+  // 戦力合計（所持カードのみ）
+  let totalPower = 0;
+  CARDS.forEach(c => {
+    const e = getOwnEntry(c);
+    if (e && e.owned && e.power) totalPower += e.power;
+  });
+  if (totalPower > 0) {
+    parts.push(`<span class="coll-stat">戦力合計: <strong>${fmtNum(totalPower)}</strong></span>`);
+  }
+  el.innerHTML = parts.join('');
+}
 
 function toggleF(type, val, btn) {
   const arr = filters[type];
@@ -164,6 +265,7 @@ function clearSearch() {
 }
 
 function matchCard(c) {
+  if (ownFilter && !isOwned(c)) return false;
   if (filters.rarity.length && !filters.rarity.includes(c.rarity)) return false;
   if (filters.attr.length && !filters.attr.includes(c.attr)) return false;
   if (filters.atk.length && !filters.atk.includes(c.atk)) return false;
@@ -198,6 +300,9 @@ function render() {
     const defaultPos = getImgStyle(c.img);
     const imgPos = savedPos !== null ? 'center ' + savedPos + '%' : defaultPos;
     const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:${imgPos}" onerror="this.parentElement.style.display='none'"></div>` : '';
+    const own = getOwnEntry(c);
+    const ownBtn = `<button class="own-toggle${isOwned(c)?' owned':''}" onclick="event.stopPropagation();toggleOwn(${i})">${isOwned(c)?'✓ 所持':'未所持'}</button>`;
+    const powerHtml = (own && own.power) ? `<div class="card-power">戦力 ${fmtNum(own.power)}</div>` : '';
     const passiveItems = c.passive.slice(0,2).map(s =>
       '<div class="skill-item"><span class="skill-label p">P</span><span class="skill-text"><span class="skill-name">' + skillShort(s) + '</span>' + (skillDesc(s) ? ' — ' + skillDesc(s) : '') + '</span></div>'
     ).join('');
@@ -205,16 +310,19 @@ function render() {
       '<div class="skill-item"><span class="skill-label a">A</span><span class="skill-text"><span class="skill-name">' + skillShort(s) + '</span>' + (skillDesc(s) ? ' — ' + skillDesc(s) : '') + '</span></div>'
     ).join('');
     return '<div class="card" onclick="openModal(' + i + ')">' +
+      ownBtn +
       imgHtml +
       '<div class="card-top">' +
         '<span class="rarity-badge ' + c.rarity + '">' + c.rarity + '</span>' +
         '<div><div class="card-name">' + c.name + '</div><div class="card-subname">「' + c.card + '」</div></div>' +
         '<div class="card-tags"><span class="attr-tag attr-' + c.attr + '">' + c.attr + '</span><span class="atk-tag">' + c.atk + '</span></div>' +
       '</div>' +
+      powerHtml +
       '<div class="card-skills">' + passiveItems + activeItems +
         ((c.passive.length + c.active.length) > 4 ? '<div style="font-size:0.72rem;color:var(--tx3);padding-left:8px;">+ もっと見る</div>' : '') +
       '</div></div>';
   }).join('');
+  updateCollectionStats();
   setTimeout(initAllImgDrag, 50);
 }
 
@@ -525,6 +633,15 @@ function openModal(filteredIdx) {
       <div class="modal-skill-desc">${skillDesc(s)}</div>
     </div>`).join('');
   const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" style="width:100%;height:260px;object-fit:cover;object-position:center 45%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
+  const own = getOwnEntry(c) || {};
+  const ownedNow = !!own.owned;
+  const powerVal = own.power || '';
+  const collectionRow = `
+    <div class="modal-power-row">
+      <button class="modal-own-btn${ownedNow?' owned':''}" id="modalOwnBtn" onclick="modalToggleOwn(${filteredIdx})">${ownedNow?'✓ 所持':'未所持'}</button>
+      <label>戦力</label>
+      <input class="modal-power-input" type="text" inputmode="numeric" placeholder="例: 4,200,000" value="${powerVal? fmtNum(powerVal):''}" id="modalPower" onblur="modalSavePower(${filteredIdx}, this.value)">
+    </div>`;
   modal.innerHTML = `${mImgHtml}
     <div class="modal-header">
       <span class="modal-rarity rarity-badge ${c.rarity}">${c.rarity}</span>
@@ -540,11 +657,41 @@ function openModal(filteredIdx) {
         <span class="atk-tag">${c.atk}</span>
         <span class="series-tag">${c.series}</span>
       </div>
+      ${collectionRow}
       ${c.passive.length ? `<div class="modal-section-title">パッシブスキル</div>${passiveHtml}` : ''}
       ${c.active.length ? `<div class="modal-section-title" style="margin-top:${c.passive.length?'1rem':'0'}">アクティブスキル</div>${activeHtml}` : ''}
     </div>`;
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function modalToggleOwn(filteredIdx){
+  const c = filtered[filteredIdx];
+  const k = _cardKey(c);
+  if (!collection[k]) collection[k] = {};
+  collection[k].owned = !collection[k].owned;
+  saveCollection();
+  const btn = document.getElementById('modalOwnBtn');
+  if (btn) {
+    btn.classList.toggle('owned', collection[k].owned);
+    btn.textContent = collection[k].owned ? '✓ 所持' : '未所持';
+  }
+}
+function modalSavePower(filteredIdx, val){
+  const c = filtered[filteredIdx];
+  setPower(c, val);
+  // フォームの整形表示
+  const el = document.getElementById('modalPower');
+  if (el) {
+    const k = _cardKey(c);
+    const p = (collection[k] && collection[k].power) || 0;
+    el.value = p ? fmtNum(p) : '';
+    const btn = document.getElementById('modalOwnBtn');
+    if (btn && p > 0) {
+      btn.classList.add('owned');
+      btn.textContent = '✓ 所持';
+    }
+  }
 }
 
 function closeModal(e) {
@@ -582,6 +729,7 @@ function initAllImgDrag() {
   });
 }
 
+loadCollection();
 filtered = [...CARDS];
 render();
 </script>

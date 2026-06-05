@@ -87,6 +87,22 @@ body{background:var(--bg);}
 .followup-btn{background:var(--accent);border:none;border-radius:var(--r8);padding:9px 14px;color:#fff;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
 
 .sel-count{font-size:0.72rem;color:var(--accent);font-weight:700;}
+
+/* プリセット */
+.preset-bar{display:flex;gap:6px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;padding:10px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);}
+.preset-bar-label{font-size:0.72rem;font-weight:700;color:var(--tx2);margin-right:4px;}
+.preset-select{flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);padding:6px 10px;color:var(--tx);font-size:0.82rem;font-family:'Noto Sans JP',sans-serif;outline:none;cursor:pointer;}
+.preset-btn{background:transparent;border:1px solid var(--border2);border-radius:var(--r8);padding:5px 9px;font-size:0.72rem;cursor:pointer;color:var(--tx2);font-family:'Noto Sans JP',sans-serif;}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent);}
+.preset-btn.danger:hover{border-color:#dc2626;color:#dc2626;}
+
+/* シェアURL */
+.share-bar{display:flex;gap:8px;margin-bottom:1rem;}
+.share-btn{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:9px;color:var(--tx2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* カード上の戦力 */
+.opt-power{font-size:0.6rem;color:var(--accent);margin-top:3px;font-weight:600;}
 </style>
 </head>
 <body>
@@ -100,6 +116,15 @@ body{background:var(--bg);}
   <div class="page-header">
     <div class="page-title">編成アドバイザーAI</div>
     <div class="page-desc">手持ちカードを選ぶだけでAIが最強編成を提案！<br>SSR・SR・Rから自由に選択できます。</div>
+  </div>
+
+  <!-- プリセット選択 -->
+  <div class="preset-bar">
+    <span class="preset-bar-label">📋 編成プリセット</span>
+    <select class="preset-select" id="presetSelect" onchange="switchPreset(this.value)"></select>
+    <button class="preset-btn" type="button" onclick="newPreset()">➕ 新規</button>
+    <button class="preset-btn" type="button" onclick="renamePreset()">✏️ 名前変更</button>
+    <button class="preset-btn danger" type="button" onclick="deletePreset()">🗑 削除</button>
   </div>
 
   <!-- 用途選択 -->
@@ -157,6 +182,8 @@ body{background:var(--bg);}
     <button class="fbtn on" onclick="toggleF('rarity','SR',this)">SR</button>
     <button class="fbtn on" onclick="toggleF('rarity','R',this)">R</button>
     <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
+    <button class="fbtn" onclick="toggleOwnFilter(this)">✓ 所持のみ</button>
+    <span style="display:inline-block;width:1px;background:var(--border2);margin:0 4px;align-self:stretch;"></span>
     <button class="fbtn" onclick="toggleF('attr','地',this)">🟢 地</button>
     <button class="fbtn" onclick="toggleF('attr','光',this)">🟡 光</button>
     <button class="fbtn" onclick="toggleF('attr','闇',this)">🟣 闇</button>
@@ -168,6 +195,11 @@ body{background:var(--bg);}
   <!-- 追加メモ -->
   <div class="p-label" style="margin-bottom:8px;">③ 補足があれば（任意）</div>
   <textarea class="memo-input" id="memoInput" placeholder="例：スリープ系が多い敵に対応したい、回復役を入れたい、など..."></textarea>
+
+  <!-- シェアURL -->
+  <div class="share-bar">
+    <button class="share-btn" type="button" onclick="copyShareUrl()">🔗 この編成のURLをコピー</button>
+  </div>
 
   <!-- 分析ボタン -->
   <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">🧩 AIに編成を分析してもらう</button>
@@ -338,35 +370,236 @@ function _sortKey(name){
   });
 })();
 
-// localStorage 永続化
-var STORAGE_KEY = 'paranoize_formation_v1';
-function saveState(){
+// ===== コレクション読み取り（cards.htmlと共通） =====
+var COLLECTION_KEY = 'paranoize_collection_v1';
+var collection = {};
+function loadCollection(){
   try {
-    var memoEl = document.getElementById('memoInput');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      selectedCards: selectedCards,
-      purpose: purpose,
-      memo: memoEl ? memoEl.value : ''
-    }));
+    var d = localStorage.getItem(COLLECTION_KEY);
+    if (d) collection = JSON.parse(d) || {};
   } catch(e){}
 }
+function _cardKey(c){ return c.rarity + '_' + c.name + '_' + c.card; }
+function getOwnEntry(c){ return collection[_cardKey(c)] || null; }
+function isOwned(c){ var e = getOwnEntry(c); return !!(e && e.owned); }
+function getPower(c){ var e = getOwnEntry(c); return (e && e.power) || 0; }
+function fmtNum(n){ return n ? Number(n).toLocaleString('ja-JP') : '0'; }
+var ownFilter = false;
+function toggleOwnFilter(btn){
+  ownFilter = !ownFilter;
+  btn.classList.toggle('on', ownFilter);
+  renderCards();
+}
+
+// ===== プリセット管理 =====
+var PRESETS_KEY = 'paranoize_presets_v1';
+var OLD_KEY = 'paranoize_formation_v1';
+var presetsData = {presets:[], activeId:null};
+
+function saveState(){
+  // 現在のUIをアクティブなプリセットに反映
+  if (!presetsData.activeId) return;
+  var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
+  if (!active) return;
+  var memoEl = document.getElementById('memoInput');
+  active.selectedCards = selectedCards;
+  active.purpose = purpose;
+  active.memo = memoEl ? memoEl.value : '';
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+}
+
+function _applyActivePreset(){
+  var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
+  if (!active) return;
+  selectedCards = Array.isArray(active.selectedCards) ? active.selectedCards.slice() : [];
+  purpose = active.purpose || '麗華の野望';
+  // 用途ボタンの active 反映
+  document.querySelectorAll('.purpose-btn').forEach(function(b){
+    var lab = b.querySelector('.purpose-label');
+    b.classList.toggle('active', !!(lab && lab.textContent.trim() === purpose));
+  });
+  var memoEl = document.getElementById('memoInput');
+  if (memoEl) memoEl.value = active.memo || '';
+  // ドロップダウン反映
+  var sel = document.getElementById('presetSelect');
+  if (sel) sel.value = active.id;
+}
+
+function _renderPresetSelect(){
+  var sel = document.getElementById('presetSelect');
+  if (!sel) return;
+  sel.innerHTML = presetsData.presets.map(function(p){
+    return '<option value="' + p.id + '">' + p.name + '</option>';
+  }).join('');
+  if (presetsData.activeId) sel.value = presetsData.activeId;
+}
+
 function loadState(){
   try {
-    var data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return;
-    var s = JSON.parse(data);
-    if (Array.isArray(s.selectedCards)) selectedCards = s.selectedCards;
-    if (s.purpose) {
-      purpose = s.purpose;
-      document.querySelectorAll('.purpose-btn').forEach(function(b){
-        var lab = b.querySelector('.purpose-label');
-        var match = lab && lab.textContent.trim() === s.purpose;
-        b.classList.toggle('active', !!match);
-      });
+    var data = localStorage.getItem(PRESETS_KEY);
+    if (data) {
+      presetsData = JSON.parse(data);
+    } else {
+      // 旧キーから移行
+      var oldData = localStorage.getItem(OLD_KEY);
+      if (oldData) {
+        var old = JSON.parse(oldData);
+        presetsData.presets = [{
+          id: String(Date.now()),
+          name: 'デフォルト',
+          selectedCards: old.selectedCards || [],
+          purpose: old.purpose || '麗華の野望',
+          memo: old.memo || ''
+        }];
+        presetsData.activeId = presetsData.presets[0].id;
+      }
     }
-    var memoEl = document.getElementById('memoInput');
-    if (memoEl && s.memo) memoEl.value = s.memo;
   } catch(e){}
+  // 空ならデフォルトを作成
+  if (!presetsData.presets || presetsData.presets.length === 0) {
+    presetsData = {
+      presets: [{id: String(Date.now()), name:'デフォルト', selectedCards:[], purpose:'麗華の野望', memo:''}],
+      activeId: null
+    };
+    presetsData.activeId = presetsData.presets[0].id;
+  }
+  if (!presetsData.activeId) presetsData.activeId = presetsData.presets[0].id;
+  _renderPresetSelect();
+  _applyActivePreset();
+}
+
+function switchPreset(id){
+  presetsData.activeId = id;
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+  _applyActivePreset();
+  renderSelected();
+  renderCards();
+}
+
+function newPreset(){
+  var name = prompt('新しいプリセット名を入力してください:', '新規編成');
+  if (!name) return;
+  var id = String(Date.now());
+  presetsData.presets.push({id:id, name:name, selectedCards:[], purpose:'麗華の野望', memo:''});
+  presetsData.activeId = id;
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+  _renderPresetSelect();
+  _applyActivePreset();
+  renderSelected();
+  renderCards();
+}
+
+function renamePreset(){
+  var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
+  if (!active) return;
+  var name = prompt('プリセット名を変更:', active.name);
+  if (!name) return;
+  active.name = name;
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+  _renderPresetSelect();
+}
+
+function deletePreset(){
+  if (presetsData.presets.length <= 1) {
+    alert('最後のプリセットは削除できません');
+    return;
+  }
+  var active = presetsData.presets.find(function(p){ return p.id === presetsData.activeId; });
+  if (!active) return;
+  if (!confirm('「' + active.name + '」を削除しますか？')) return;
+  presetsData.presets = presetsData.presets.filter(function(p){ return p.id !== presetsData.activeId; });
+  presetsData.activeId = presetsData.presets[0].id;
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+  _renderPresetSelect();
+  _applyActivePreset();
+  renderSelected();
+  renderCards();
+}
+
+// ===== シェアURL =====
+function _b64UrlEncode(str){
+  // UTF-8 → base64 → URL safe
+  var b64 = btoa(unescape(encodeURIComponent(str)));
+  return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function _b64UrlDecode(str){
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  while (str.length % 4) str += '=';
+  return decodeURIComponent(escape(atob(str)));
+}
+function buildShareData(){
+  return {
+    p: purpose,
+    k: selectedCards.map(function(c){ return c.key || (c.rarity+'_'+c.name+'_'+c.card); }),
+    m: document.getElementById('memoInput') ? document.getElementById('memoInput').value : ''
+  };
+}
+function copyShareUrl(){
+  var data = buildShareData();
+  var encoded = _b64UrlEncode(JSON.stringify(data));
+  var url = location.origin + location.pathname + '?d=' + encoded;
+  // クリップボードコピー
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function(){
+      alert('編成URLをコピーしました！\n友達にシェアできます🎉\n\n' + url);
+    }).catch(function(){
+      _fallbackCopyUrl(url);
+    });
+  } else {
+    _fallbackCopyUrl(url);
+  }
+}
+function _fallbackCopyUrl(url){
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('編成URLをコピーしました！\n\n' + url);
+  } catch(e){
+    prompt('このURLをコピーしてシェアしてください:', url);
+  }
+}
+function tryImportFromUrl(){
+  var params = new URLSearchParams(location.search);
+  var d = params.get('d');
+  if (!d) return false;
+  try {
+    var data = JSON.parse(_b64UrlDecode(d));
+    if (!data.k || !Array.isArray(data.k)) return false;
+    // キーから CARDS をマッチング
+    var imported = [];
+    data.k.forEach(function(key){
+      var c = CARDS.find(function(card){
+        return (card.rarity+'_'+card.name+'_'+card.card) === key;
+      });
+      if (c) {
+        imported.push({key:key, name:c.name, card:c.card, rarity:c.rarity, attr:c.attr, atk:c.atk, passive:c.passive, active:c.active});
+      }
+    });
+    var ok = confirm('シェアされた編成を読み込みますか？\n\n用途: ' + (data.p||'') + '\nカード数: ' + imported.length + '枚\n\n「OK」で新しいプリセットとして追加されます。');
+    if (!ok) return false;
+    var id = String(Date.now());
+    presetsData.presets.push({
+      id:id, name:'シェア編成 ' + new Date().toLocaleString('ja-JP', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+      selectedCards: imported,
+      purpose: data.p || '麗華の野望',
+      memo: data.m || ''
+    });
+    presetsData.activeId = id;
+    try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presetsData)); } catch(e){}
+    // URLからdパラメータを除去
+    var clean = location.pathname;
+    history.replaceState({}, '', clean);
+    return true;
+  } catch(e){
+    console.error('Import failed:', e);
+    return false;
+  }
 }
 
 function selectPurpose(el, val) {
@@ -424,6 +657,7 @@ var filteredCards = [];
 function renderCards() {
   var q = document.getElementById('searchInput').value.toLowerCase();
   filteredCards = CARDS.filter(c => {
+    if (ownFilter && !isOwned(c)) return false;
     if (filters.rarity.length && !filters.rarity.includes(c.rarity)) return false;
     if (filters.attr.length && !filters.attr.includes(c.attr)) return false;
     if (filters.atk.length && !filters.atk.includes(c.atk)) return false;
@@ -437,6 +671,8 @@ function renderCards() {
   grid.innerHTML = filteredCards.map((c, i) => {
     var key = c.rarity + '_' + c.name + '_' + c.card;
     var isOn = selectedCards.some(s => s.key === key);
+    var p = getPower(c);
+    var powerHtml = p ? `<div class="opt-power">戦力 ${fmtNum(p)}</div>` : '';
     return `<div class="card-option${isOn?' on':''}" onclick="toggleCard(${i})">
       <span class="opt-rarity ${c.rarity}">${c.rarity}</span>
       <div class="opt-name">${c.name}</div>
@@ -445,13 +681,16 @@ function renderCards() {
         <span class="tag-xs attr-${c.attr}">${c.attr}</span>
         <span class="tag-xs atk-xs">${c.atk}</span>
       </div>
+      ${powerHtml}
     </div>`;
   }).join('');
 }
 
 function buildPrompt() {
   var fmt = function(c) {
-    return `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk}) パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`;
+    var p = getPower(c);
+    var powerStr = p ? ' [戦力:' + fmtNum(p) + ']' : '';
+    return `・${c.rarity} ${c.name}「${c.card}」(${c.attr}/${c.atk})${powerStr} パッシブ:[${c.passive.join(', ')}] アクティブ:[${c.active.join(', ')}]`;
   };
   var ssrSel = selectedCards.filter(c => c.rarity === 'SSR').map(fmt).join('\n');
   var srSel  = selectedCards.filter(c => c.rarity === 'SR' ).map(fmt).join('\n');
@@ -463,6 +702,10 @@ function buildPrompt() {
   if (srSel)  sections.push('【手持ちSRカード】:\n' + srSel);
   if (rSel)   sections.push('【手持ちRカード】:\n' + rSel);
   var cardsBlock = sections.length ? sections.join('\n\n') : '【手持ちカード】: なし';
+
+  // 戦力情報がある場合のメモ
+  var totalPower = selectedCards.reduce(function(sum, c){ return sum + getPower(c); }, 0);
+  var powerNote = totalPower > 0 ? '\n\n※戦力数値が記載されているカードは実数値。AIは編成時に戦力バランスも考慮してください（高戦力カードを各班に分散）。' : '';
 
 return `あなたはパラノイズというモバイルゲームの編成アドバイザーです。
 以下のゲーム情報を踏まえてアドバイスしてください。
@@ -484,7 +727,7 @@ return `あなたはパラノイズというモバイルゲームの編成アド
 
 【用途】: ${purpose}
 
-${cardsBlock}
+${cardsBlock}${powerNote}
 
 ${memo ? '【補足】: ' + memo : ''}
 
@@ -569,7 +812,13 @@ function clearSelection(){
   saveState();
 }
 
+loadCollection();
 loadState();
+// URLからシェアデータがあれば取り込む（プリセット作成＆アクティブ化）
+if (tryImportFromUrl()) {
+  _renderPresetSelect();
+  _applyActivePreset();
+}
 renderSelected();
 renderCards();
 var memoElInit = document.getElementById('memoInput');
