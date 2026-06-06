@@ -26,11 +26,11 @@ body{background:var(--bg);}
 
 /* タブ切り替え */
 .type-tabs{display:flex;gap:6px;margin-bottom:0.75rem;}
-.type-tab{flex:1;padding:10px 6px;border-radius:14px;border:1px solid rgba(212,175,55,0.22);background:rgba(24,20,34,0.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);text-align:center;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;}
+.type-tab{flex:1;padding:10px 6px;border-radius:14px;border:1px solid rgba(255,255,255,0.85);background:rgba(255,255,255,0.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);text-align:center;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;}
 .type-tab-icon{font-size:1.4rem;display:block;margin-bottom:3px;}
 .type-tab-label{font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;color:var(--tx);display:block;margin-bottom:2px;}
 .type-tab-sub{font-size:0.58rem;color:var(--tx3);}
-.type-tab.active{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;box-shadow:0 4px 16px rgba(212,175,55,0.4);}
+.type-tab.active{background:linear-gradient(135deg,#059669,#34d399);border-color:transparent;box-shadow:0 4px 16px rgba(255,94,140,0.35);}
 .type-tab.active .type-tab-label{color:#fff;}
 .type-tab.active .type-tab-sub{color:rgba(255,255,255,0.75);}
 
@@ -39,7 +39,7 @@ body{background:var(--bg);}
 .content-panel.show{display:block;}
 
 /* ガラスカード */
-.g-card{background:rgba(24,20,34,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:1.2rem 1.3rem;margin-bottom:0.65rem;position:relative;overflow:hidden;box-shadow:0 8px 26px rgba(0,0,0,0.55);}
+.g-card{background:rgba(255,255,255,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.88);border-radius:20px;padding:1.2rem 1.3rem;margin-bottom:0.65rem;position:relative;overflow:hidden;box-shadow:0 8px 26px rgba(155,109,255,0.12);}
 .g-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
 
 .card-title{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:var(--tx);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;padding-bottom:9px;border-bottom:1px solid rgba(0,0,0,0.05);}
@@ -52,7 +52,7 @@ body{background:var(--bg);}
 .highlight-text{font-size:0.76rem;color:rgba(255,255,255,0.9);line-height:1.7;}
 
 /* チップリスト */
-.tip-box{background:rgba(5,150,105,0.07);border:1px solid rgba(212,175,55,0.3);border-left:3px solid #059669;border-radius:0 12px 12px 0;padding:9px 13px;margin-bottom:0.6rem;display:flex;gap:9px;}
+.tip-box{background:rgba(5,150,105,0.07);border:1px solid rgba(255,255,255,0.95);border-left:3px solid #059669;border-radius:0 12px 12px 0;padding:9px 13px;margin-bottom:0.6rem;display:flex;gap:9px;}
 .tip-icon{font-size:0.95rem;flex-shrink:0;margin-top:1px;}
 .tip-text{font-size:0.78rem;color:rgba(26,26,46,0.85);line-height:1.65;}
 .tip-text strong{color:var(--tx);font-weight:700;}
@@ -74,7 +74,7 @@ body{background:var(--bg);}
 .dot-item::before{content:'';width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#059669,#34d399);flex-shrink:0;margin-top:6px;}
 
 /* テーブル */
-.tbl-wrap{overflow-x:auto;border-radius:13px;border:1px solid rgba(245,245,247,0.08);margin-bottom:0.65rem;}
+.tbl-wrap{overflow-x:auto;border-radius:13px;border:1px solid rgba(0,0,0,0.05);margin-bottom:0.65rem;}
 .tbl{width:100%;border-collapse:collapse;font-size:0.78rem;min-width:260px;}
 .tbl thead{background:linear-gradient(135deg,rgba(5,150,105,0.1),rgba(16,185,129,0.06));}
 .tbl th{font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;color:var(--tx);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(5,150,105,0.15);white-space:nowrap;}
