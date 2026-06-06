@@ -695,6 +695,31 @@ ${memo ? '【補足】: ' + memo : ''}
 わかりやすく、実践的に教えてください。`;
 }
 
+// AI呼び出しヘルパー（自動継続付き）— stop_reason==='max_tokens'なら自動で続きを取得して結合
+async function callAIComplete(initialMessages, maxTokens, onUpdate){
+  var messages = initialMessages.slice();
+  var fullText = '';
+  for (var attempt = 0; attempt < 4; attempt++) {
+    var res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: messages, max_tokens: maxTokens })
+    });
+    var data = await res.json();
+    var txt = (data.content || []).map(function(i){ return i.text || ''; }).join('');
+    fullText += txt;
+    if (onUpdate) onUpdate(fullText);
+    if (data.stop_reason === 'max_tokens' && txt) {
+      // 切れたので続きを取りに行く（履歴は内部だけ。元のconversationHistoryは変更しない）
+      messages.push({ role:'assistant', content: txt });
+      messages.push({ role:'user', content: '続きをお願いします。前の応答の続きから途切れた箇所を補完して、最後まで書いてください。' });
+    } else {
+      break;
+    }
+  }
+  return fullText;
+}
+
 async function analyze() {
   if (selectedCards.length === 0) {
     alert('カードを1枚以上選択してください！');
@@ -712,15 +737,14 @@ async function analyze() {
   conversationHistory = [{role:'user', content:buildPrompt()}];
 
   try {
-    var res = await fetch('/api/analyze', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:[{role:'user',content:buildPrompt()}],max_tokens:3000})
-    });
-    var data = await res.json();
-    var txt = (data.content||[]).map(i => i.text||'').join('');
-    conversationHistory.push({role:'assistant', content:txt});
-    resultContent.innerHTML = '<div class="result-text">' + txt.replace(/\n/g,'<br>') + '</div>';
+    var fullText = await callAIComplete(
+      [{role:'user', content: buildPrompt()}],
+      8000,
+      function(partial){
+        resultContent.innerHTML = '<div class="result-text">' + partial.replace(/\n/g,'<br>') + '</div>';
+      }
+    );
+    conversationHistory.push({role:'assistant', content: fullText});
     document.getElementById('followupWrap').classList.add('show');
   } catch(e) {
     resultContent.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">エラーが発生しました。しばらく待ってから再試行してください。</div>';
@@ -739,17 +763,18 @@ async function followup() {
   resultContent.innerHTML += '<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border2);"><div style="font-size:0.78rem;color:var(--tx3);margin-bottom:6px;">Q: ' + q + '</div><div class="loading-wrap" style="padding:1rem 0;"><div class="p-spin" style="margin:0 auto;"></div></div></div>';
 
   try {
-    var res = await fetch('/api/analyze', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:conversationHistory,max_tokens:3000})
-    });
-    var data = await res.json();
-    var txt = (data.content||[]).map(i => i.text||'').join('');
-    conversationHistory.push({role:'assistant', content:txt});
     var divs = resultContent.querySelectorAll('div[style*="border-top"]');
     var last = divs[divs.length-1];
-    last.querySelector('.loading-wrap').outerHTML = '<div class="result-text" style="margin-top:6px;">' + txt.replace(/\n/g,'<br>') + '</div>';
+    var fullText = await callAIComplete(
+      conversationHistory,
+      8000,
+      function(partial){
+        var loading = last.querySelector('.loading-wrap');
+        if (loading) loading.outerHTML = '<div class="result-text" style="margin-top:6px;">' + partial.replace(/\n/g,'<br>') + '</div>';
+        else last.querySelector('.result-text').innerHTML = partial.replace(/\n/g,'<br>');
+      }
+    );
+    conversationHistory.push({role:'assistant', content: fullText});
   } catch(e) {
     console.error(e);
   }

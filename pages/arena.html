@@ -459,6 +459,30 @@ function buildPrompt(){
 '実践的・具体的にお願いします。';
 }
 
+// AI呼び出しヘルパー（自動継続付き）
+async function callAIComplete(initialMessages, maxTokens, onUpdate){
+  var messages = initialMessages.slice();
+  var fullText = '';
+  for (var attempt = 0; attempt < 4; attempt++) {
+    var res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: messages, max_tokens: maxTokens })
+    });
+    var data = await res.json();
+    var txt = (data.content || []).map(function(i){ return i.text || ''; }).join('');
+    fullText += txt;
+    if (onUpdate) onUpdate(fullText);
+    if (data.stop_reason === 'max_tokens' && txt) {
+      messages.push({ role:'assistant', content: txt });
+      messages.push({ role:'user', content: '続きをお願いします。前の応答の続きから途切れた箇所を補完して、最後まで書いてください。' });
+    } else {
+      break;
+    }
+  }
+  return fullText;
+}
+
 // 分析実行
 async function analyze(){
   if (state.mine.selected.length === 0) {
@@ -481,15 +505,14 @@ async function analyze(){
   conversationHistory = [{role:'user', content: buildPrompt()}];
 
   try {
-    var res = await fetch('/api/analyze', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ messages: conversationHistory, max_tokens: 3500 })
-    });
-    var data = await res.json();
-    var txt = (data.content || []).map(function(i){ return i.text || ''; }).join('');
-    conversationHistory.push({role:'assistant', content:txt});
-    resultContent.innerHTML = '<div class="result-text">' + txt.replace(/\n/g, '<br>') + '</div>';
+    var fullText = await callAIComplete(
+      conversationHistory,
+      8000,
+      function(partial){
+        resultContent.innerHTML = '<div class="result-text">' + partial.replace(/\n/g, '<br>') + '</div>';
+      }
+    );
+    conversationHistory.push({role:'assistant', content: fullText});
   } catch(e){
     resultContent.innerHTML = '<div style="color:#b91c1c;">エラー: ' + e.message + '</div>';
   } finally {
