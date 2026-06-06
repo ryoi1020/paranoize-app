@@ -7,20 +7,12 @@
 <link rel="stylesheet" href="/assets/common.css">
 <style>
 :root{
-  --bg:linear-gradient(135deg,#f7f5f2 0%,#e8f0ee 50%,#f0e8d8 100%);
-  --bg2:rgba(255,255,255,0.55);
-  --bg3:rgba(255,255,255,0.7);
-  --tx:#1a1a1a;--tx2:#374151;--tx3:#6b7280;
-  --accent:#dc2626;--accent2:#ef4444;--accent3:rgba(220,38,38,0.1);
-  --my:#059669;--my2:#10b981;--my3:rgba(5,150,105,0.1);
-  --border:rgba(255,255,255,0.85);
-  --border2:rgba(0,0,0,0.08);
-  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--r99:99px;
-  --shadow:0 2px 8px rgba(0,0,0,0.04);
-  --shadow2:0 4px 16px rgba(0,0,0,0.08);
+  /* 闘技場のテーマカラー（赤系：相手、緑系：自分） */
+  --accent:#ff3b30;--accent2:#ff453a;--accent3:rgba(255,59,48,0.12);
+  --my:#34c759;--my2:#30d158;--my3:rgba(52,199,89,0.12);
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:5rem;}
+body{padding-bottom:5rem;}
 
 .p-nav{padding:0.75rem 1rem;}
 .p-nav-back{text-decoration:none;color:var(--tx2);font-size:0.85rem;}
@@ -113,14 +105,10 @@ body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var
 .guide-box{padding:10px 14px;background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:var(--r12);font-size:0.76rem;color:var(--tx2);line-height:1.7;margin-bottom:1.25rem;}
 .guide-box strong{color:var(--accent);}
 
-/* タブバー */
-.p-tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;z-index:50;}
-.p-tab{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--tx3);font-size:0.62rem;padding:4px 6px;}
-.p-tab.active{color:var(--accent);}
-.p-tab-icon{font-size:1.15rem;}
 </style>
 </head>
 <body>
+<div class="ambient-orbs"></div>
 
 <div class="p-nav">
   <a href="/" class="p-nav-back">← ホーム</a>

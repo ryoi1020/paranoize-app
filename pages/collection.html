@@ -6,19 +6,8 @@
 <title>所持カード入力 - パラノイズ</title>
 <link rel="stylesheet" href="/assets/common.css">
 <style>
-:root{
-  --bg:linear-gradient(135deg,#f7f5f2 0%,#e8f0ee 50%,#f0e8d8 100%);
-  --bg2:rgba(255,255,255,0.55);
-  --bg3:rgba(255,255,255,0.7);
-  --tx:#1a1a1a;--tx2:#374151;--tx3:#6b7280;
-  --accent:#059669;--accent2:#10b981;
-  --border:rgba(255,255,255,0.85);
-  --border2:rgba(0,0,0,0.08);
-  --r4:4px;--r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--r99:99px;
-  --shadow:0 2px 8px rgba(0,0,0,0.04);
-}
 *{box-sizing:border-box;}
-body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:5rem;}
+body{padding-bottom:5rem;}
 
 .header{padding:1rem 1rem 0.75rem;text-align:center;border-bottom:1px solid rgba(255,255,255,0.6);background:rgba(255,255,255,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:40;}
 .logo{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;letter-spacing:0.08em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -88,11 +77,6 @@ body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var
 .sync-status.err{background:rgba(220,38,38,0.08);color:#b91c1c;border:1px solid rgba(220,38,38,0.2);}
 .sync-status.loading{background:rgba(59,130,246,0.08);color:#1e40af;border:1px solid rgba(59,130,246,0.2);}
 
-/* タブバー */
-.p-tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;z-index:50;}
-.p-tab{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--tx3);font-size:0.62rem;padding:4px 6px;}
-.p-tab.active{color:var(--accent);}
-.p-tab-icon{font-size:1.15rem;}
 
 @media(max-width:600px){
   .coll-controls{flex-direction:column;}
@@ -101,6 +85,7 @@ body{margin:0;font-family:'Noto Sans JP',-apple-system,sans-serif;background:var
 </style>
 </head>
 <body>
+<div class="ambient-orbs"></div>
 
 <div class="header">
   <a href="/" class="back-link">← ホーム</a>
