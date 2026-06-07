@@ -93,35 +93,7 @@
       "destination": "/pages/daily-guide.html"
     },
     {
-      "source": "/favicon-32.png",
-      "destination": "/public/favicon-32.png"
-    },
-    {
-      "source": "/favicon-192.png",
-      "destination": "/public/favicon-192.png"
-    },
-    {
-      "source": "/icon-192.png",
-      "destination": "/public/icon-192.png"
-    },
-    {
-      "source": "/icon-512.png",
-      "destination": "/public/icon-512.png"
-    },
-    {
-      "source": "/apple-touch-icon.png",
-      "destination": "/public/apple-touch-icon.png"
-    },
-    {
-      "source": "/manifest.json",
-      "destination": "/public/manifest.json"
-    },
-    {
-      "source": "/og-image.png",
-      "destination": "/public/og-image.png"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/:path((?!.*\\.).*)",
       "destination": "/pages/index.html"
     }
   ]
