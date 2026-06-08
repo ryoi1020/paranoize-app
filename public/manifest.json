@@ -1,7 +1,7 @@
 {
-  "name": "PARANOIZE 攻略アプリ",
-  "short_name": "PARANOIZE",
-  "description": "PARANOIZE のAI攻略アプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。",
+  "name": "パラノイズ攻略",
+  "short_name": "パラノイズ攻略",
+  "description": "パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
