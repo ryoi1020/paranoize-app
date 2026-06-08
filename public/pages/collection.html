@@ -95,6 +95,7 @@ body{padding-bottom:5rem;}
 <meta property="og:title" content="パラノイズ攻略">
 <meta property="og:description" content="パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。">
 <meta property="og:image" content="/og-image.png">
+<script src="/assets/sw-register.js" defer></script>
 </head>
 <body>
 <div class="ambient-orbs"></div>
@@ -301,7 +302,7 @@ function render(){
   wrap.innerHTML = filtered.map((c, i) => {
     const owned = isOwned(c);
     const power = getPower(c);
-    const img = c.img ? `<img class="coll-img" src="${c.img}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div class="coll-img"></div>';
+    const img = c.img ? `<img class="coll-img" src="${c.img}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">` : '<div class="coll-img"></div>';
     return `<div class="coll-row">
       ${img}
       <div class="coll-info">

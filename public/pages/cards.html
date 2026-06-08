@@ -130,6 +130,7 @@
 <meta property="og:title" content="パラノイズ攻略">
 <meta property="og:description" content="パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。">
 <meta property="og:image" content="/og-image.png">
+<script src="/assets/sw-register.js" defer></script>
 </head>
 <body>
 <div class="ambient-orbs"></div>
@@ -312,7 +313,7 @@ function render() {
     const savedPos = getImgPos(imgKey);
     const defaultPos = getImgStyle(c.img);
     const imgPos = savedPos !== null ? 'center ' + savedPos + '%' : defaultPos;
-    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" data-key="${imgKey}" style="object-position:${imgPos}" onerror="this.parentElement.style.display='none'"></div>` : '';
+    const imgHtml = c.img ? `<div class="card-img-wrap"><img class="card-img" src="${c.img}" alt="${c.name}" loading="lazy" decoding="async" data-key="${imgKey}" style="object-position:${imgPos}" onerror="this.parentElement.style.display='none'"></div>` : '';
     const own = getOwnEntry(c);
     const ownBtn = `<button class="own-toggle${isOwned(c)?' owned':''}" onclick="event.stopPropagation();toggleOwn(${i})">${isOwned(c)?'✓ 所持':'未所持'}</button>`;
     const powerHtml = (own && own.power) ? `<div class="card-power">戦力 ${fmtNum(own.power)}</div>` : '';
@@ -550,7 +551,7 @@ function openModal(filteredIdx) {
       </div>
       <div class="modal-skill-desc">${skillDesc(s)}</div>
     </div>`).join('');
-  const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" style="width:100%;height:260px;object-fit:cover;object-position:center 45%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
+  const mImgHtml = c.img ? `<div style="width:100%;background:#f0f0f5;border-radius:var(--r12) var(--r12) 0 0;overflow:hidden;cursor:pointer;" onclick="toggleImgFull(this)"><img src="${c.img}" alt="${c.name}" loading="lazy" decoding="async" style="width:100%;height:260px;object-fit:cover;object-position:center 45%;display:block;transition:all 0.3s;" onerror="this.parentElement.style.display='none'"><div style="text-align:center;font-size:0.7rem;color:var(--tx3);padding:4px;">タップで全体表示</div></div>` : '';
   const own = getOwnEntry(c) || {};
   const ownedNow = !!own.owned;
   const powerVal = own.power || '';
