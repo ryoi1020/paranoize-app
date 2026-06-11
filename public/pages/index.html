@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOIZE 攻略アプリ</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/common.css?v=4">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Noto Sans JP',sans-serif;}
@@ -122,21 +123,6 @@ body{
 
 /* フッター */
 .footer{position:relative;z-index:1;text-align:center;padding:1rem;font-size:0.58rem;color:rgba(26,26,46,0.32);letter-spacing:0.15em;text-transform:uppercase;}
-
-/* タブバー */
-.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;}
-.tabbar-inner{
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);
-  border-top:1px solid rgba(255,255,255,0.95);
-  box-shadow:0 -2px 18px rgba(155,109,255,0.12);
-  display:flex;align-items:stretch;height:64px;
-}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:rgba(26,26,46,0.4);font-size:0.56rem;font-weight:600;font-family:'Noto Sans JP',sans-serif;padding:8px 4px;position:relative;transition:color 0.15s;}
-.tab.active{color:#ff5e8c;}
-.tab.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:30px;height:3px;background:linear-gradient(90deg,#ff5e8c,#9b6dff,#4ec3ff);border-radius:0 0 4px 4px;box-shadow:0 1px 10px rgba(155,109,255,0.5);}
-.tab-icon{font-size:1.2rem;line-height:1;filter:grayscale(30%) opacity(0.55);transition:filter 0.18s,font-size 0.18s,transform 0.18s;}
-.tab.active .tab-icon{font-size:1.35rem;filter:grayscale(0%) opacity(1) drop-shadow(0 0 6px rgba(255,94,140,0.5));transform:scale(1.05);}
 </style>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
