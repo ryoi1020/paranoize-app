@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>秘石AI — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=4">
+<link rel="stylesheet" href="/assets/common.css?v=5">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -131,7 +131,7 @@
 
 <div class="page-header">
   <div class="page-title">💎 秘石AI</div>
-  <div class="page-desc">キャラを選んで方針を決めるだけ。最適な秘石配分をAIが提案します。</div>
+  <div class="page-desc">キャラを選んで方針を決めるだけ。<br>同じ秘石は最大4個まで（各装備箇所に1個ずつ）のルールに沿って最適配分を提案します。</div>
 </div>
 
 <!-- ステップインジケーター -->
@@ -391,14 +391,17 @@ function recommendHiseki(card, direction) {
   const skills = analyzeSkills(card);
   const tier = getTier(skills);
 
+  // ルール: 各装備箇所(メモリー/武器/盾/鎧)で同じ秘石は1個まで
+  //        → 1種類につき最大4個
+  //        → 推奨は3種類 × 4個 = 12個
   let config, note;
 
   if (tier === 'top') {
     if (direction === 'defense') {
-      config = [{type:'HP',count:6,kind:'def'}, {type:'物防',count:3,kind:'def'}, {type:'特防',count:3,kind:'def'}];
-      note = '最上位HP回復スキル × 防御寄り → 絶対に死なない型。HP軸 + 両防御で完全生存特化。';
+      config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
+      note = '最上位HP回復スキル × 防御寄り → HP・物防・特防の三本柱で絶対に死なない型。';
     } else if (direction === 'balance') {
-      config = [{type:'HP',count:6,kind:'def'}, {type:atkStat,count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      config = [{type:'HP',count:4,kind:'def'}, {type:atkStat,count:4,kind:'atk'}, {type:atkBase,count:4,kind:'base'}];
       note = `最上位HP回復スキル × バランス → HP軸で回復量MAX、${atkStat}+${atkBase}で攻撃も補強。`;
     } else {
       config = [{type:'HP',count:4,kind:'def'}, {type:atkStat,count:4,kind:'atk'}, {type:'攻撃力',count:4,kind:'atk'}];
@@ -407,23 +410,23 @@ function recommendHiseki(card, direction) {
   } else if (tier === 'skin_atk') {
     if (direction === 'defense') {
       config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
-      note = 'スキン+攻撃スキル × 防御寄り → 倒されて反撃でスキン発動を狙う耐久型。';
+      note = 'スキン+攻撃スキル × 防御寄り → 倒されて反撃でスキン発動を狙う耐久型。HP・両防御の三本柱。';
     } else if (direction === 'balance') {
       config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
-      note = `スキン+攻撃スキル × バランス → ${atkStat}主軸+HPで死ににくく${atkBase}でステ底上げ。`;
+      note = `スキン+攻撃スキル × バランス → ${atkStat}主軸+HPで死ににくく、${atkBase}でステ底上げ。`;
     } else {
-      config = [{type:atkStat,count:6,kind:'atk'}, {type:'攻撃力',count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
-      note = `スキン+攻撃スキル × 攻撃寄り → ${atkStat}全振りで火力最大化。`;
+      config = [{type:atkStat,count:4,kind:'atk'}, {type:'攻撃力',count:4,kind:'atk'}, {type:atkBase,count:4,kind:'base'}];
+      note = `スキン+攻撃スキル × 攻撃寄り → ${atkStat}・攻撃力・${atkBase}で火力最大化。`;
     }
   } else if (tier === 'skin') {
     if (direction === 'defense') {
       config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
       note = 'スキン系（状態異常のみ）× 防御寄り → 完全耐久型。倒されることでスキン発動を活かす。';
     } else if (direction === 'balance') {
-      config = [{type:'HP',count:6,kind:'def'}, {type:'体力',count:3,kind:'base'}, {type:'特防',count:3,kind:'def'}];
+      config = [{type:'HP',count:4,kind:'def'}, {type:'体力',count:4,kind:'base'}, {type:'特防',count:4,kind:'def'}];
       note = 'スキン系（状態異常のみ）× バランス → 生存特化。敵を状態異常にして放置で削る戦略。';
     } else {
-      config = [{type:'HP',count:6,kind:'def'}, {type:atkStat,count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      config = [{type:'HP',count:4,kind:'def'}, {type:atkStat,count:4,kind:'atk'}, {type:atkBase,count:4,kind:'base'}];
       note = `スキン系（状態異常のみ）× 攻撃寄り → HP軸 + ${atkStat}で少しでも火力に貢献。`;
     }
   } else if (tier === 'attack') {
@@ -434,23 +437,23 @@ function recommendHiseki(card, direction) {
       config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
       note = `攻撃系スキル × バランス → ${atkStat}主軸+HPで死なずに殴り続ける。`;
     } else {
-      config = [{type:atkStat,count:6,kind:'atk'}, {type:'攻撃力',count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
-      note = `攻撃系スキル × 攻撃寄り → ${atkStat}全振りで瞬間火力MAX。`;
+      config = [{type:atkStat,count:4,kind:'atk'}, {type:'攻撃力',count:4,kind:'atk'}, {type:atkBase,count:4,kind:'base'}];
+      note = `攻撃系スキル × 攻撃寄り → ${atkStat}・攻撃力・${atkBase}の三段重ねで火力MAX。`;
     }
   } else if (tier === 'support') {
-    config = [{type:'HP',count:6,kind:'def'}, {type:'体力',count:3,kind:'base'}, {type:'知力',count:3,kind:'base'}];
+    config = [{type:'HP',count:4,kind:'def'}, {type:'体力',count:4,kind:'base'}, {type:'知力',count:4,kind:'base'}];
     note = 'サポート系スキル → 生存特化。味方を支え続けるためのタンク化。';
   } else {
     config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
     note = `基本型 → 無難なバランス配分。`;
   }
 
+  // 装備箇所マップ: 各箇所(メモリー/武器/盾/鎧)に3種類を1個ずつ
+  // 同じ秘石は各箇所に1個までなので、3種類すべてを各箇所に配置
   const slots = ['武器','鎧','盾','メモリー'];
   const slotMap = {};
-  let arr = [];
-  config.forEach(c => { for (let i = 0; i < c.count; i++) arr.push(c.type); });
-  slots.forEach((s, i) => {
-    slotMap[s] = arr.slice(i*3, i*3+3);
+  slots.forEach(s => {
+    slotMap[s] = config.map(c => c.type);  // 3種類すべてを各箇所に1個ずつ
   });
 
   return { config, slotMap, note, tier, atkStat, atkBase, isPhys, isSpec, skills };
@@ -486,7 +489,7 @@ function analyze() {
   const slotHtml = Object.entries(rec.slotMap).map(([s,arr]) => `
     <div class="slot-card">
       <div class="slot-icon">${slotIcons[s]}</div>
-      <div class="slot-label">${s}×3</div>
+      <div class="slot-label">${s} (3つ)</div>
       <div class="slot-content">${arr.join('<br>')}</div>
     </div>
   `).join('');
@@ -513,12 +516,12 @@ function analyze() {
       </div>
 
       <div class="result-section">
-        <div class="result-section-label">💎 推奨秘石配分（12個）</div>
+        <div class="result-section-label">💎 推奨秘石（3種類 × 各4個 = 12個）</div>
         <div class="himei-grid">${himeiHtml}</div>
       </div>
 
       <div class="result-section">
-        <div class="result-section-label">📍 スロット別の配置</div>
+        <div class="result-section-label">📍 各装備箇所の配置（同じ秘石は1箇所に1個まで）</div>
         <div class="slot-breakdown">${slotHtml}</div>
       </div>
 
@@ -561,6 +564,11 @@ ${card.rarity} ${card.name}「${card.card}」
  - ${skills}
 
 【ユーザーの方針】${dirJa}
+
+【秘石装着ルール】
+- 各装備箇所(メモリー/武器/盾/鎧)で同じ秘石は1個まで
+- そのため1種類につき最大4個装備可能
+- 12スロット埋めには3種類×4個が基本
 
 【AIが既に提案した配分】${configText}（合計12個）
 
