@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>秘石AI — パラノイズ攻略</title>
+<link rel="stylesheet" href="/assets/common.css?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff5e8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="パラノイズ攻略">
+<meta property="og:type" content="website">
+<meta property="og:title" content="パラノイズ攻略">
+<meta property="og:description" content="パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。">
+<meta property="og:image" content="/og-image.png">
+<script src="/assets/sw-register.js" defer></script>
+<style>
+.page-header{text-align:center;padding:1.5rem 1rem 1rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-desc{font-size:0.82rem;color:var(--tx2);margin-top:6px;line-height:1.6;}
+
+/* ステップインジケーター */
+.steps{display:flex;justify-content:center;gap:8px;margin:1rem 0 1.25rem;}
+.step-dot{width:24px;height:24px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--tx3);transition:all 0.2s;}
+.step-dot.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent3);}
+.step-dot.done{background:var(--mint,#56e0a0);border-color:var(--mint,#56e0a0);color:#fff;}
+.step-line{width:24px;height:1px;background:var(--border2);align-self:center;}
+
+/* セクション切替 */
+.step-section{display:none;}
+.step-section.active{display:block;}
+
+/* カード検索 */
+.card-search-box{display:flex;gap:8px;align-items:center;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:0 12px;margin-bottom:8px;box-shadow:var(--shadow);}
+.card-search-box:focus-within{border-color:var(--accent);}
+.card-search-input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:0.88rem;font-family:'Noto Sans JP',sans-serif;padding:10px 0;}
+.card-search-input::placeholder{color:var(--tx3);}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.fbtn{background:var(--bg2);border:1px solid var(--border2);color:var(--tx2);border-radius:var(--r99);padding:4px 11px;font-size:0.72rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.15s;}
+.fbtn:hover{border-color:var(--accent);color:var(--accent);}
+.fbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* カードグリッド */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:340px;overflow-y:auto;margin-bottom:1rem;padding:2px;}
+.card-option{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:8px 10px;cursor:pointer;transition:all 0.15s;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+.card-option:hover{border-color:var(--accent);transform:translateY(-1px);}
+.card-option.on{border-color:var(--accent);background:var(--accent3);}
+.card-option.on::after{content:'✓';position:absolute;top:5px;right:7px;color:var(--accent);font-weight:800;font-size:0.8rem;}
+.opt-rarity{font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block;margin-bottom:3px;}
+.opt-rarity.SSR{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.opt-rarity.SR{background:#f3f4f6;color:rgba(26,26,46,0.55);border:1px solid #d1d5db;}
+.opt-rarity.R{background:#e5e7eb;color:#4b5563;border:1px solid #d1d5db;}
+.opt-name{font-size:0.78rem;font-weight:700;color:var(--tx);line-height:1.3;}
+.opt-card{font-size:0.63rem;color:var(--tx3);margin-top:2px;line-height:1.3;}
+.opt-tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;}
+.opt-tag{font-size:0.58rem;padding:1px 5px;border-radius:3px;font-weight:600;}
+.opt-tag.phys{background:#fce7f3;color:#be185d;}
+.opt-tag.spec{background:#dbeafe;color:#1d4ed8;}
+.opt-tag.attr{background:var(--bg);color:var(--tx2);border:1px solid var(--border2);}
+.opt-owned{position:absolute;top:5px;left:7px;font-size:0.55rem;color:var(--mint,#56e0a0);font-weight:700;}
+
+/* 方向性選択 */
+.direction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;}
+.dir-btn{background:var(--bg2);border:2px solid var(--border2);border-radius:var(--r12);padding:16px 8px;text-align:center;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow);}
+.dir-btn:hover{border-color:var(--accent);transform:translateY(-1px);}
+.dir-btn.active{border-color:var(--accent);background:var(--accent3);box-shadow:0 4px 14px rgba(255,94,140,0.2);}
+.dir-icon{font-size:1.8rem;margin-bottom:4px;}
+.dir-label{font-size:0.88rem;font-weight:800;color:var(--tx);}
+.dir-sub{font-size:0.7rem;color:var(--tx3);margin-top:3px;line-height:1.4;}
+
+/* 結果表示 */
+.result-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:1rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.result-char{display:flex;gap:12px;align-items:center;padding-bottom:0.75rem;border-bottom:1px solid var(--border2);margin-bottom:0.75rem;}
+.result-char-img{width:64px;height:64px;border-radius:8px;background:var(--bg);object-fit:cover;object-position:center 30%;flex-shrink:0;}
+.result-char-info{flex:1;min-width:0;}
+.result-char-rarity{font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block;}
+.result-char-name{font-size:1rem;font-weight:800;color:var(--tx);margin-top:3px;}
+.result-char-card{font-size:0.75rem;color:var(--tx3);margin-top:1px;}
+.result-char-meta{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}
+.result-tag{font-size:0.66rem;padding:2px 7px;border-radius:4px;font-weight:600;}
+
+.result-section{margin-bottom:1rem;}
+.result-section-label{font-size:0.72rem;font-weight:700;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* 秘石配分表示 */
+.himei-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.himei-item{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r8);padding:10px 8px;text-align:center;}
+.himei-item.primary{background:linear-gradient(135deg,#fee2e8,#fef3c7);border-color:rgba(255,94,140,0.3);}
+.himei-name{font-size:0.85rem;font-weight:800;color:var(--tx);}
+.himei-count{font-size:1.4rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;margin-top:2px;}
+.himei-slot{font-size:0.64rem;color:var(--tx3);margin-top:3px;}
+
+/* スロット内訳 */
+.slot-breakdown{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;}
+.slot-card{background:var(--bg);border:1px solid var(--border2);border-radius:var(--r8);padding:8px 6px;text-align:center;}
+.slot-icon{font-size:1.1rem;margin-bottom:3px;}
+.slot-label{font-size:0.62rem;font-weight:700;color:var(--tx2);}
+.slot-content{font-size:0.66rem;color:var(--tx3);margin-top:3px;line-height:1.4;}
+
+/* 警告/罠 */
+.avoid-box{background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--r8);padding:10px 12px;font-size:0.78rem;color:#991b1b;}
+.avoid-box strong{display:block;font-size:0.82rem;margin-bottom:3px;}
+
+/* AI解説 */
+.ai-comment{background:linear-gradient(135deg,#f3e8ff 0%,#fce7f3 100%);border:1px solid rgba(155,109,255,0.25);border-radius:var(--r12);padding:1rem;line-height:1.7;font-size:0.85rem;color:var(--tx);position:relative;}
+.ai-comment::before{content:'🤖';position:absolute;top:-10px;left:14px;background:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(155,109,255,0.3);font-size:0.85rem;}
+.ai-loading{text-align:center;padding:1.5rem;color:var(--tx3);font-size:0.82rem;}
+.ai-loading::before{content:'';display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ボタン */
+.btn-row{display:flex;gap:8px;margin-top:1rem;}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r12);padding:12px;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 4px 12px rgba(255,94,140,0.3);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(255,94,140,0.4);}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.btn-secondary{flex:0 0 auto;background:var(--bg2);color:var(--tx2);border:1px solid var(--border2);border-radius:var(--r12);padding:12px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 課金レベル */
+.payment-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.pay-btn{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:7px 4px;text-align:center;cursor:pointer;font-size:0.7rem;font-weight:600;color:var(--tx2);transition:all 0.15s;}
+.pay-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pay-tip{font-size:0.73rem;color:var(--tx3);margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:var(--r8);border-left:3px solid var(--accent);}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">💎 秘石AI</div>
+  <div class="page-desc">キャラを選んで方針を決めるだけ。最適な秘石配分をAIが提案します。</div>
+</div>
+
+<!-- ステップインジケーター -->
+<div class="steps">
+  <div class="step-dot active" id="stepDot1">1</div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="stepDot2">2</div>
+  <div class="step-line"></div>
+  <div class="step-dot" id="stepDot3">3</div>
+</div>
+
+<div class="section">
+
+  <!-- STEP 1: カード選択 -->
+  <div class="step-section active" id="step1">
+    <div class="section-label">STEP 1 — キャラを選ぶ</div>
+    <div class="card-search-box">
+      <span style="color:var(--tx3);">🔍</span>
+      <input type="text" class="card-search-input" id="cardSearch" placeholder="キャラ名・カード名で検索">
+    </div>
+    <div class="filter-row">
+      <button class="fbtn on" data-filter="rarity" data-value="all">全レアリティ</button>
+      <button class="fbtn" data-filter="rarity" data-value="SSR">SSR</button>
+      <button class="fbtn" data-filter="rarity" data-value="SR">SR</button>
+      <button class="fbtn" data-filter="rarity" data-value="R">R</button>
+    </div>
+    <div class="filter-row">
+      <button class="fbtn on" data-filter="atk" data-value="all">全攻撃</button>
+      <button class="fbtn" data-filter="atk" data-value="物理">物理</button>
+      <button class="fbtn" data-filter="atk" data-value="特殊">特殊</button>
+      <button class="fbtn" data-filter="own" data-value="owned">所持のみ</button>
+    </div>
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+
+  <!-- STEP 2: 方向性選択 -->
+  <div class="step-section" id="step2">
+    <div class="section-label">STEP 2 — 育成方針を選ぶ</div>
+    <div class="direction-grid">
+      <div class="dir-btn" data-direction="defense">
+        <div class="dir-icon">🛡️</div>
+        <div class="dir-label">防御寄り</div>
+        <div class="dir-sub">生存重視</div>
+      </div>
+      <div class="dir-btn" data-direction="balance">
+        <div class="dir-icon">⚖️</div>
+        <div class="dir-label">バランス</div>
+        <div class="dir-sub">無難・万能</div>
+      </div>
+      <div class="dir-btn" data-direction="attack">
+        <div class="dir-icon">⚔️</div>
+        <div class="dir-label">攻撃寄り</div>
+        <div class="dir-sub">火力全振り</div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:1rem;">課金レベル（育成戦略用）</div>
+    <div class="payment-row">
+      <div class="pay-btn active" data-payment="free">無課金</div>
+      <div class="pay-btn" data-payment="light">微課金</div>
+      <div class="pay-btn" data-payment="heavy">重課金</div>
+    </div>
+    <div class="pay-tip" id="payTip">無課金: まずは秘石を装着、徐々に高Lvを目指す</div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goStep(1)">← 戻る</button>
+      <button class="btn-primary" id="analyzeBtn" disabled onclick="analyze()">秘石を提案する</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: 結果表示 -->
+  <div class="step-section" id="step3">
+    <div class="section-label">STEP 3 — AI提案</div>
+    <div id="resultBox"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goStep(2)">← 方針変更</button>
+      <button class="btn-secondary" onclick="resetAll()">最初から</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <a class="tab" href="/"><span class="tab-icon">🏠</span>ホーム</a>
+    <a class="tab" href="/cards"><span class="tab-icon">📖</span>カード</a>
+    <a class="tab" href="/reika"><span class="tab-icon">⚔️</span>野望</a>
+    <a class="tab" href="/daily-guide"><span class="tab-icon">📋</span>日々</a>
+    <a class="tab" href="/tasks"><span class="tab-icon">📅</span>タスク</a>
+    <a class="tab" href="/memo"><span class="tab-icon">📝</span>メモ</a>
+  </div>
+</nav>
+
+<script src="/assets/cards-data.js"></script>
+<script>
+// ========== 状態管理 ==========
+const state = {
+  selectedCard: null,
+  direction: null,
+  payment: 'free',
+  ownedKeys: new Set(),
+  filters: {rarity:'all', atk:'all', own:'all', query:''},
+};
+
+// ========== 所持カードロード ==========
+try {
+  const owned = JSON.parse(localStorage.getItem('paranoize_collection_v1') || '{}');
+  for (const k in owned) {
+    if (owned[k] && owned[k].owned) state.ownedKeys.add(k);
+  }
+} catch(e) {}
+
+function cardKey(c) { return `${c.rarity}_${c.name}_${c.card}`; }
+
+// ========== カードリスト描画 ==========
+function renderCardGrid() {
+  const grid = document.getElementById('cardGrid');
+  const q = state.filters.query.toLowerCase();
+  const filtered = CARDS.filter(c => {
+    if (state.filters.rarity !== 'all' && c.rarity !== state.filters.rarity) return false;
+    if (state.filters.atk !== 'all' && c.atk !== state.filters.atk) return false;
+    if (state.filters.own === 'owned' && !state.ownedKeys.has(cardKey(c))) return false;
+    if (q && !(c.name+' '+c.card).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--tx3);font-size:0.82rem;">該当カードなし</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.slice(0, 200).map(c => {
+    const k = cardKey(c);
+    const isOn = state.selectedCard && cardKey(state.selectedCard) === k;
+    const owned = state.ownedKeys.has(k);
+    const atkClass = c.atk === '物理' ? 'phys' : 'spec';
+    return `
+      <div class="card-option ${isOn?'on':''}" data-key="${k}">
+        ${owned ? '<span class="opt-owned">★所持</span>' : ''}
+        <span class="opt-rarity ${c.rarity}">${c.rarity}</span>
+        <div class="opt-name">${c.name}</div>
+        <div class="opt-card">${c.card}</div>
+        <div class="opt-tags">
+          <span class="opt-tag ${atkClass}">${c.atk}</span>
+          <span class="opt-tag attr">${c.attr}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.card-option').forEach(el => {
+    el.addEventListener('click', () => {
+      const k = el.dataset.key;
+      state.selectedCard = CARDS.find(c => cardKey(c) === k);
+      renderCardGrid();
+      setTimeout(() => goStep(2), 200);
+    });
+  });
+}
+
+// ========== フィルター ==========
+document.querySelectorAll('.fbtn').forEach(b => {
+  b.addEventListener('click', () => {
+    const f = b.dataset.filter;
+    const v = b.dataset.value;
+    if (f === 'own') {
+      state.filters.own = state.filters.own === 'owned' ? 'all' : 'owned';
+      document.querySelectorAll('.fbtn[data-filter="own"]').forEach(x => {
+        x.classList.toggle('on', state.filters.own === 'owned');
+      });
+    } else {
+      state.filters[f] = v;
+      document.querySelectorAll(`.fbtn[data-filter="${f}"]`).forEach(x => {
+        x.classList.toggle('on', x.dataset.value === v);
+      });
+    }
+    renderCardGrid();
+  });
+});
+document.getElementById('cardSearch').addEventListener('input', e => {
+  state.filters.query = e.target.value;
+  renderCardGrid();
+});
+
+// ========== 方向性選択 ==========
+document.querySelectorAll('.dir-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    state.direction = b.dataset.direction;
+    document.querySelectorAll('.dir-btn').forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('analyzeBtn').disabled = false;
+  });
+});
+
+// ========== 課金レベル ==========
+const PAYMENT_TIPS = {
+  free: '無課金: まずは秘石を装着、徐々に高Lvを目指す',
+  light: '微課金: 秘石ショップでLv.9を購入してフル装着、Lv.12で止めるのがコスパ◎',
+  heavy: '重課金: 全Lv.13、可能ならLv.15まで',
+};
+document.querySelectorAll('.pay-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    state.payment = b.dataset.payment;
+    document.querySelectorAll('.pay-btn').forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('payTip').textContent = PAYMENT_TIPS[state.payment];
+  });
+});
+
+// ========== ステップ切替 ==========
+function goStep(n) {
+  ['step1','step2','step3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('active', i+1 === n);
+  });
+  for (let i = 1; i <= 3; i++) {
+    const dot = document.getElementById('stepDot'+i);
+    dot.classList.toggle('active', i === n);
+    dot.classList.toggle('done', i < n);
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ========== 秘石ロジック ==========
+function analyzeSkills(card) {
+  const text = [...(card.passive||[]), ...(card.active||[])].join('|');
+  return {
+    hasTopTier: /HP反転|逆境ドレイン/.test(text),
+    hasSkin: /(ポイズン|スタン|スリープ)スキン/.test(text),
+    hasAttack: /サバイバー|シリアルキラー|反撃耐性|イーター|タイムストライク|ドリームハンター|入場(ポイズン|スタン|スリープ)|復讐(ポイズン|スタン|スリープ)|EX反撃/.test(text),
+    hasDefense: /反撃態勢|根性/.test(text),
+    hasSupport: /回復の遺志|ヒール|ファーストエイド|デトックス/.test(text),
+  };
+}
+
+function getTier(skills) {
+  if (skills.hasTopTier) return 'top';
+  if (skills.hasSkin && skills.hasAttack) return 'skin_atk';
+  if (skills.hasSkin) return 'skin';
+  if (skills.hasAttack) return 'attack';
+  if (skills.hasSupport) return 'support';
+  return 'basic';
+}
+
+function recommendHiseki(card, direction) {
+  const isPhys = card.atk === '物理';
+  const isSpec = card.atk === '特殊';
+  const atkStat = isPhys ? '物攻' : isSpec ? '特攻' : '攻撃力';
+  const atkBase = isPhys ? '筋力' : isSpec ? '気力' : '筋力';
+  const skills = analyzeSkills(card);
+  const tier = getTier(skills);
+
+  let config, note;
+
+  if (tier === 'top') {
+    if (direction === 'defense') {
+      config = [{type:'HP',count:6,kind:'def'}, {type:'物防',count:3,kind:'def'}, {type:'特防',count:3,kind:'def'}];
+      note = '最上位HP回復スキル × 防御寄り → 絶対に死なない型。HP軸 + 両防御で完全生存特化。';
+    } else if (direction === 'balance') {
+      config = [{type:'HP',count:6,kind:'def'}, {type:atkStat,count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      note = `最上位HP回復スキル × バランス → HP軸で回復量MAX、${atkStat}+${atkBase}で攻撃も補強。`;
+    } else {
+      config = [{type:'HP',count:4,kind:'def'}, {type:atkStat,count:4,kind:'atk'}, {type:'攻撃力',count:4,kind:'atk'}];
+      note = `最上位HP回復スキル × 攻撃寄り → HP維持しつつ${atkStat}+攻撃力でゴリ押し。`;
+    }
+  } else if (tier === 'skin_atk') {
+    if (direction === 'defense') {
+      config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
+      note = 'スキン+攻撃スキル × 防御寄り → 倒されて反撃でスキン発動を狙う耐久型。';
+    } else if (direction === 'balance') {
+      config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
+      note = `スキン+攻撃スキル × バランス → ${atkStat}主軸+HPで死ににくく${atkBase}でステ底上げ。`;
+    } else {
+      config = [{type:atkStat,count:6,kind:'atk'}, {type:'攻撃力',count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      note = `スキン+攻撃スキル × 攻撃寄り → ${atkStat}全振りで火力最大化。`;
+    }
+  } else if (tier === 'skin') {
+    if (direction === 'defense') {
+      config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
+      note = 'スキン系（状態異常のみ）× 防御寄り → 完全耐久型。倒されることでスキン発動を活かす。';
+    } else if (direction === 'balance') {
+      config = [{type:'HP',count:6,kind:'def'}, {type:'体力',count:3,kind:'base'}, {type:'特防',count:3,kind:'def'}];
+      note = 'スキン系（状態異常のみ）× バランス → 生存特化。敵を状態異常にして放置で削る戦略。';
+    } else {
+      config = [{type:'HP',count:6,kind:'def'}, {type:atkStat,count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      note = `スキン系（状態異常のみ）× 攻撃寄り → HP軸 + ${atkStat}で少しでも火力に貢献。`;
+    }
+  } else if (tier === 'attack') {
+    if (direction === 'defense') {
+      config = [{type:'HP',count:4,kind:'def'}, {type:'物防',count:4,kind:'def'}, {type:'特防',count:4,kind:'def'}];
+      note = '攻撃系スキル × 防御寄り → 異色のタンク型。長期戦で生き残る運用。';
+    } else if (direction === 'balance') {
+      config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
+      note = `攻撃系スキル × バランス → ${atkStat}主軸+HPで死なずに殴り続ける。`;
+    } else {
+      config = [{type:atkStat,count:6,kind:'atk'}, {type:'攻撃力',count:3,kind:'atk'}, {type:atkBase,count:3,kind:'base'}];
+      note = `攻撃系スキル × 攻撃寄り → ${atkStat}全振りで瞬間火力MAX。`;
+    }
+  } else if (tier === 'support') {
+    config = [{type:'HP',count:6,kind:'def'}, {type:'体力',count:3,kind:'base'}, {type:'知力',count:3,kind:'base'}];
+    note = 'サポート系スキル → 生存特化。味方を支え続けるためのタンク化。';
+  } else {
+    config = [{type:atkStat,count:4,kind:'atk'}, {type:'HP',count:4,kind:'def'}, {type:atkBase,count:4,kind:'base'}];
+    note = `基本型 → 無難なバランス配分。`;
+  }
+
+  const slots = ['武器','鎧','盾','メモリー'];
+  const slotMap = {};
+  let arr = [];
+  config.forEach(c => { for (let i = 0; i < c.count; i++) arr.push(c.type); });
+  slots.forEach((s, i) => {
+    slotMap[s] = arr.slice(i*3, i*3+3);
+  });
+
+  return { config, slotMap, note, tier, atkStat, atkBase, isPhys, isSpec, skills };
+}
+
+// ========== 結果表示 ==========
+function analyze() {
+  goStep(3);
+  const c = state.selectedCard;
+  const d = state.direction;
+  const rec = recommendHiseki(c, d);
+  const dirLabel = d==='defense'?'🛡️ 防御寄り':d==='balance'?'⚖️ バランス':'⚔️ 攻撃寄り';
+  const tierLabel = {
+    top:'🏆 最上位 (HP回復系)',
+    skin_atk:'🥈 中位 (スキン+攻撃)',
+    skin:'🥈 中位 (スキン系のみ)',
+    attack:'🥉 基本 (攻撃系)',
+    support:'💚 サポート系',
+    basic:'⚪ 基本型',
+  }[rec.tier];
+  const atkStyle = c.atk === '物理' ? 'background:#fce7f3;color:#be185d;' : 'background:#dbeafe;color:#1d4ed8;';
+  const avoid = rec.isPhys ? '特攻UP（無効！）' : rec.isSpec ? '物攻UP（無効！）' : null;
+
+  const himeiHtml = rec.config.map((cfg,i) => `
+    <div class="himei-item ${i===0?'primary':''}">
+      <div class="himei-name">${cfg.type}</div>
+      <div class="himei-count">×${cfg.count}</div>
+      <div class="himei-slot">${cfg.kind==='def'?'防御系':cfg.kind==='atk'?'攻撃系':'基礎系'}</div>
+    </div>
+  `).join('');
+
+  const slotIcons = {'武器':'⚔️','鎧':'🛡️','盾':'🛡️','メモリー':'💎'};
+  const slotHtml = Object.entries(rec.slotMap).map(([s,arr]) => `
+    <div class="slot-card">
+      <div class="slot-icon">${slotIcons[s]}</div>
+      <div class="slot-label">${s}×3</div>
+      <div class="slot-content">${arr.join('<br>')}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('resultBox').innerHTML = `
+    <div class="result-card">
+      <div class="result-char">
+        ${c.img ? `<img class="result-char-img" src="${c.img}" alt="${c.name}" loading="lazy" decoding="async">` : '<div class="result-char-img"></div>'}
+        <div class="result-char-info">
+          <span class="result-char-rarity opt-rarity ${c.rarity}">${c.rarity}</span>
+          <div class="result-char-name">${c.name}</div>
+          <div class="result-char-card">${c.card}</div>
+          <div class="result-char-meta">
+            <span class="result-tag" style="${atkStyle}">${c.atk}アタッカー</span>
+            <span class="result-tag" style="background:var(--bg);border:1px solid var(--border2);color:var(--tx2);">${c.attr}属性</span>
+            <span class="result-tag" style="background:var(--accent3);color:var(--accent);font-weight:700;">${dirLabel}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">スキル系統判定</div>
+        <div style="font-size:0.88rem;font-weight:700;color:var(--tx);">${tierLabel}</div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">💎 推奨秘石配分（12個）</div>
+        <div class="himei-grid">${himeiHtml}</div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-label">📍 スロット別の配置</div>
+        <div class="slot-breakdown">${slotHtml}</div>
+      </div>
+
+      ${avoid ? `
+      <div class="result-section">
+        <div class="avoid-box">
+          <strong>⚠️ 絶対に避ける秘石</strong>
+          ${avoid} — このキャラには効果がありません。
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="result-section">
+        <div class="result-section-label">📊 育成方針</div>
+        <div style="font-size:0.82rem;line-height:1.7;color:var(--tx2);">${PAYMENT_TIPS[state.payment]}</div>
+      </div>
+    </div>
+
+    <div class="ai-comment" id="aiComment">
+      <div class="ai-loading">AIが詳しい解説を生成中…</div>
+    </div>
+  `;
+
+  fetchAIComment(c, d, rec);
+}
+
+// ========== AI解説取得 ==========
+async function fetchAIComment(card, direction, rec) {
+  const dirJa = direction==='defense'?'防御寄り':direction==='balance'?'バランス':'攻撃寄り';
+  const configText = rec.config.map(c => `${c.type}×${c.count}`).join('、');
+  const skills = [...(card.passive||[]), ...(card.active||[])].join('\n - ');
+
+  const prompt = `あなたはPARANOIZEの秘石装備の専門家です。以下のキャラの秘石装備について、150〜200字程度で凌さん（トッププレイヤー）のような口調で具体的な理由とコツを解説してください。
+
+【キャラ】
+${card.rarity} ${card.name}「${card.card}」
+属性: ${card.attr} / ${card.atk}アタッカー
+
+【スキル】
+ - ${skills}
+
+【ユーザーの方針】${dirJa}
+
+【AIが既に提案した配分】${configText}（合計12個）
+
+ルール：
+- 「装備しよう」「秘石が良い」のような当たり前のことは言わない
+- このキャラ特有のスキル組み合わせに触れる
+- 実戦での使い方や注意点を含める
+- 150〜200字、改行なし、です・ますで自然に
+- 「〜だね」「〜だよ」のような砕けた語尾は使わない`;
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        messages: [{role:'user', content: prompt}],
+      }),
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || rec.note;
+    document.getElementById('aiComment').innerHTML = text;
+  } catch(e) {
+    document.getElementById('aiComment').innerHTML = rec.note;
+  }
+}
+
+// ========== リセット ==========
+function resetAll() {
+  state.selectedCard = null;
+  state.direction = null;
+  document.querySelectorAll('.dir-btn').forEach(x => x.classList.remove('active'));
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('cardSearch').value = '';
+  state.filters.query = '';
+  renderCardGrid();
+  goStep(1);
+}
+
+// ========== URLパラメータ対応 (?card=...) ==========
+function checkURLParam() {
+  const params = new URLSearchParams(location.search);
+  const cardK = params.get('card');
+  if (cardK) {
+    const c = CARDS.find(c => `${c.rarity}_${c.name}_${c.card}` === cardK);
+    if (c) {
+      state.selectedCard = c;
+      goStep(2);
+    }
+  }
+}
+
+// ========== 初期化 ==========
+renderCardGrid();
+checkURLParam();
+
+// タブのアクティブ状態
+(function(){
+  var path = location.pathname;
+  document.querySelectorAll('.tab').forEach(function(tab){
+    var href = tab.getAttribute('href');
+    if(href && (path === href || (href !== '/' && path.startsWith(href)))){
+      tab.classList.add('active');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

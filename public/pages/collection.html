@@ -55,6 +55,8 @@ body{padding-bottom:5rem;}
 .power-input{font-size:0.78rem;padding:5px 8px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,0.7);width:115px;text-align:right;font-family:inherit;outline:none;}
 .power-input:focus{border-color:var(--accent);}
 .power-input:disabled{opacity:0.4;}
+.hiseki-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#9b6dff,#ff5e8c);color:#fff;text-decoration:none;font-size:0.92rem;box-shadow:0 2px 8px rgba(155,109,255,0.35);transition:all 0.15s;flex-shrink:0;}
+.hiseki-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(155,109,255,0.5);}
 
 .empty-state{text-align:center;padding:3rem 1rem;color:var(--tx3);}
 
@@ -319,6 +321,7 @@ function render(){
       <div class="coll-controls">
         <button class="own-btn${owned?' owned':''}" onclick="toggleOwn(${i})">${owned?'✓ 所持':'未所持'}</button>
         <input class="power-input" type="text" inputmode="numeric" placeholder="戦力" value="${power?fmtNum(power):''}" onchange="savePower(${i}, this.value)" ${!owned && !power ? '' : ''}>
+        <a class="hiseki-btn" href="/hiseki?card=${encodeURIComponent(c.rarity+'_'+c.name+'_'+c.card)}" title="秘石AIで提案">💎</a>
       </div>
     </div>`;
   }).join('');

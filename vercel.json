@@ -23,6 +23,7 @@
     { "source": "/wiki/daily", "destination": "/pages/wiki/daily.html" },
     { "source": "/wiki/f2p", "destination": "/pages/wiki/f2p.html" },
     { "source": "/wiki/whale", "destination": "/pages/wiki/whale.html" },
-    { "source": "/daily-guide", "destination": "/pages/daily-guide.html" }
+    { "source": "/daily-guide", "destination": "/pages/daily-guide.html" },
+    { "source": "/hiseki", "destination": "/pages/hiseki.html" }
   ]
 }
