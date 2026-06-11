@@ -342,29 +342,26 @@ body{
 
 <div class="footer">v1.0.0 · PARANOIZE GUILD TOOLS</div>
 
-<nav class="tabbar">
-  <div class="tabbar-inner">
-    <a class="tab active" href="/"><span class="tab-icon">🏠</span>ホーム</a>
-    <a class="tab" href="/cards"><span class="tab-icon">📖</span>カード</a>
-    <a class="tab" href="/reika"><span class="tab-icon">⚔️</span>野望</a>
-    <a class="tab" href="/daily-guide"><span class="tab-icon">📋</span>日々</a>
-    <a class="tab" href="/tasks"><span class="tab-icon">📅</span>タスク</a>
-    <a class="tab" href="/memo"><span class="tab-icon">📝</span>メモ</a>
-  </div>
+<nav class="p-tabbar">
+  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>野望</a>
+  <a class="p-tab" href="/arena"><span class="p-tab-icon">🏆</span>闘技場</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
+  <a class="p-tab" href="/hiseki"><span class="p-tab-icon">💎</span>秘石</a>
+  <a class="p-tab" href="/collection"><span class="p-tab-icon">🗂</span>所持</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>図鑑</a>
 </nav>
 <script>
 (function(){
   var path = location.pathname;
-  document.querySelectorAll('.tab').forEach(function(tab){
+  document.querySelectorAll('.p-tab').forEach(function(tab){
     var href = tab.getAttribute('href');
     if(href && (path === href || (href !== '/' && path.startsWith(href)))){
       tab.classList.add('active');
-    } else if(href !== '/') {
-      tab.classList.remove('active');
     }
   });
 })();
 </script>
+
 
 </body>
 </html>

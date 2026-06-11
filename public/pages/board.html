@@ -339,12 +339,24 @@ loadCategories().then(function(){ loadPosts(); });
 setInterval(loadPosts, 30000);
 </script>
 <nav class="p-tabbar">
-  <a class="p-tab" href="/" id="tab-home"><span class="p-tab-icon">🏠</span>ホーム</a>
-  <a class="p-tab" href="/cards" id="tab-cards"><span class="p-tab-icon">📖</span>カード</a>
-  <a class="p-tab" href="/formation" id="tab-formation"><span class="p-tab-icon">🧩</span>編成</a>
-  <a class="p-tab" href="/tasks" id="tab-tasks"><span class="p-tab-icon">📅</span>タスク</a>
-  <a class="p-tab" href="/memo" id="tab-memo"><span class="p-tab-icon">📝</span>メモ</a>
+  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>野望</a>
+  <a class="p-tab" href="/arena"><span class="p-tab-icon">🏆</span>闘技場</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
+  <a class="p-tab" href="/hiseki"><span class="p-tab-icon">💎</span>秘石</a>
+  <a class="p-tab" href="/collection"><span class="p-tab-icon">🗂</span>所持</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>図鑑</a>
 </nav>
+<script>
+(function(){
+  var path = location.pathname;
+  document.querySelectorAll('.p-tab').forEach(function(tab){
+    var href = tab.getAttribute('href');
+    if(href && (path === href || (href !== '/' && path.startsWith(href)))){
+      tab.classList.add('active');
+    }
+  });
+})();
+</script>
 <script>
 (function(){
   var path = location.pathname;
