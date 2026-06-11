@@ -1,6 +1,6 @@
 // Service Worker for パラノイズ攻略
 // バージョン管理：キャッシュ仕様変更時にここを更新するとクライアントが新キャッシュに切替
-const VERSION = 'v1';
+const VERSION = 'v2';
 const APP_CACHE = `paranoize-app-${VERSION}`;
 const IMG_CACHE = `paranoize-images-${VERSION}`;
 
