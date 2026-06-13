@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ARカメラ — パラノイズ攻略</title>
+<link rel="stylesheet" href="/assets/common.css?v=5">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff5e8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="パラノイズ攻略">
+<meta property="og:type" content="website">
+<meta property="og:title" content="パラノイズ攻略">
+<meta property="og:description" content="パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。">
+<meta property="og:image" content="/og-image.png">
+<script src="/assets/sw-register.js" defer></script>
+<style>
+body{overflow:hidden;position:fixed;width:100%;height:100%;background:#000;}
+.ar-stage{position:fixed;inset:0;overflow:hidden;background:#111;}
+#arVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111;}
+#arVideo.mirror{transform:scaleX(-1);}
+
+/* キャラ要素 */
+.ar-chara{position:absolute;width:140px;height:140px;touch-action:none;cursor:grab;user-select:none;will-change:transform;transform-origin:center center;}
+.ar-chara img{width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35));}
+.ar-chara.selected{outline:2px dashed rgba(255,255,255,0.85);outline-offset:4px;border-radius:8px;}
+.ar-chara .del-handle{position:absolute;top:-12px;right:-12px;width:28px;height:28px;background:rgba(255,59,90,0.95);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;}
+.ar-chara.selected .del-handle{display:flex;}
+
+/* 上部バー */
+.ar-topbar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top,0)) 14px 12px;background:linear-gradient(180deg,rgba(0,0,0,0.5),transparent);}
+.ar-back{display:inline-flex;align-items:center;gap:5px;color:#fff;text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);padding:8px 14px;border-radius:99px;}
+.ar-flip{background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);border:none;color:#fff;width:42px;height:42px;border-radius:50%;font-size:1.1rem;cursor:pointer;}
+
+/* キャラ選択トレイ */
+.ar-tray{position:fixed;left:0;right:0;bottom:calc(110px + env(safe-area-inset-bottom,0));z-index:50;display:flex;gap:8px;padding:10px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.ar-tray::-webkit-scrollbar{display:none;}
+.tray-item{flex:0 0 auto;width:64px;height:64px;border-radius:14px;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;overflow:hidden;}
+.tray-item:active{transform:scale(0.92);}
+.tray-item img{width:80%;height:80%;object-fit:contain;}
+
+/* 下部コントロール */
+.ar-controls{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;justify-content:space-around;padding:16px 24px calc(24px + env(safe-area-inset-bottom,0));background:linear-gradient(0deg,rgba(0,0,0,0.5),transparent);}
+.ctrl-btn{background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);border:none;color:#fff;width:52px;height:52px;border-radius:50%;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.shutter{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,0.5);cursor:pointer;box-shadow:0 0 0 3px rgba(0,0,0,0.15);transition:transform 0.1s;}
+.shutter:active{transform:scale(0.9);}
+
+/* ヒント */
+.ar-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:40;color:#fff;text-align:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);padding:16px 22px;border-radius:16px;font-size:0.85rem;line-height:1.7;max-width:80%;pointer-events:none;transition:opacity 0.4s;}
+.ar-hint.hide{opacity:0;}
+
+/* 許可エラー */
+.ar-error{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;color:#fff;background:#1a1a2e;}
+.ar-error.show{display:flex;}
+.ar-error h2{font-size:1.1rem;margin-bottom:0.75rem;}
+.ar-error p{font-size:0.85rem;line-height:1.7;color:rgba(255,255,255,0.7);margin-bottom:1.5rem;max-width:300px;}
+.ar-error a{color:#ff5e8c;text-decoration:none;font-weight:700;background:rgba(255,255,255,0.1);padding:10px 20px;border-radius:99px;}
+
+/* フラッシュ演出 */
+.flash{position:fixed;inset:0;z-index:100;background:#fff;opacity:0;pointer-events:none;}
+.flash.fire{animation:flashAnim 0.4s ease;}
+@keyframes flashAnim{0%{opacity:0;}30%{opacity:0.85;}100%{opacity:0;}}
+
+/* 撮影後プレビュー */
+.ar-preview{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;}
+.ar-preview.show{display:flex;}
+.ar-preview img{max-width:100%;max-height:70%;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
+.preview-actions{display:flex;gap:12px;margin-top:1.5rem;}
+.preview-btn{padding:12px 22px;border-radius:99px;border:none;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.preview-btn.save{background:linear-gradient(135deg,#ff5e8c,#ff8a65);color:#fff;}
+.preview-btn.share{background:rgba(255,255,255,0.15);color:#fff;backdrop-filter:blur(10px);}
+.preview-btn.retake{background:rgba(255,255,255,0.15);color:#fff;backdrop-filter:blur(10px);}
+</style>
+</head>
+<body>
+
+<div class="ar-stage" id="arStage">
+  <video id="arVideo" autoplay playsinline muted></video>
+</div>
+
+<!-- 上部バー -->
+<div class="ar-topbar">
+  <a class="ar-back" href="/">← 戻る</a>
+  <button class="ar-flip" id="flipBtn" title="カメラ切替">🔄</button>
+</div>
+
+<!-- ヒント -->
+<div class="ar-hint" id="arHint">📸 下のキャラをタップして配置<br>ドラッグで移動・ピンチで拡大縮小・回転</div>
+
+<!-- キャラ選択トレイ -->
+<div class="ar-tray" id="arTray"></div>
+
+<!-- 下部コントロール -->
+<div class="ar-controls">
+  <button class="ctrl-btn" id="flipCharaBtn" title="左右反転">↔️</button>
+  <button class="shutter" id="shutterBtn"></button>
+  <button class="ctrl-btn" id="clearBtn" title="全消去">🗑</button>
+</div>
+
+<!-- フラッシュ -->
+<div class="flash" id="flash"></div>
+
+<!-- エラー -->
+<div class="ar-error" id="arError">
+  <h2>📷 カメラを使えません</h2>
+  <p>カメラへのアクセスが許可されていません。ブラウザの設定からカメラを許可してください。<br><br>※ iPhoneの場合、ホーム画面に追加したアプリではカメラが使えないことがあります。Safariで直接開いてお試しください。</p>
+  <a href="/">ホームに戻る</a>
+</div>
+
+<!-- 撮影プレビュー -->
+<div class="ar-preview" id="arPreview">
+  <img id="previewImg" alt="撮影画像">
+  <div class="preview-actions">
+    <button class="preview-btn retake" onclick="closePreview()">撮り直し</button>
+    <button class="preview-btn save" id="saveBtn">💾 保存</button>
+    <button class="preview-btn share" id="shareBtn">📤 シェア</button>
+  </div>
+</div>
+
+<script>
+// ========== 仮ちびキャラ素材（SVGデータURI）==========
+// TODO: 運営許可済みの透過PNGに差し替え
+function chibiSVG(emoji, bg) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <defs><radialGradient id="g" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="${bg}" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="${bg}" stop-opacity="0.6"/>
+    </radialGradient></defs>
+    <ellipse cx="100" cy="180" rx="50" ry="10" fill="rgba(0,0,0,0.2)"/>
+    <circle cx="100" cy="95" r="75" fill="url(#g)"/>
+    <text x="100" y="120" font-size="80" text-anchor="middle">${emoji}</text>
+  </svg>`;
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
+const CHIBI_LIST = [
+  {name:'ちび1', src: chibiSVG('😺', '#ff9ec4')},
+  {name:'ちび2', src: chibiSVG('🦊', '#ffb066')},
+  {name:'ちび3', src: chibiSVG('🐰', '#a18cff')},
+  {name:'ちび4', src: chibiSVG('🐻', '#7ed3a0')},
+  {name:'ちび5', src: chibiSVG('🐧', '#6db8ff')},
+  {name:'ちび6', src: chibiSVG('🦄', '#ff8ad8')},
+];
+
+// ========== カメラ起動 ==========
+const video = document.getElementById('arVideo');
+let currentFacing = 'environment';
+let stream = null;
+
+async function startCamera(facing) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facing, width:{ideal:1920}, height:{ideal:1080} },
+      audio: false,
+    });
+    video.srcObject = stream;
+    video.classList.toggle('mirror', facing === 'user');
+    document.getElementById('arError').classList.remove('show');
+  } catch (e) {
+    console.error('camera error', e);
+    document.getElementById('arError').classList.add('show');
+  }
+}
+startCamera(currentFacing);
+
+document.getElementById('flipBtn').addEventListener('click', () => {
+  currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+  startCamera(currentFacing);
+});
+
+// ========== キャラトレイ描画 ==========
+const tray = document.getElementById('arTray');
+CHIBI_LIST.forEach((chibi, i) => {
+  const el = document.createElement('div');
+  el.className = 'tray-item';
+  el.innerHTML = `<img src="${chibi.src}" alt="${chibi.name}">`;
+  el.addEventListener('click', () => addChara(chibi.src));
+  tray.appendChild(el);
+});
+
+// ========== キャラ配置・操作 ==========
+const stage = document.getElementById('arStage');
+let selectedChara = null;
+let charaCount = 0;
+
+function addChara(src) {
+  document.getElementById('arHint').classList.add('hide');
+  const el = document.createElement('div');
+  el.className = 'ar-chara';
+  const startX = window.innerWidth/2 - 70 + (charaCount%3)*20;
+  const startY = window.innerHeight/2 - 70 + (charaCount%3)*20;
+  el.style.left = startX + 'px';
+  el.style.top = startY + 'px';
+  el.dataset.x = startX;
+  el.dataset.y = startY;
+  el.dataset.scale = 1;
+  el.dataset.angle = 0;
+  el.dataset.flip = 1;
+  el.innerHTML = `<img src="${src}" alt="chara"><div class="del-handle">✕</div>`;
+  stage.appendChild(el);
+  charaCount++;
+  selectChara(el);
+  setupCharaGestures(el);
+
+  el.querySelector('.del-handle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    el.remove();
+    if (selectedChara === el) selectedChara = null;
+  });
+}
+
+function selectChara(el) {
+  document.querySelectorAll('.ar-chara').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedChara = el;
+}
+
+function applyTransform(el) {
+  const x = parseFloat(el.dataset.x);
+  const y = parseFloat(el.dataset.y);
+  const s = parseFloat(el.dataset.scale);
+  const a = parseFloat(el.dataset.angle);
+  const f = parseFloat(el.dataset.flip);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.transform = `rotate(${a}deg) scale(${s})`;
+  el.querySelector('img').style.transform = `scaleX(${f})`;
+}
+
+function setupCharaGestures(el) {
+  let mode = null; // 'drag' | 'pinch'
+  let startDist = 0, startAngle = 0;
+  let baseScale = 1, baseAngle = 0;
+  let offsetX = 0, offsetY = 0;
+  let pointers = new Map();
+
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    selectChara(el);
+    el.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+    if (pointers.size === 1) {
+      mode = 'drag';
+      offsetX = e.clientX - parseFloat(el.dataset.x);
+      offsetY = e.clientY - parseFloat(el.dataset.y);
+    } else if (pointers.size === 2) {
+      mode = 'pinch';
+      const pts = [...pointers.values()];
+      startDist = Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y);
+      startAngle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x) * 180/Math.PI;
+      baseScale = parseFloat(el.dataset.scale);
+      baseAngle = parseFloat(el.dataset.angle);
+    }
+  });
+
+  el.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+    if (mode === 'drag' && pointers.size === 1) {
+      el.dataset.x = e.clientX - offsetX;
+      el.dataset.y = e.clientY - offsetY;
+      applyTransform(el);
+    } else if (mode === 'pinch' && pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[1].x-pts[0].x, pts[1].y-pts[0].y);
+      const angle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x) * 180/Math.PI;
+      el.dataset.scale = Math.max(0.3, Math.min(4, baseScale * (dist/startDist)));
+      el.dataset.angle = baseAngle + (angle - startAngle);
+      applyTransform(el);
+    }
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size === 0) mode = null;
+    else if (pointers.size === 1) {
+      mode = 'drag';
+      const p = [...pointers.values()][0];
+      offsetX = p.x - parseFloat(el.dataset.x);
+      offsetY = p.y - parseFloat(el.dataset.y);
+    }
+  }
+  el.addEventListener('pointerup', endPointer);
+  el.addEventListener('pointercancel', endPointer);
+}
+
+// 背景タップで選択解除
+stage.addEventListener('pointerdown', (e) => {
+  if (e.target === stage || e.target === video) {
+    document.querySelectorAll('.ar-chara').forEach(c => c.classList.remove('selected'));
+    selectedChara = null;
+  }
+});
+
+// ========== 左右反転 ==========
+document.getElementById('flipCharaBtn').addEventListener('click', () => {
+  if (!selectedChara) return;
+  selectedChara.dataset.flip = parseFloat(selectedChara.dataset.flip) * -1;
+  applyTransform(selectedChara);
+});
+
+// ========== 全消去 ==========
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.querySelectorAll('.ar-chara').forEach(c => c.remove());
+  selectedChara = null;
+});
+
+// ========== 撮影 ==========
+document.getElementById('shutterBtn').addEventListener('click', capture);
+
+function capture() {
+  const flash = document.getElementById('flash');
+  flash.classList.add('fire');
+  setTimeout(() => flash.classList.remove('fire'), 400);
+
+  // 選択枠を一時的に消す
+  document.querySelectorAll('.ar-chara').forEach(c => c.classList.remove('selected'));
+
+  const canvas = document.createElement('canvas');
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const sw = window.innerWidth, sh = window.innerHeight;
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+
+  // カメラ映像を object-fit:cover と同じ計算で描画
+  const scale = Math.max(sw/vw, sh/vh);
+  const dw = vw*scale, dh = vh*scale;
+  const dx = (sw-dw)/2, dy = (sh-dh)/2;
+
+  ctx.save();
+  if (currentFacing === 'user') {
+    ctx.translate(sw, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sw-dx-dw, dy, dw, dh);
+  } else {
+    ctx.drawImage(video, dx, dy, dw, dh);
+  }
+  ctx.restore();
+
+  // 各キャラを合成
+  document.querySelectorAll('.ar-chara').forEach(el => {
+    const img = el.querySelector('img');
+    const x = parseFloat(el.dataset.x);
+    const y = parseFloat(el.dataset.y);
+    const s = parseFloat(el.dataset.scale);
+    const a = parseFloat(el.dataset.angle) * Math.PI/180;
+    const f = parseFloat(el.dataset.flip);
+    const w = 140, h = 140;
+    const cx = x + w/2, cy = y + h/2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(a);
+    ctx.scale(s*f, s);
+    try { ctx.drawImage(img, -w/2, -h/2, w, h); } catch(e){}
+    ctx.restore();
+  });
+
+  const dataURL = canvas.toDataURL('image/png');
+  showPreview(dataURL);
+}
+
+// ========== プレビュー ==========
+let lastCapture = null;
+function showPreview(dataURL) {
+  lastCapture = dataURL;
+  document.getElementById('previewImg').src = dataURL;
+  document.getElementById('arPreview').classList.add('show');
+}
+function closePreview() {
+  document.getElementById('arPreview').classList.remove('show');
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  if (!lastCapture) return;
+  const a = document.createElement('a');
+  a.href = lastCapture;
+  a.download = `paranoize_ar_${Date.now()}.png`;
+  a.click();
+});
+
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  if (!lastCapture) return;
+  try {
+    const blob = await (await fetch(lastCapture)).blob();
+    const file = new File([blob], `paranoize_ar_${Date.now()}.png`, {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title:'パラノイズARフォト'});
+    } else {
+      // フォールバック：ダウンロード
+      const a = document.createElement('a');
+      a.href = lastCapture;
+      a.download = file.name;
+      a.click();
+    }
+  } catch(e) { console.warn('share failed', e); }
+});
+
+// ページ離脱時にカメラ停止
+window.addEventListener('pagehide', () => {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+});
+</script>
+
+</body>
+</html>
