@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ギルド分析 — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=8">
+<link rel="stylesheet" href="/assets/common.css?v=9">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -159,7 +159,7 @@
 
 <div class="page-header">
   <div class="page-title">⚔️ ギルド分析</div>
-  <div class="page-desc">サーバー間対戦に向けて、自ギルド・相手ギルドの戦力を徹底分析。</div>
+  <div class="page-desc">サーバー間対戦に向けて、自ギルド・相手ギルドの戦力を徹底分析。<br>データはギルメン全員で共有されます。</div>
   <div class="admin-badge" id="adminBadge" style="display:none;">🔓 管理者モード（スクショ解析が利用可能）</div>
 </div>
 
@@ -176,13 +176,15 @@
 <div class="section">
 
   <div class="mode-section active" id="manageSection">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-size:0.74rem;color:var(--tx3);">🌐 全員で共有されるギルド一覧</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="syncStatus" style="font-size:0.72rem;color:var(--accent);font-weight:600;"></span>
+        <button class="gbtn" onclick="reloadGuilds()">🔄 再読込</button>
+      </div>
+    </div>
     <div class="guild-list" id="guildList"></div>
     <button class="add-guild-btn" onclick="openEditor()">＋ 新しいギルドを追加</button>
-
-    <div class="load-share">
-      <input type="text" id="shareCodeInput" placeholder="共有コードを入力して読み込み">
-      <button onclick="loadFromShare()">読み込む</button>
-    </div>
   </div>
 
   <div class="mode-section" id="compareSection">
@@ -246,22 +248,6 @@
   </div>
 </div>
 
-<!-- 共有モーダル -->
-<div class="modal-overlay" id="shareModal">
-  <div class="modal" style="border-radius:24px;max-width:420px;margin:auto;">
-    <div class="modal-head">
-      <div class="modal-title">📤 ギルドを共有</div>
-      <button class="modal-close" onclick="document.getElementById('shareModal').classList.remove('show')">✕</button>
-    </div>
-    <p style="font-size:0.82rem;color:var(--tx2);line-height:1.6;">この共有コードをギルメンに伝えると、同じギルドデータを読み込めます。</p>
-    <div class="share-code-box">
-      <div class="share-code" id="shareCodeDisplay">----</div>
-      <button class="share-copy" onclick="copyShareCode()">コードをコピー</button>
-    </div>
-    <p style="font-size:0.72rem;color:var(--tx3);line-height:1.5;">※ コードを知っている人だけが閲覧できます。更新したら再度共有してください。</p>
-  </div>
-</div>
-
 <nav class="p-tabbar">
   <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
   <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>野望</a>
@@ -299,17 +285,52 @@ let isAdmin = false;
   }
 })();
 
-// ========== データ管理 ==========
-const STORAGE_KEY = 'paranoize_guilds_v1';
+// ========== データ管理（Supabase共有スペース）==========
+const SHARE_KEYWORD = 'guild_shared_board_v1';  // 全員共通の共有キー
 const MAX_MEMBERS = 50;
 let guilds = [];
 let editingId = null;
+let isSyncing = false;
 
-function loadGuilds() {
-  try { guilds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch(e) { guilds = []; }
+// 全ギルドをSupabaseから読み込み
+async function loadGuilds() {
+  try {
+    const res = await fetch(`/api/memo?keyword=${encodeURIComponent(SHARE_KEYWORD)}`);
+    const json = await res.json();
+    if (json.data) {
+      guilds = JSON.parse(json.data);
+    } else {
+      guilds = [];
+    }
+  } catch(e) {
+    console.error('読み込み失敗', e);
+    guilds = [];
+  }
 }
-function saveGuilds() { localStorage.setItem(STORAGE_KEY, JSON.stringify(guilds)); }
+
+// 全ギルドをSupabaseに保存
+async function saveGuilds() {
+  isSyncing = true;
+  updateSyncStatus();
+  try {
+    await fetch('/api/memo', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ keyword: SHARE_KEYWORD, data: JSON.stringify(guilds) }),
+    });
+  } catch(e) {
+    console.error('保存失敗', e);
+    alert('保存に失敗しました。通信環境を確認してください。');
+  }
+  isSyncing = false;
+  updateSyncStatus();
+}
+
+function updateSyncStatus() {
+  const el = document.getElementById('syncStatus');
+  if (el) el.textContent = isSyncing ? '🔄 同期中…' : '';
+}
+
 function fmtNum(n) { n = parseInt(n) || 0; return n.toLocaleString('ja-JP'); }
 function guildTotal(g) { return g.members.reduce((s,m) => s + (parseInt(m.total)||0), 0); }
 function guildAttrTotal(g, attr) { return g.members.reduce((s,m) => s + (parseInt(m[attr])||0), 0); }
@@ -333,7 +354,6 @@ function renderGuilds() {
             <div class="guild-meta">${g.members.length}人 ・ 合計 <span class="guild-total">${fmtNum(total)}</span></div>
           </div>
           <div class="guild-actions">
-            <button class="gbtn share" onclick="shareGuild('${g.id}')">共有</button>
             <button class="gbtn" onclick="openEditor('${g.id}')">編集</button>
             <button class="gbtn danger" onclick="deleteGuild('${g.id}')">削除</button>
           </div>
@@ -425,30 +445,35 @@ function collectMembers() {
   return members;
 }
 
-function saveGuild() {
+async function saveGuild() {
   const name = document.getElementById('editGuildName').value.trim();
   if (!name) { alert('ギルド名を入力してください'); return; }
   const members = collectMembers();
   if (members.length === 0) { alert('メンバーを1人以上入力してください'); return; }
   if (members.length > MAX_MEMBERS) { alert('1ギルド最大50人までです'); return; }
 
+  // 最新データを取得してからマージ（他の人の編集を消さないため）
+  await loadGuilds();
+
   if (editingId) {
     const g = guilds.find(x => x.id === editingId);
-    g.name = name; g.members = members;
+    if (g) { g.name = name; g.members = members; }
+    else { guilds.push({ id:editingId, name, members }); }
   } else {
-    guilds.push({ id:'g'+Date.now(), name, members });
+    guilds.push({ id:'g'+Date.now()+Math.random().toString(36).slice(2,6), name, members });
   }
-  saveGuilds();
+  await saveGuilds();
   renderGuilds();
   refreshDropdowns();
   closeEditor();
 }
 
-function deleteGuild(id) {
+async function deleteGuild(id) {
   const g = guilds.find(x => x.id === id);
-  if (!confirm(`「${g.name}」を削除しますか？`)) return;
+  if (!confirm(`「${g.name}」を削除しますか？（全員の画面から消えます）`)) return;
+  await loadGuilds();
   guilds = guilds.filter(x => x.id !== id);
-  saveGuilds();
+  await saveGuilds();
   renderGuilds();
   refreshDropdowns();
 }
@@ -604,62 +629,40 @@ function fileToBase64(file) {
   });
 }
 
-// ========== Supabase共有 ==========
-async function shareGuild(id) {
-  const g = guilds.find(x => x.id === id);
-  const code = 'GLD-' + Math.random().toString(36).substring(2,8).toUpperCase();
-  const keyword = 'guild_share_' + code;
-
-  document.getElementById('shareModal').classList.add('show');
-  document.getElementById('shareCodeDisplay').textContent = '保存中…';
-
-  try {
-    await fetch('/api/memo', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ keyword, data: JSON.stringify({name:g.name, members:g.members}) }),
-    });
-    document.getElementById('shareCodeDisplay').textContent = code;
-    window._lastShareCode = code;
-  } catch(e) {
-    document.getElementById('shareCodeDisplay').textContent = 'エラー';
-  }
+// ========== 再読み込み ==========
+async function reloadGuilds() {
+  document.getElementById('syncStatus').textContent = '🔄 読込中…';
+  await loadGuilds();
+  await migrateLocalData();  // 旧localStorageデータがあれば移行
+  renderGuilds();
+  refreshDropdowns();
+  document.getElementById('syncStatus').textContent = '✅ 最新';
+  setTimeout(() => { document.getElementById('syncStatus').textContent = ''; }, 1500);
 }
 
-function copyShareCode() {
-  const code = window._lastShareCode;
-  if (!code) return;
-  navigator.clipboard.writeText(code).then(() => {
-    const btn = document.querySelector('.share-copy');
-    const orig = btn.textContent;
-    btn.textContent = '✓ コピーしました';
-    setTimeout(() => btn.textContent = orig, 1500);
-  });
-}
-
-async function loadFromShare() {
-  const input = document.getElementById('shareCodeInput');
-  const code = input.value.trim().toUpperCase();
-  if (!code) return;
-  const keyword = 'guild_share_' + code;
-
-  input.disabled = true;
+// ========== 旧ローカルデータの移行（1回だけ）==========
+async function migrateLocalData() {
   try {
-    const res = await fetch(`/api/memo?keyword=${encodeURIComponent(keyword)}`);
-    const json = await res.json();
-    if (!json.data) { alert('そのコードのギルドが見つかりませんでした'); input.disabled=false; return; }
-    const gd = JSON.parse(json.data);
-    // 既存の同名を避けて追加
-    guilds.push({ id:'g'+Date.now(), name:gd.name + '（共有）', members:gd.members });
-    saveGuilds();
-    renderGuilds();
-    refreshDropdowns();
-    input.value = '';
-    alert(`「${gd.name}」を読み込みました！`);
-  } catch(e) {
-    alert('読み込みに失敗しました');
-  }
-  input.disabled = false;
+    const old = localStorage.getItem('paranoize_guilds_v1');
+    const migrated = localStorage.getItem('paranoize_guilds_migrated');
+    if (old && !migrated) {
+      const oldGuilds = JSON.parse(old);
+      if (oldGuilds.length > 0) {
+        // 既存の共有データに、ローカルのギルドを名前が被らないように追加
+        oldGuilds.forEach(og => {
+          const dup = guilds.find(g => g.name === og.name);
+          if (!dup) {
+            guilds.push({ id:'g'+Date.now()+Math.random().toString(36).slice(2,6), name:og.name, members:og.members });
+          }
+        });
+        await saveGuilds();
+        localStorage.setItem('paranoize_guilds_migrated', '1');
+        console.log(`${oldGuilds.length}件のローカルギルドを共有スペースに移行しました`);
+      } else {
+        localStorage.setItem('paranoize_guilds_migrated', '1');
+      }
+    }
+  } catch(e) { console.error('移行失敗', e); }
 }
 
 // ========== 比較 ==========
@@ -785,21 +788,14 @@ document.querySelectorAll('.mode-tab').forEach(tab => {
 });
 
 document.getElementById('editorModal').addEventListener('click', e => { if (e.target.id==='editorModal') closeEditor(); });
-document.getElementById('shareModal').addEventListener('click', e => { if (e.target.id==='shareModal') e.currentTarget.classList.remove('show'); });
 
 // ========== 初期化 ==========
-loadGuilds();
-renderGuilds();
-refreshDropdowns();
-
-// 共有コードがURLパラメータにあれば自動読み込み (?load=GLD-XXXX)
-(function(){
-  const params = new URLSearchParams(location.search);
-  const loadCode = params.get('load');
-  if (loadCode) {
-    document.getElementById('shareCodeInput').value = loadCode;
-    loadFromShare();
-  }
+(async function init(){
+  document.getElementById('guildList').innerHTML = '<div class="empty-msg">🔄 共有ギルドを読み込み中…</div>';
+  await loadGuilds();
+  await migrateLocalData();
+  renderGuilds();
+  refreshDropdowns();
 })();
 </script>
 
