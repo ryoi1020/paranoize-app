@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOIZE 攻略アプリ</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/common.css?v=4">
+<link rel="stylesheet" href="/assets/common.css?v=5">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Noto Sans JP',sans-serif;}
@@ -123,6 +123,46 @@ body{
 
 /* フッター */
 .footer{position:relative;z-index:1;text-align:center;padding:1rem;font-size:0.58rem;color:rgba(26,26,46,0.32);letter-spacing:0.15em;text-transform:uppercase;}
+
+/* ===== iPhone風アプリグリッド ===== */
+.app-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.7rem;margin-bottom:0.85rem;}
+.app-tile{
+  text-decoration:none;border-radius:22px;padding:1rem;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:0.55rem;min-height:128px;
+  transition:transform 0.15s,box-shadow 0.2s;
+  border:1px solid rgba(255,255,255,0.4);
+  box-shadow:0 8px 24px rgba(155,109,255,0.22),inset 0 1px 0 rgba(255,255,255,0.45);
+}
+.app-tile:active{transform:scale(0.96);}
+.app-tile-shine{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);}
+.app-tile-glow{position:absolute;top:-40px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(255,255,255,0.3),transparent 70%);pointer-events:none;}
+.app-tile-icon{
+  width:50px;height:50px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;font-size:1.7rem;
+  background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5);
+  backdrop-filter:blur(6px);
+}
+.app-tile-body{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+.app-tile-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#fff;line-height:1.15;text-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.app-tile-desc{font-size:0.63rem;color:rgba(255,255,255,0.92);line-height:1.45;margin-top:3px;}
+.app-tile-badge{position:absolute;top:0.85rem;right:0.85rem;background:rgba(255,255,255,0.32);border:1px solid rgba(255,255,255,0.55);border-radius:100px;padding:2px 9px;font-size:0.55rem;letter-spacing:0.08em;color:#fff;text-transform:uppercase;font-weight:800;backdrop-filter:blur(8px);}
+
+/* 横長ワイドタイル（メイン機能用） */
+.app-tile.wide{grid-column:1 / -1;flex-direction:row;align-items:center;gap:1rem;min-height:auto;padding:1.15rem 1.25rem;}
+.app-tile.wide .app-tile-icon{width:58px;height:58px;font-size:2rem;flex-shrink:0;}
+.app-tile.wide .app-tile-body{justify-content:center;}
+.app-tile.wide .app-tile-title{font-size:1.2rem;}
+.app-tile.wide .app-tile-desc{font-size:0.7rem;}
+
+/* グラデーション配色（各機能の個性） */
+.bg-reika{background:linear-gradient(135deg,#ff5e8c 0%,#c66bff 50%,#5e8aff 100%);}
+.bg-arena{background:linear-gradient(135deg,#ff5e8c 0%,#ff8a65 55%,#ffd166 100%);}
+.bg-formation{background:linear-gradient(135deg,#7c5cff 0%,#9b6dff 50%,#c66bff 100%);}
+.bg-hiseki{background:linear-gradient(135deg,#9b6dff 0%,#ff5e8c 60%,#ffd166 100%);}
+.bg-collection{background:linear-gradient(135deg,#56e0a0 0%,#4ec3ff 55%,#5b9bff 100%);}
+.bg-guild{background:linear-gradient(135deg,#7c3aed 0%,#9b6dff 45%,#4ec3ff 100%);}
+.bg-ar{background:linear-gradient(135deg,#ff8a65 0%,#ff5e8c 50%,#9b6dff 100%);}
 </style>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
@@ -160,110 +200,90 @@ body{
 <div class="section">
   <div class="section-label">AI機能</div>
 
-  <!-- 麗華の野望 戦略AI -->
-  <a class="featured" href="/reika">
-    <div class="featured-inner">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">⚔️</span>
-        <span class="featured-badge">AI Powered</span>
-      </div>
-      <div class="featured-title">麗華の野望 戦略AI</div>
-      <div class="featured-desc">戦況を入力するだけでAIが最適戦略を提案。立ち回り・班編成・逆転シミュレーションまで対応。</div>
-      <div class="featured-cta">戦略を分析する <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+  <div class="app-grid">
 
-  <!-- 闘技場AI -->
-  <a class="featured featured-sub" href="/arena">
-    <div class="featured-inner featured-inner-sub" style="background:linear-gradient(135deg,#ff5e8c 0%,#ff8a65 50%,#ffd166 100%);border:1px solid rgba(255,255,255,0.4);box-shadow:0 10px 32px rgba(255,138,101,0.45),inset 0 1px 0 rgba(255,255,255,0.4);">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">🏆</span>
-        <span class="featured-badge">AI Powered</span>
+    <!-- 麗華の野望（ワイド・メイン） -->
+    <a class="app-tile wide bg-reika" href="/reika">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-icon">⚔️</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">麗華の野望 戦略AI</div>
+        <div class="app-tile-desc">戦況を入力するだけでAIが最適戦略・班編成・逆転シミュを提案</div>
       </div>
-      <div class="featured-title">闘技場AI</div>
-      <div class="featured-desc">勝ちたい相手の編成を入力すると、勝率予測と必勝戦術を提案。汎用＋相手専用の育成方針も。</div>
-      <div class="featured-cta">対戦相手に勝つ <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
 
-  <!-- 編成AI -->
-  <a class="featured featured-sub" href="/formation">
-    <div class="featured-inner featured-inner-sub">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">🧩</span>
-        <span class="featured-badge">AI Powered</span>
+    <!-- 闘技場AI -->
+    <a class="app-tile bg-arena" href="/arena">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-icon">🏆</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">闘技場AI</div>
+        <div class="app-tile-desc">相手編成から勝率予測と必勝戦術を提案</div>
       </div>
-      <div class="featured-title">編成アドバイザーAI</div>
-      <div class="featured-desc">手持ちSSRを選ぶだけで最強4班編成をAIが提案。入場スキルの配置まで考慮した本格分析。</div>
-      <div class="featured-cta">編成を分析する <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
 
-  <!-- 秘石AI -->
-  <a class="featured featured-sub" href="/hiseki">
-    <div class="featured-inner featured-inner-sub" style="background:linear-gradient(135deg,#9b6dff 0%,#ff5e8c 60%,#ffd166 100%);border:1px solid rgba(255,255,255,0.4);box-shadow:0 10px 32px rgba(155,109,255,0.4),inset 0 1px 0 rgba(255,255,255,0.4);">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">💎</span>
-        <span class="featured-badge">NEW</span>
+    <!-- 編成AI -->
+    <a class="app-tile bg-formation" href="/formation">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-icon">🧩</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">編成AI</div>
+        <div class="app-tile-desc">手持ちから最強4班編成を戦力込みで提案</div>
       </div>
-      <div class="featured-title">秘石AI</div>
-      <div class="featured-desc">キャラと方針を選ぶだけで、12個の秘石配分をAIが提案。罠の物理/特殊ミスマッチも自動回避。</div>
-      <div class="featured-cta">秘石を提案する <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
 
-  <!-- 所持カード入力 -->
-  <a class="featured featured-sub" href="/collection">
-    <div class="featured-inner featured-inner-sub" style="background:linear-gradient(135deg,#56e0a0 0%,#4ec3ff 55%,#5b9bff 100%);border:1px solid rgba(255,255,255,0.4);box-shadow:0 10px 32px rgba(78,195,255,0.4),inset 0 1px 0 rgba(255,255,255,0.4);">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">🗂</span>
-        <span class="featured-badge">最初にコレ！</span>
+    <!-- 秘石AI -->
+    <a class="app-tile bg-hiseki" href="/hiseki">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-badge">NEW</div>
+      <div class="app-tile-icon">💎</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">秘石AI</div>
+        <div class="app-tile-desc">12個の秘石配分を方針別に自動提案</div>
       </div>
-      <div class="featured-title">所持カード入力</div>
-      <div class="featured-desc">手持ちカードと戦力を入力すると、図鑑・編成アドバイザーと自動で連動。まずはここから！</div>
-      <div class="featured-cta">所持カードを登録 <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
 
-  <!-- ギルド分析 -->
-  <a class="featured featured-sub" href="/guild">
-    <div class="featured-inner featured-inner-sub" style="background:linear-gradient(135deg,#7c3aed 0%,#9b6dff 45%,#4ec3ff 100%);border:1px solid rgba(255,255,255,0.4);box-shadow:0 10px 32px rgba(124,58,237,0.4),inset 0 1px 0 rgba(255,255,255,0.4);">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">⚔️</span>
-        <span class="featured-badge">NEW</span>
+    <!-- ギルド分析 -->
+    <a class="app-tile bg-guild" href="/guild">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-badge">NEW</div>
+      <div class="app-tile-icon">🛡️</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">ギルド分析</div>
+        <div class="app-tile-desc">サーバー間対戦の勝ち筋をAIが分析</div>
       </div>
-      <div class="featured-title">ギルド分析</div>
-      <div class="featured-desc">サーバー間対戦に向けて自・相手ギルドの戦力を徹底分析。属性相性でAIが勝ち筋を提案。共有コードでギルメンと共有も。</div>
-      <div class="featured-cta">ギルドを分析する <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
 
-  <!-- ARカメラ -->
-  <a class="featured featured-sub" href="/ar">
-    <div class="featured-inner featured-inner-sub" style="background:linear-gradient(135deg,#ff8a65 0%,#ff5e8c 50%,#9b6dff 100%);border:1px solid rgba(255,255,255,0.4);box-shadow:0 10px 32px rgba(255,138,101,0.4),inset 0 1px 0 rgba(255,255,255,0.4);">
-      <div class="featured-shine"></div>
-      <div class="featured-glow"></div>
-      <div class="featured-top">
-        <span class="featured-icon">📸</span>
-        <span class="featured-badge">NEW</span>
+    <!-- 所持カード入力 -->
+    <a class="app-tile bg-collection" href="/collection">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-badge">最初にコレ</div>
+      <div class="app-tile-icon">🗂</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">所持カード入力</div>
+        <div class="app-tile-desc">手持ちと戦力を登録して全機能と連動</div>
       </div>
-      <div class="featured-title">ARカメラ</div>
-      <div class="featured-desc">ちびキャラを現実世界に呼び出して一緒に撮影！ドラッグ・拡大・回転して映える1枚を。SNSシェアもOK。</div>
-      <div class="featured-cta">撮影してみる <span class="featured-cta-arrow">→</span></div>
-    </div>
-  </a>
+    </a>
+
+    <!-- ARカメラ -->
+    <a class="app-tile bg-ar" href="/ar">
+      <div class="app-tile-shine"></div>
+      <div class="app-tile-glow"></div>
+      <div class="app-tile-badge">NEW</div>
+      <div class="app-tile-icon">📸</div>
+      <div class="app-tile-body">
+        <div class="app-tile-title">ARカメラ</div>
+        <div class="app-tile-desc">ちびキャラと一緒に撮影＆シェア</div>
+      </div>
+    </a>
+
+  </div>
 </div>
 
 <!-- 日々のすすめ -->
