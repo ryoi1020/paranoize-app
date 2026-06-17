@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ギルド分析 — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=7">
+<link rel="stylesheet" href="/assets/common.css?v=8">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -473,8 +473,8 @@ async function handleOCR(e, type) {
   progress.classList.add('show');
   progressBar.style.width = '0%';
 
-  // 一覧は3枚ずつ、部隊は1枚ずつ処理（精度とトークン量のバランス）
-  const batchSize = type === 'list' ? 3 : 1;
+  // 一覧・部隊とも1枚ずつ確実に処理（複数枚だと後半が読み飛ばされるため）
+  const batchSize = 1;
   const batches = [];
   for (let i = 0; i < files.length; i += batchSize) {
     batches.push(files.slice(i, i+batchSize));
@@ -482,7 +482,7 @@ async function handleOCR(e, type) {
 
   let allResults = [];
   for (let bi = 0; bi < batches.length; bi++) {
-    status.textContent = `📷 ${type==='list'?'一覧':'部隊'}スクショ解析中… (${bi+1}/${batches.length})`;
+    status.textContent = `📷 ${type==='list'?'一覧':'部隊'}スクショ ${bi+1}/${batches.length}枚目を解析中…（これまで${allResults.length}人）`;
     try {
       const images = await Promise.all(batches[bi].map(fileToBase64));
       const promptText = type === 'list'
@@ -521,7 +521,7 @@ async function handleOCR(e, type) {
       const res = await fetch('/api/analyze', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user', content}] }),
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:8000, messages:[{role:'user', content}] }),
       });
       const data = await res.json();
 
@@ -539,7 +539,16 @@ async function handleOCR(e, type) {
       if (match) text = match[0];
 
       const parsed = JSON.parse(text);
-      allResults = allResults.concat(parsed);
+      // 一覧スクショはスクロールで重複しがちなので名前で重複排除
+      if (type === 'list') {
+        parsed.forEach(p => {
+          const norm = normalizeName(p.name);
+          const dup = allResults.find(r => normalizeName(r.name) === norm && norm !== '');
+          if (!dup) allResults.push(p);
+        });
+      } else {
+        allResults = allResults.concat(parsed);
+      }
     } catch(err) {
       console.error(err);
     }
