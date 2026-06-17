@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ギルド分析 — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=9">
+<link rel="stylesheet" href="/assets/common.css?v=10">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -153,6 +153,31 @@
 .share-code-box{background:var(--bg2);border:2px dashed var(--accent);border-radius:var(--r12);padding:16px;text-align:center;margin:12px 0;}
 .share-code{font-size:1.4rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;letter-spacing:0.1em;}
 .share-copy{margin-top:10px;padding:8px 18px;border-radius:99px;border:none;background:var(--accent);color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* 詳細ビュー */
+.detail-summary{display:flex;gap:8px;margin-bottom:14px;}
+.detail-stat{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);padding:10px;text-align:center;}
+.detail-stat-label{font-size:0.66rem;color:var(--tx3);font-weight:600;}
+.detail-stat-val{font-size:1rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;margin-top:2px;}
+.detail-attr-row{display:flex;gap:6px;margin-bottom:14px;}
+.detail-sort{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.sort-btn{font-size:0.7rem;padding:5px 11px;border-radius:99px;border:1px solid var(--border2);background:var(--bg2);color:var(--tx2);cursor:pointer;font-family:inherit;font-weight:600;}
+.sort-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.dmember{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r8);background:var(--bg2);border:1px solid var(--border2);margin-bottom:6px;}
+.dmember-rank{font-size:0.85rem;font-weight:900;color:var(--tx3);font-family:'Inter',sans-serif;width:26px;text-align:center;flex-shrink:0;}
+.dmember-rank.top1{color:#f59e0b;}
+.dmember-rank.top2{color:#94a3b8;}
+.dmember-rank.top3{color:#d97706;}
+.dmember-main{flex:1;min-width:0;}
+.dmember-name{font-size:0.88rem;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dmember-total{font-size:0.74rem;color:var(--accent);font-weight:700;font-family:'Inter',sans-serif;}
+.dmember-attrs{display:flex;gap:4px;flex-shrink:0;}
+.dm-attr{font-size:0.6rem;padding:2px 6px;border-radius:5px;font-weight:700;font-family:'Inter',sans-serif;text-align:center;min-width:42px;}
+.dm-attr.purple{background:rgba(155,109,255,0.14);color:#7c3aed;}
+.dm-attr.green{background:rgba(86,224,160,0.16);color:#059669;}
+.dm-attr.yellow{background:rgba(255,209,102,0.2);color:#b45309;}
+.dm-attr.zero{opacity:0.35;}
+.dm-attr-label{display:block;font-size:0.5rem;opacity:0.7;}
 </style>
 </head>
 <body>
@@ -245,6 +270,17 @@
     <button class="add-member-btn" onclick="addMemberRow()">＋ メンバーを追加</button>
 
     <button class="modal-save" onclick="saveGuild()">保存する</button>
+  </div>
+</div>
+
+<!-- 詳細モーダル -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="detailTitle">ギルド詳細</div>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('show')">✕</button>
+    </div>
+    <div id="detailBody"></div>
   </div>
 </div>
 
@@ -348,12 +384,12 @@ function renderGuilds() {
     const p = guildAttrTotal(g,'purple'), gr = guildAttrTotal(g,'green'), y = guildAttrTotal(g,'yellow');
     return `
       <div class="guild-card">
-        <div class="guild-card-head">
+        <div class="guild-card-head" onclick="openDetail('${g.id}')" style="cursor:pointer;">
           <div>
-            <div class="guild-name">${escapeHtml(g.name)}</div>
+            <div class="guild-name">${escapeHtml(g.name)} <span style="font-size:0.7rem;color:var(--tx3);font-weight:600;">›</span></div>
             <div class="guild-meta">${g.members.length}人 ・ 合計 <span class="guild-total">${fmtNum(total)}</span></div>
           </div>
-          <div class="guild-actions">
+          <div class="guild-actions" onclick="event.stopPropagation();">
             <button class="gbtn" onclick="openEditor('${g.id}')">編集</button>
             <button class="gbtn danger" onclick="deleteGuild('${g.id}')">削除</button>
           </div>
@@ -366,6 +402,103 @@ function renderGuilds() {
       </div>
     `;
   }).join('');
+}
+
+// ========== 詳細ビュー ==========
+let detailSort = 'total';
+let detailGuildId = null;
+
+function openDetail(id) {
+  detailGuildId = id;
+  detailSort = 'total';
+  renderDetail();
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function renderDetail() {
+  const g = guilds.find(x => x.id === detailGuildId);
+  if (!g) return;
+  document.getElementById('detailTitle').textContent = g.name;
+
+  const total = guildTotal(g);
+  const avg = g.members.length ? Math.round(total / g.members.length) : 0;
+  const p = guildAttrTotal(g,'purple'), gr = guildAttrTotal(g,'green'), y = guildAttrTotal(g,'yellow');
+
+  // ソート
+  const sorted = [...g.members].sort((a,b) => {
+    if (detailSort === 'total') return (b.total||0) - (a.total||0);
+    if (detailSort === 'purple') return (b.purple||0) - (a.purple||0);
+    if (detailSort === 'green') return (b.green||0) - (a.green||0);
+    if (detailSort === 'yellow') return (b.yellow||0) - (a.yellow||0);
+    return 0;
+  });
+
+  const memberHtml = sorted.map((m, i) => {
+    const rank = i + 1;
+    const rankClass = rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+    return `
+      <div class="dmember">
+        <div class="dmember-rank ${rankClass}">${rank}</div>
+        <div class="dmember-main">
+          <div class="dmember-name">${escapeHtml(m.name||'(無名)')}</div>
+          <div class="dmember-total">🔥 ${fmtNum(m.total)}</div>
+        </div>
+        <div class="dmember-attrs">
+          <div class="dm-attr purple ${!m.purple?'zero':''}"><span class="dm-attr-label">紫</span>${m.purple?fmtShort(m.purple):'—'}</div>
+          <div class="dm-attr green ${!m.green?'zero':''}"><span class="dm-attr-label">緑</span>${m.green?fmtShort(m.green):'—'}</div>
+          <div class="dm-attr yellow ${!m.yellow?'zero':''}"><span class="dm-attr-label">黄</span>${m.yellow?fmtShort(m.yellow):'—'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-summary">
+      <div class="detail-stat">
+        <div class="detail-stat-label">合計戦力</div>
+        <div class="detail-stat-val">${fmtNum(total)}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">人数</div>
+        <div class="detail-stat-val">${g.members.length}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">平均戦力</div>
+        <div class="detail-stat-val">${fmtNum(avg)}</div>
+      </div>
+    </div>
+
+    <div class="detail-attr-row">
+      <div class="attr-chip purple">🟣紫<span class="chip-val">${fmtNum(p)}</span></div>
+      <div class="attr-chip green">🟢緑<span class="chip-val">${fmtNum(gr)}</span></div>
+      <div class="attr-chip yellow">🟡黄<span class="chip-val">${fmtNum(y)}</span></div>
+    </div>
+
+    <div class="detail-sort">
+      <span style="font-size:0.7rem;color:var(--tx3);align-self:center;margin-right:2px;">並び替え:</span>
+      <button class="sort-btn ${detailSort==='total'?'on':''}" onclick="setSortDetail('total')">総戦力</button>
+      <button class="sort-btn ${detailSort==='purple'?'on':''}" onclick="setSortDetail('purple')">紫</button>
+      <button class="sort-btn ${detailSort==='green'?'on':''}" onclick="setSortDetail('green')">緑</button>
+      <button class="sort-btn ${detailSort==='yellow'?'on':''}" onclick="setSortDetail('yellow')">黄</button>
+    </div>
+
+    <div>${memberHtml}</div>
+
+    <button class="modal-save" onclick="document.getElementById('detailModal').classList.remove('show');openEditor('${g.id}')" style="background:var(--bg2);color:var(--tx2);border:1px solid var(--border2);box-shadow:none;">✏️ このギルドを編集</button>
+  `;
+}
+
+function setSortDetail(s) {
+  detailSort = s;
+  renderDetail();
+}
+
+// 戦力を短縮表示（例: 16,118,362 → 1612万）
+function fmtShort(n) {
+  n = parseInt(n) || 0;
+  if (n >= 100000000) return (n/100000000).toFixed(2).replace(/\.?0+$/,'') + '億';
+  if (n >= 10000) return Math.round(n/10000) + '万';
+  return fmtNum(n);
 }
 
 // ========== エディタ ==========
@@ -788,6 +921,7 @@ document.querySelectorAll('.mode-tab').forEach(tab => {
 });
 
 document.getElementById('editorModal').addEventListener('click', e => { if (e.target.id==='editorModal') closeEditor(); });
+document.getElementById('detailModal').addEventListener('click', e => { if (e.target.id==='detailModal') e.currentTarget.classList.remove('show'); });
 
 // ========== 初期化 ==========
 (async function init(){
