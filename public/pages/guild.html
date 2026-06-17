@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ギルド分析 — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=6">
+<link rel="stylesheet" href="/assets/common.css?v=7">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -473,8 +473,8 @@ async function handleOCR(e, type) {
   progress.classList.add('show');
   progressBar.style.width = '0%';
 
-  // 部隊スクショは枚数が多いので1枚ずつ、一覧は数枚まとめて
-  const batchSize = type === 'list' ? 5 : 1;
+  // 一覧は3枚ずつ、部隊は1枚ずつ処理（精度とトークン量のバランス）
+  const batchSize = type === 'list' ? 3 : 1;
   const batches = [];
   for (let i = 0; i < files.length; i += batchSize) {
     batches.push(files.slice(i, i+batchSize));
@@ -486,12 +486,32 @@ async function handleOCR(e, type) {
     try {
       const images = await Promise.all(batches[bi].map(fileToBase64));
       const promptText = type === 'list'
-        ? `これはPARANOIZEのギルドメンバー一覧画面のスクショです。各メンバーの「名前」と「総戦力」を読み取り、以下のJSON形式のみで出力（前置き・マークダウン不要）：
-[{"name":"名前","total":総戦力数値}]
-数値はカンマ・単位を除いた整数。読めない人は飛ばす。`
-        : `これはPARANOIZEのキャラ部隊画面のスクショです。「メンバーの名前」と、編成されているキャラの「属性別（紫/緑/黄）の単騎戦力」を読み取ってください。同じ属性が複数いる場合は最も高い単騎戦力を採用。以下のJSON形式のみで出力（前置き・マークダウン不要）：
-[{"name":"名前","purple":紫単騎数値,"green":緑単騎数値,"yellow":黄単騎数値}]
-数値はカンマ・単位を除いた整数。その属性がいなければ0。`;
+        ? `これはPARANOIZE（パラノイズ）というゲームのギルドメンバー一覧画面のスクリーンショットです。
+
+各メンバーの行には以下が表示されています：
+- メンバー名（左上の太字）
+- 🔥（炎アイコン）の横の大きなカンマ区切り数字 = そのメンバーの「総戦力」（例：158,150,387 や 16,118,362）
+- 「野望ポイント:」の後の数字 = これは戦力ではないので無視する
+- 「最終ログイン」や自己紹介文 = 無視する
+
+一番上の「盟主」マークが付いたメンバーも必ず含めてください。
+
+各メンバーの「名前」と「総戦力（🔥の数字）」を読み取り、以下のJSON配列のみで出力してください（前置き・説明・マークダウンのコードブロック不要、JSONだけ）：
+[{"name":"メンバー名","total":総戦力の数値}]
+
+注意：
+- totalは🔥の横の数字。カンマを除いた整数にする（例：158,150,387 → 158150387）
+- 野望ポイントの数字は絶対にtotalに入れない
+- 名前が読み取れる全員を出力する`
+        : `これはPARANOIZE（パラノイズ）というゲームのキャラ部隊編成画面のスクリーンショットです。画面上部か周辺に「メンバー名」が表示されています。編成されているキャラには属性（紫・緑・黄のいずれか）があり、各キャラに単騎の戦力値が表示されています。
+
+「メンバー名」と、編成キャラの「属性別（紫/緑/黄）の最も高い単騎戦力」を読み取り、以下のJSON配列のみで出力してください（前置き・マークダウン不要、JSONだけ）：
+[{"name":"メンバー名","purple":紫の最高単騎戦力,"green":緑の最高単騎戦力,"yellow":黄の最高単騎戦力}]
+
+注意：
+- 数値はカンマを除いた整数
+- その属性のキャラがいなければ0
+- 同じ属性が複数いる場合は一番高い単騎戦力を採用`;
 
       const content = [
         { type:'text', text: promptText },
@@ -504,8 +524,20 @@ async function handleOCR(e, type) {
         body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user', content}] }),
       });
       const data = await res.json();
+
+      // APIエラーチェック
+      if (data.error) {
+        console.error('API error:', data.error);
+        status.textContent = `⚠️ APIエラー: ${data.error.message || data.error}`;
+        continue;
+      }
+
       let text = data.content?.[0]?.text || '[]';
       text = text.replace(/```json|```/g,'').trim();
+      // JSON配列部分だけ抽出（前後に説明が付いた場合の保険）
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) text = match[0];
+
       const parsed = JSON.parse(text);
       allResults = allResults.concat(parsed);
     } catch(err) {
