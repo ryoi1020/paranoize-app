@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ギルド分析 — パラノイズ攻略</title>
+<link rel="stylesheet" href="/assets/common.css?v=6">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff5e8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="パラノイズ攻略">
+<meta property="og:type" content="website">
+<meta property="og:title" content="パラノイズ攻略">
+<meta property="og:description" content="パラノイズ攻略AIアプリ。麗華の野望AI、闘技場AI、編成AIで戦略をアシスト。">
+<meta property="og:image" content="/og-image.png">
+<script src="/assets/sw-register.js" defer></script>
+<style>
+.page-header{text-align:center;padding:1.5rem 1rem 0.5rem;}
+.page-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-desc{font-size:0.82rem;color:var(--tx2);margin-top:6px;line-height:1.6;}
+.admin-badge{display:inline-block;font-size:0.66rem;font-weight:700;padding:2px 10px;border-radius:99px;background:linear-gradient(135deg,#9b6dff,#4ec3ff);color:#fff;margin-top:6px;}
+
+.mode-tabs{display:flex;gap:6px;padding:0 1rem;margin-bottom:0.5rem;}
+.mode-tab{flex:1;padding:10px;text-align:center;border-radius:var(--r12);background:var(--bg2);border:1px solid var(--border2);font-size:0.85rem;font-weight:700;color:var(--tx2);cursor:pointer;transition:all 0.15s;}
+.mode-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(255,94,140,0.25);}
+.mode-section{display:none;}
+.mode-section.active{display:block;}
+
+.guild-list{display:flex;flex-direction:column;gap:10px;}
+.guild-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:14px;box-shadow:var(--shadow);}
+.guild-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.guild-name{font-size:1rem;font-weight:800;color:var(--tx);}
+.guild-meta{font-size:0.72rem;color:var(--tx3);margin-top:2px;}
+.guild-total{font-size:1.1rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;}
+.guild-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.gbtn{font-size:0.72rem;padding:5px 12px;border-radius:99px;border:1px solid var(--border2);background:var(--bg);color:var(--tx2);cursor:pointer;font-family:inherit;font-weight:600;}
+.gbtn:hover{border-color:var(--accent);color:var(--accent);}
+.gbtn.danger:hover{border-color:#ef4444;color:#ef4444;}
+.gbtn.share:hover{border-color:#4ec3ff;color:#4ec3ff;}
+
+.guild-attr-bar{display:flex;gap:8px;margin-top:8px;}
+.attr-chip{flex:1;text-align:center;padding:6px 4px;border-radius:var(--r8);font-size:0.7rem;font-weight:700;}
+.attr-chip.purple{background:rgba(155,109,255,0.12);color:#7c3aed;}
+.attr-chip.green{background:rgba(86,224,160,0.14);color:#059669;}
+.attr-chip.yellow{background:rgba(255,209,102,0.18);color:#b45309;}
+.attr-chip .chip-val{display:block;font-size:0.85rem;font-family:'Inter',sans-serif;margin-top:1px;}
+
+.add-guild-btn{width:100%;padding:14px;border-radius:var(--r12);border:2px dashed var(--border2);background:var(--bg2);color:var(--tx2);font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;transition:all 0.15s;}
+.add-guild-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 共有コード読み込み */
+.load-share{display:flex;gap:6px;margin-top:10px;}
+.load-share input{flex:1;padding:10px 12px;border-radius:var(--r8);border:1px solid var(--border2);background:var(--bg2);font-size:0.85rem;font-family:inherit;outline:none;color:var(--tx);}
+.load-share input:focus{border-color:var(--accent);}
+.load-share button{padding:10px 16px;border-radius:var(--r8);border:none;background:linear-gradient(135deg,#4ec3ff,#5b9bff);color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg);width:100%;max-width:600px;max-height:92vh;border-radius:24px 24px 0 0;overflow-y:auto;padding:1.25rem;padding-bottom:2rem;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:var(--bg);padding-bottom:8px;z-index:2;}
+.modal-title{font-size:1.1rem;font-weight:800;color:var(--tx);}
+.modal-close{background:var(--bg2);border:1px solid var(--border2);width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--tx2);}
+
+.field{margin-bottom:12px;}
+.field-label{font-size:0.78rem;font-weight:700;color:var(--tx2);margin-bottom:5px;display:block;}
+.field-input{width:100%;padding:10px 12px;border-radius:var(--r8);border:1px solid var(--border2);background:var(--bg2);font-size:0.9rem;font-family:inherit;outline:none;color:var(--tx);}
+.field-input:focus{border-color:var(--accent);}
+
+/* スクショ解析（admin限定）*/
+.ocr-block{background:linear-gradient(135deg,rgba(155,109,255,0.06),rgba(78,195,255,0.06));border:1px solid rgba(155,109,255,0.2);border-radius:var(--r12);padding:12px;margin-bottom:14px;}
+.ocr-block-title{font-size:0.8rem;font-weight:800;color:#7c3aed;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ocr-step{margin-bottom:10px;}
+.ocr-step-label{font-size:0.74rem;font-weight:700;color:var(--tx2);margin-bottom:5px;}
+.ocr-btn{display:inline-block;padding:9px 16px;border-radius:99px;color:#fff;font-size:0.8rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.ocr-btn.list{background:linear-gradient(135deg,#9b6dff,#7c3aed);}
+.ocr-btn.squad{background:linear-gradient(135deg,#4ec3ff,#5b9bff);}
+.ocr-hint{font-size:0.68rem;color:var(--tx3);margin-top:6px;line-height:1.5;}
+.ocr-status{font-size:0.78rem;color:var(--accent);margin-top:8px;font-weight:600;min-height:1.2em;}
+.ocr-progress{height:5px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px;display:none;}
+.ocr-progress.show{display:block;}
+.ocr-progress-bar{height:100%;background:linear-gradient(90deg,#9b6dff,#4ec3ff);width:0%;transition:width 0.3s;}
+
+.member-count{font-size:0.74rem;color:var(--tx3);margin:8px 0;font-weight:600;}
+.member-count.over{color:#ef4444;}
+.member-table{margin-top:6px;}
+.member-row{display:grid;grid-template-columns:1.6fr 1.3fr 1fr 1fr 1fr 28px;gap:5px;align-items:center;margin-bottom:5px;}
+.member-row.header{font-size:0.62rem;font-weight:700;color:var(--tx3);text-align:center;position:sticky;top:48px;background:var(--bg);padding:4px 0;z-index:1;}
+.m-input{width:100%;padding:7px 5px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);font-size:0.78rem;font-family:inherit;outline:none;text-align:right;color:var(--tx);}
+.m-input.name{text-align:left;}
+.m-input:focus{border-color:var(--accent);}
+.m-input.purple{border-left:3px solid #9b6dff;}
+.m-input.green{border-left:3px solid #56e0a0;}
+.m-input.yellow{border-left:3px solid #ffd166;}
+.m-del{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:0.9rem;padding:2px;}
+.m-del:hover{color:#ef4444;}
+
+.add-member-btn{width:100%;padding:9px;border-radius:var(--r8);border:1px dashed var(--border2);background:none;color:var(--tx2);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px;}
+.add-member-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+.modal-save{width:100%;padding:13px;border-radius:var(--r12);background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:0.95rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:14px;box-shadow:0 4px 14px rgba(255,94,140,0.3);}
+
+.vs-select{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:1rem;}
+.vs-dropdown{padding:11px;border-radius:var(--r12);border:1px solid var(--border2);background:var(--bg2);font-size:0.85rem;font-family:inherit;color:var(--tx);outline:none;font-weight:600;}
+.vs-dropdown:focus{border-color:var(--accent);}
+.vs-label{font-size:1.1rem;font-weight:900;color:var(--accent);}
+
+.compare-btn{width:100%;padding:13px;border-radius:var(--r12);background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:0.95rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(255,94,140,0.3);margin-bottom:1rem;}
+.compare-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+.cmp-result{display:none;}
+.cmp-result.show{display:block;}
+.cmp-overview{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch;margin-bottom:1rem;}
+.cmp-side{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:12px;text-align:center;}
+.cmp-side.win{border-color:var(--accent);background:var(--accent3);box-shadow:0 4px 14px rgba(255,94,140,0.15);}
+.cmp-side-name{font-size:0.82rem;font-weight:800;color:var(--tx);margin-bottom:4px;}
+.cmp-side-total{font-size:1.15rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;}
+.cmp-side-sub{font-size:0.66rem;color:var(--tx3);margin-top:2px;}
+.cmp-vs{display:flex;align-items:center;font-size:1rem;font-weight:900;color:var(--tx3);}
+.cmp-badge{display:inline-block;font-size:0.66rem;padding:2px 8px;border-radius:99px;font-weight:700;margin-top:5px;}
+.cmp-badge.win{background:var(--accent);color:#fff;}
+.cmp-badge.lose{background:var(--bg);color:var(--tx3);border:1px solid var(--border2);}
+
+.cmp-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:14px;margin-bottom:1rem;}
+.cmp-section-title{font-size:0.85rem;font-weight:800;color:var(--tx);margin-bottom:10px;}
+
+.attr-compare{margin-bottom:10px;}
+.attr-compare-label{display:flex;justify-content:space-between;font-size:0.74rem;font-weight:700;margin-bottom:3px;}
+.attr-compare-bars{display:flex;align-items:center;gap:4px;}
+.acb-side{flex:1;height:22px;border-radius:6px;position:relative;overflow:hidden;background:var(--bg);}
+.acb-fill{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 6px;font-size:0.66rem;font-weight:700;color:#fff;white-space:nowrap;}
+.acb-side.left .acb-fill{right:0;justify-content:flex-end;border-radius:6px 0 0 6px;}
+.acb-side.right .acb-fill{left:0;border-radius:0 6px 6px 0;}
+
+.ai-strategy{background:linear-gradient(135deg,#f3e8ff,#fce7f3);border:1px solid rgba(155,109,255,0.25);border-radius:var(--r12);padding:1rem;line-height:1.7;font-size:0.85rem;color:var(--tx);position:relative;white-space:pre-wrap;}
+.ai-strategy::before{content:'🤖';position:absolute;top:-10px;left:14px;background:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(155,109,255,0.3);font-size:0.85rem;}
+.ai-loading{text-align:center;padding:1.5rem;color:var(--tx3);font-size:0.82rem;}
+.ai-loading::before{content:'';display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-msg{text-align:center;padding:2rem 1rem;color:var(--tx3);font-size:0.85rem;line-height:1.7;}
+
+.triangle-hint{display:flex;justify-content:center;gap:6px;align-items:center;font-size:0.74rem;color:var(--tx2);margin:0.5rem 0 1rem;flex-wrap:wrap;}
+.triangle-hint .ta{padding:2px 8px;border-radius:99px;font-weight:700;}
+.ta.purple{background:rgba(155,109,255,0.15);color:#7c3aed;}
+.ta.green{background:rgba(86,224,160,0.16);color:#059669;}
+.ta.yellow{background:rgba(255,209,102,0.2);color:#b45309;}
+
+/* 共有モーダル */
+.share-code-box{background:var(--bg2);border:2px dashed var(--accent);border-radius:var(--r12);padding:16px;text-align:center;margin:12px 0;}
+.share-code{font-size:1.4rem;font-weight:900;color:var(--accent);font-family:'Inter',sans-serif;letter-spacing:0.1em;}
+.share-copy{margin-top:10px;padding:8px 18px;border-radius:99px;border:none;background:var(--accent);color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-title">⚔️ ギルド分析</div>
+  <div class="page-desc">サーバー間対戦に向けて、自ギルド・相手ギルドの戦力を徹底分析。</div>
+  <div class="admin-badge" id="adminBadge" style="display:none;">🔓 管理者モード（スクショ解析が利用可能）</div>
+</div>
+
+<div class="triangle-hint">
+  <span class="ta purple">紫</span>→<span class="ta green">緑</span>→<span class="ta yellow">黄</span>→<span class="ta purple">紫</span>
+  <span style="color:var(--tx3);font-size:0.68rem;">（矢印=有利）</span>
+</div>
+
+<div class="mode-tabs">
+  <div class="mode-tab active" data-mode="manage">📋 ギルド管理</div>
+  <div class="mode-tab" data-mode="compare">⚔️ 対戦比較</div>
+</div>
+
+<div class="section">
+
+  <div class="mode-section active" id="manageSection">
+    <div class="guild-list" id="guildList"></div>
+    <button class="add-guild-btn" onclick="openEditor()">＋ 新しいギルドを追加</button>
+
+    <div class="load-share">
+      <input type="text" id="shareCodeInput" placeholder="共有コードを入力して読み込み">
+      <button onclick="loadFromShare()">読み込む</button>
+    </div>
+  </div>
+
+  <div class="mode-section" id="compareSection">
+    <div class="vs-select">
+      <select class="vs-dropdown" id="guildA"></select>
+      <span class="vs-label">VS</span>
+      <select class="vs-dropdown" id="guildB"></select>
+    </div>
+    <button class="compare-btn" id="compareBtn" onclick="runCompare()">この2ギルドを分析する</button>
+    <div class="cmp-result" id="cmpResult"></div>
+  </div>
+
+</div>
+
+<!-- 編集モーダル -->
+<div class="modal-overlay" id="editorModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="editorTitle">ギルドを追加</div>
+      <button class="modal-close" onclick="closeEditor()">✕</button>
+    </div>
+
+    <div class="field">
+      <label class="field-label">ギルド名</label>
+      <input type="text" class="field-input" id="editGuildName" placeholder="例：自ギルド / 相手ギルドA">
+    </div>
+
+    <!-- スクショ解析（admin限定）-->
+    <div class="ocr-block" id="ocrBlock" style="display:none;">
+      <div class="ocr-block-title">📷 スクショ解析（管理者専用）</div>
+      <input type="file" id="ocrListFile" accept="image/*" multiple style="display:none;">
+      <input type="file" id="ocrSquadFile" accept="image/*" multiple style="display:none;">
+
+      <div class="ocr-step">
+        <div class="ocr-step-label">① メンバー一覧スクショ（名前＋総戦力）</div>
+        <button class="ocr-btn list" onclick="document.getElementById('ocrListFile').click()">一覧を読み取り（複数可）</button>
+        <div class="ocr-hint">ギルメン一覧画面のスクショ。5枚程度まとめてOK。</div>
+      </div>
+
+      <div class="ocr-step">
+        <div class="ocr-step-label">② 部隊スクショ（属性別の単騎戦力）</div>
+        <button class="ocr-btn squad" onclick="document.getElementById('ocrSquadFile').click()">部隊を読み取り（複数可）</button>
+        <div class="ocr-hint">各メンバーの部隊画面。名前で自動マッチング。1人1枚 × 最大50枚。</div>
+      </div>
+
+      <div class="ocr-progress" id="ocrProgress"><div class="ocr-progress-bar" id="ocrProgressBar"></div></div>
+      <div class="ocr-status" id="ocrStatus"></div>
+    </div>
+
+    <label class="field-label">メンバー一覧</label>
+    <div class="member-count" id="memberCount">0 / 50人</div>
+    <div class="member-table" id="memberTable">
+      <div class="member-row header">
+        <div>名前</div><div>総戦力</div><div>紫単騎</div><div>緑単騎</div><div>黄単騎</div><div></div>
+      </div>
+      <div id="memberRows"></div>
+    </div>
+    <button class="add-member-btn" onclick="addMemberRow()">＋ メンバーを追加</button>
+
+    <button class="modal-save" onclick="saveGuild()">保存する</button>
+  </div>
+</div>
+
+<!-- 共有モーダル -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal" style="border-radius:24px;max-width:420px;margin:auto;">
+    <div class="modal-head">
+      <div class="modal-title">📤 ギルドを共有</div>
+      <button class="modal-close" onclick="document.getElementById('shareModal').classList.remove('show')">✕</button>
+    </div>
+    <p style="font-size:0.82rem;color:var(--tx2);line-height:1.6;">この共有コードをギルメンに伝えると、同じギルドデータを読み込めます。</p>
+    <div class="share-code-box">
+      <div class="share-code" id="shareCodeDisplay">----</div>
+      <button class="share-copy" onclick="copyShareCode()">コードをコピー</button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--tx3);line-height:1.5;">※ コードを知っている人だけが閲覧できます。更新したら再度共有してください。</p>
+  </div>
+</div>
+
+<nav class="p-tabbar">
+  <a class="p-tab" href="/"><span class="p-tab-icon">🏠</span>ホーム</a>
+  <a class="p-tab" href="/reika"><span class="p-tab-icon">⚔️</span>野望</a>
+  <a class="p-tab" href="/arena"><span class="p-tab-icon">🏆</span>闘技場</a>
+  <a class="p-tab" href="/formation"><span class="p-tab-icon">🧩</span>編成</a>
+  <a class="p-tab" href="/hiseki"><span class="p-tab-icon">💎</span>秘石</a>
+  <a class="p-tab" href="/collection"><span class="p-tab-icon">🗂</span>所持</a>
+  <a class="p-tab" href="/cards"><span class="p-tab-icon">📖</span>図鑑</a>
+</nav>
+<script>
+(function(){
+  var path = location.pathname;
+  document.querySelectorAll('.p-tab').forEach(function(tab){
+    var href = tab.getAttribute('href');
+    if(href && (path === href || (href !== '/' && path.startsWith(href)))){
+      tab.classList.add('active');
+    }
+  });
+})();
+
+// ========== 管理者判定 ==========
+const ADMIN_KEY = 'unaO_NE1wCjqQhtF520PUW-RbSHFxTOO';
+const ADMIN_FLAG = 'paranoize_guild_admin';
+let isAdmin = false;
+(function checkAdmin(){
+  const params = new URLSearchParams(location.search);
+  if (params.get('admin') === ADMIN_KEY) {
+    localStorage.setItem(ADMIN_FLAG, ADMIN_KEY);
+    isAdmin = true;
+  } else if (localStorage.getItem(ADMIN_FLAG) === ADMIN_KEY) {
+    isAdmin = true;
+  }
+  if (isAdmin) {
+    document.getElementById('adminBadge').style.display = 'inline-block';
+  }
+})();
+
+// ========== データ管理 ==========
+const STORAGE_KEY = 'paranoize_guilds_v1';
+const MAX_MEMBERS = 50;
+let guilds = [];
+let editingId = null;
+
+function loadGuilds() {
+  try { guilds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch(e) { guilds = []; }
+}
+function saveGuilds() { localStorage.setItem(STORAGE_KEY, JSON.stringify(guilds)); }
+function fmtNum(n) { n = parseInt(n) || 0; return n.toLocaleString('ja-JP'); }
+function guildTotal(g) { return g.members.reduce((s,m) => s + (parseInt(m.total)||0), 0); }
+function guildAttrTotal(g, attr) { return g.members.reduce((s,m) => s + (parseInt(m[attr])||0), 0); }
+function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ========== ギルド一覧描画 ==========
+function renderGuilds() {
+  const list = document.getElementById('guildList');
+  if (guilds.length === 0) {
+    list.innerHTML = '<div class="empty-msg">まだギルドが登録されていません。<br>「＋ 新しいギルドを追加」から始めましょう。</div>';
+    return;
+  }
+  list.innerHTML = guilds.map(g => {
+    const total = guildTotal(g);
+    const p = guildAttrTotal(g,'purple'), gr = guildAttrTotal(g,'green'), y = guildAttrTotal(g,'yellow');
+    return `
+      <div class="guild-card">
+        <div class="guild-card-head">
+          <div>
+            <div class="guild-name">${escapeHtml(g.name)}</div>
+            <div class="guild-meta">${g.members.length}人 ・ 合計 <span class="guild-total">${fmtNum(total)}</span></div>
+          </div>
+          <div class="guild-actions">
+            <button class="gbtn share" onclick="shareGuild('${g.id}')">共有</button>
+            <button class="gbtn" onclick="openEditor('${g.id}')">編集</button>
+            <button class="gbtn danger" onclick="deleteGuild('${g.id}')">削除</button>
+          </div>
+        </div>
+        <div class="guild-attr-bar">
+          <div class="attr-chip purple">🟣紫<span class="chip-val">${fmtNum(p)}</span></div>
+          <div class="attr-chip green">🟢緑<span class="chip-val">${fmtNum(gr)}</span></div>
+          <div class="attr-chip yellow">🟡黄<span class="chip-val">${fmtNum(y)}</span></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== エディタ ==========
+function openEditor(id) {
+  editingId = id || null;
+  const modal = document.getElementById('editorModal');
+  document.getElementById('memberRows').innerHTML = '';
+  document.getElementById('ocrStatus').textContent = '';
+  document.getElementById('ocrBlock').style.display = isAdmin ? 'block' : 'none';
+
+  if (id) {
+    const g = guilds.find(x => x.id === id);
+    document.getElementById('editorTitle').textContent = 'ギルドを編集';
+    document.getElementById('editGuildName').value = g.name;
+    g.members.forEach(m => addMemberRow(m, true));
+  } else {
+    document.getElementById('editorTitle').textContent = 'ギルドを追加';
+    document.getElementById('editGuildName').value = '';
+    for (let i=0;i<3;i++) addMemberRow(null, true);
+  }
+  updateMemberCount();
+  modal.classList.add('show');
+}
+function closeEditor() {
+  document.getElementById('editorModal').classList.remove('show');
+  editingId = null;
+}
+
+function addMemberRow(m, skipCount) {
+  if (currentMemberCount() >= MAX_MEMBERS) {
+    if (!skipCount) alert('1ギルド最大50人までです');
+    return;
+  }
+  m = m || {name:'',total:'',purple:'',green:'',yellow:''};
+  const row = document.createElement('div');
+  row.className = 'member-row';
+  row.innerHTML = `
+    <input class="m-input name" placeholder="名前" value="${escapeHtml(m.name)}">
+    <input class="m-input" type="text" inputmode="numeric" placeholder="総戦力" value="${m.total?fmtNum(m.total):''}">
+    <input class="m-input purple" type="text" inputmode="numeric" placeholder="紫" value="${m.purple?fmtNum(m.purple):''}">
+    <input class="m-input green" type="text" inputmode="numeric" placeholder="緑" value="${m.green?fmtNum(m.green):''}">
+    <input class="m-input yellow" type="text" inputmode="numeric" placeholder="黄" value="${m.yellow?fmtNum(m.yellow):''}">
+    <button class="m-del" onclick="this.parentElement.remove();updateMemberCount();">✕</button>
+  `;
+  row.querySelectorAll('.m-input:not(.name)').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const n = parseInt(inp.value.replace(/[^0-9]/g,'')) || 0;
+      inp.value = n ? fmtNum(n) : '';
+    });
+  });
+  document.getElementById('memberRows').appendChild(row);
+  if (!skipCount) updateMemberCount();
+}
+
+function currentMemberCount() {
+  return document.querySelectorAll('#memberRows .member-row').length;
+}
+function updateMemberCount() {
+  const c = currentMemberCount();
+  const el = document.getElementById('memberCount');
+  el.textContent = `${c} / ${MAX_MEMBERS}人`;
+  el.classList.toggle('over', c > MAX_MEMBERS);
+}
+
+function collectMembers() {
+  const rows = document.querySelectorAll('#memberRows .member-row');
+  const members = [];
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('.m-input');
+    const name = inputs[0].value.trim();
+    const total = parseInt(inputs[1].value.replace(/[^0-9]/g,'')) || 0;
+    const purple = parseInt(inputs[2].value.replace(/[^0-9]/g,'')) || 0;
+    const green = parseInt(inputs[3].value.replace(/[^0-9]/g,'')) || 0;
+    const yellow = parseInt(inputs[4].value.replace(/[^0-9]/g,'')) || 0;
+    if (name || total || purple || green || yellow) members.push({name, total, purple, green, yellow});
+  });
+  return members;
+}
+
+function saveGuild() {
+  const name = document.getElementById('editGuildName').value.trim();
+  if (!name) { alert('ギルド名を入力してください'); return; }
+  const members = collectMembers();
+  if (members.length === 0) { alert('メンバーを1人以上入力してください'); return; }
+  if (members.length > MAX_MEMBERS) { alert('1ギルド最大50人までです'); return; }
+
+  if (editingId) {
+    const g = guilds.find(x => x.id === editingId);
+    g.name = name; g.members = members;
+  } else {
+    guilds.push({ id:'g'+Date.now(), name, members });
+  }
+  saveGuilds();
+  renderGuilds();
+  refreshDropdowns();
+  closeEditor();
+}
+
+function deleteGuild(id) {
+  const g = guilds.find(x => x.id === id);
+  if (!confirm(`「${g.name}」を削除しますか？`)) return;
+  guilds = guilds.filter(x => x.id !== id);
+  saveGuilds();
+  renderGuilds();
+  refreshDropdowns();
+}
+
+// ========== 名前の正規化（マッチング用）==========
+function normalizeName(name) {
+  return (name||'').replace(/[\s　]/g,'').toLowerCase();
+}
+
+// ========== スクショ解析（admin限定）==========
+document.getElementById('ocrListFile').addEventListener('change', e => handleOCR(e, 'list'));
+document.getElementById('ocrSquadFile').addEventListener('change', e => handleOCR(e, 'squad'));
+
+async function handleOCR(e, type) {
+  if (!isAdmin) return;
+  const files = [...e.target.files];
+  if (files.length === 0) return;
+
+  const status = document.getElementById('ocrStatus');
+  const progress = document.getElementById('ocrProgress');
+  const progressBar = document.getElementById('ocrProgressBar');
+  progress.classList.add('show');
+  progressBar.style.width = '0%';
+
+  // 部隊スクショは枚数が多いので1枚ずつ、一覧は数枚まとめて
+  const batchSize = type === 'list' ? 5 : 1;
+  const batches = [];
+  for (let i = 0; i < files.length; i += batchSize) {
+    batches.push(files.slice(i, i+batchSize));
+  }
+
+  let allResults = [];
+  for (let bi = 0; bi < batches.length; bi++) {
+    status.textContent = `📷 ${type==='list'?'一覧':'部隊'}スクショ解析中… (${bi+1}/${batches.length})`;
+    try {
+      const images = await Promise.all(batches[bi].map(fileToBase64));
+      const promptText = type === 'list'
+        ? `これはPARANOIZEのギルドメンバー一覧画面のスクショです。各メンバーの「名前」と「総戦力」を読み取り、以下のJSON形式のみで出力（前置き・マークダウン不要）：
+[{"name":"名前","total":総戦力数値}]
+数値はカンマ・単位を除いた整数。読めない人は飛ばす。`
+        : `これはPARANOIZEのキャラ部隊画面のスクショです。「メンバーの名前」と、編成されているキャラの「属性別（紫/緑/黄）の単騎戦力」を読み取ってください。同じ属性が複数いる場合は最も高い単騎戦力を採用。以下のJSON形式のみで出力（前置き・マークダウン不要）：
+[{"name":"名前","purple":紫単騎数値,"green":緑単騎数値,"yellow":黄単騎数値}]
+数値はカンマ・単位を除いた整数。その属性がいなければ0。`;
+
+      const content = [
+        { type:'text', text: promptText },
+        ...images.map(img => ({ type:'image', source:{ type:'base64', media_type:img.type, data:img.data } })),
+      ];
+
+      const res = await fetch('/api/analyze', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user', content}] }),
+      });
+      const data = await res.json();
+      let text = data.content?.[0]?.text || '[]';
+      text = text.replace(/```json|```/g,'').trim();
+      const parsed = JSON.parse(text);
+      allResults = allResults.concat(parsed);
+    } catch(err) {
+      console.error(err);
+    }
+    progressBar.style.width = `${(bi+1)/batches.length*100}%`;
+  }
+
+  mergeOCRResults(allResults, type);
+  status.textContent = `✅ ${allResults.length}件を読み取りました（確認・修正してください）`;
+  setTimeout(() => progress.classList.remove('show'), 1000);
+  e.target.value = '';
+}
+
+// 既存行と名前でマージ
+function mergeOCRResults(results, type) {
+  // 現在の行データを取得
+  const rows = [...document.querySelectorAll('#memberRows .member-row')];
+  const existing = rows.map(r => {
+    const inp = r.querySelectorAll('.m-input');
+    return { row:r, name:inp[0].value.trim(), inputs:inp };
+  });
+
+  results.forEach(rd => {
+    const norm = normalizeName(rd.name);
+    let match = existing.find(e => normalizeName(e.name) === norm && norm !== '');
+
+    if (match) {
+      // 既存メンバーを更新
+      if (rd.total) match.inputs[1].value = fmtNum(rd.total);
+      if (rd.purple) match.inputs[2].value = fmtNum(rd.purple);
+      if (rd.green) match.inputs[3].value = fmtNum(rd.green);
+      if (rd.yellow) match.inputs[4].value = fmtNum(rd.yellow);
+    } else {
+      // 新規追加
+      addMemberRow({
+        name:rd.name||'', total:rd.total||0,
+        purple:rd.purple||0, green:rd.green||0, yellow:rd.yellow||0,
+      }, true);
+      // 追加した行をexistingに登録（後続マッチ用）
+      const newRows = [...document.querySelectorAll('#memberRows .member-row')];
+      const last = newRows[newRows.length-1];
+      existing.push({ row:last, name:rd.name||'', inputs:last.querySelectorAll('.m-input') });
+    }
+  });
+  updateMemberCount();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({ data:reader.result.split(',')[1], type:file.type });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ========== Supabase共有 ==========
+async function shareGuild(id) {
+  const g = guilds.find(x => x.id === id);
+  const code = 'GLD-' + Math.random().toString(36).substring(2,8).toUpperCase();
+  const keyword = 'guild_share_' + code;
+
+  document.getElementById('shareModal').classList.add('show');
+  document.getElementById('shareCodeDisplay').textContent = '保存中…';
+
+  try {
+    await fetch('/api/memo', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ keyword, data: JSON.stringify({name:g.name, members:g.members}) }),
+    });
+    document.getElementById('shareCodeDisplay').textContent = code;
+    window._lastShareCode = code;
+  } catch(e) {
+    document.getElementById('shareCodeDisplay').textContent = 'エラー';
+  }
+}
+
+function copyShareCode() {
+  const code = window._lastShareCode;
+  if (!code) return;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.share-copy');
+    const orig = btn.textContent;
+    btn.textContent = '✓ コピーしました';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+async function loadFromShare() {
+  const input = document.getElementById('shareCodeInput');
+  const code = input.value.trim().toUpperCase();
+  if (!code) return;
+  const keyword = 'guild_share_' + code;
+
+  input.disabled = true;
+  try {
+    const res = await fetch(`/api/memo?keyword=${encodeURIComponent(keyword)}`);
+    const json = await res.json();
+    if (!json.data) { alert('そのコードのギルドが見つかりませんでした'); input.disabled=false; return; }
+    const gd = JSON.parse(json.data);
+    // 既存の同名を避けて追加
+    guilds.push({ id:'g'+Date.now(), name:gd.name + '（共有）', members:gd.members });
+    saveGuilds();
+    renderGuilds();
+    refreshDropdowns();
+    input.value = '';
+    alert(`「${gd.name}」を読み込みました！`);
+  } catch(e) {
+    alert('読み込みに失敗しました');
+  }
+  input.disabled = false;
+}
+
+// ========== 比較 ==========
+function refreshDropdowns() {
+  const a = document.getElementById('guildA');
+  const b = document.getElementById('guildB');
+  const opts = guilds.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  a.innerHTML = opts; b.innerHTML = opts;
+  if (guilds.length >= 2) b.selectedIndex = 1;
+  document.getElementById('compareBtn').disabled = guilds.length < 2;
+}
+
+function runCompare() {
+  const aId = document.getElementById('guildA').value;
+  const bId = document.getElementById('guildB').value;
+  if (aId === bId) { alert('違うギルドを選んでください'); return; }
+  const A = guilds.find(g => g.id === aId);
+  const B = guilds.find(g => g.id === bId);
+
+  const totalA = guildTotal(A), totalB = guildTotal(B);
+  const attrs = [
+    {key:'purple', label:'🟣 紫', color:'#9b6dff'},
+    {key:'green', label:'🟢 緑', color:'#56e0a0'},
+    {key:'yellow', label:'🟡 黄', color:'#ffd166'},
+  ];
+
+  let attrHtml = '';
+  attrs.forEach(at => {
+    const va = guildAttrTotal(A, at.key), vb = guildAttrTotal(B, at.key);
+    const max = Math.max(va, vb, 1);
+    attrHtml += `
+      <div class="attr-compare">
+        <div class="attr-compare-label">
+          <span style="color:${at.color};">${fmtNum(va)}</span>
+          <span>${at.label}</span>
+          <span style="color:${at.color};">${fmtNum(vb)}</span>
+        </div>
+        <div class="attr-compare-bars">
+          <div class="acb-side left"><div class="acb-fill" style="width:${va/max*100}%;background:${at.color};">${escapeHtml(A.name)}</div></div>
+          <div class="acb-side right"><div class="acb-fill" style="width:${vb/max*100}%;background:${at.color};">${escapeHtml(B.name)}</div></div>
+        </div>
+      </div>
+    `;
+  });
+
+  const aWin = totalA >= totalB;
+  document.getElementById('cmpResult').innerHTML = `
+    <div class="cmp-overview">
+      <div class="cmp-side ${aWin?'win':''}">
+        <div class="cmp-side-name">${escapeHtml(A.name)}</div>
+        <div class="cmp-side-total">${fmtNum(totalA)}</div>
+        <div class="cmp-side-sub">${A.members.length}人</div>
+        <div class="cmp-badge ${aWin?'win':'lose'}">${aWin?'総合優勢':'総合劣勢'}</div>
+      </div>
+      <div class="cmp-vs">VS</div>
+      <div class="cmp-side ${!aWin?'win':''}">
+        <div class="cmp-side-name">${escapeHtml(B.name)}</div>
+        <div class="cmp-side-total">${fmtNum(totalB)}</div>
+        <div class="cmp-side-sub">${B.members.length}人</div>
+        <div class="cmp-badge ${!aWin?'win':'lose'}">${!aWin?'総合優勢':'総合劣勢'}</div>
+      </div>
+    </div>
+    <div class="cmp-section">
+      <div class="cmp-section-title">📊 属性別 戦力対比</div>
+      ${attrHtml}
+    </div>
+    <div class="cmp-section">
+      <div class="cmp-section-title">🤖 AI戦略アドバイス</div>
+      <div class="ai-strategy" id="aiStrategy"><div class="ai-loading">対戦分析中…</div></div>
+    </div>
+  `;
+  document.getElementById('cmpResult').classList.add('show');
+  fetchStrategy(A, B);
+}
+
+async function fetchStrategy(A, B) {
+  const summarize = (g) => {
+    const total = guildTotal(g);
+    const top = [...g.members].sort((a,b)=>(b.total||0)-(a.total||0)).slice(0,12);
+    return `【${g.name}】${g.members.length}人 合計${total}\n属性合計: 紫${guildAttrTotal(g,'purple')} 緑${guildAttrTotal(g,'green')} 黄${guildAttrTotal(g,'yellow')}\n主力: ${top.map(m=>`${m.name}(総${m.total}/紫${m.purple}/緑${m.green}/黄${m.yellow})`).join('、')}`;
+  };
+
+  const prompt = `あなたはPARANOIZEのギルド対戦の戦略アナリストです。サーバー間対戦（闘技場・麗華の野望）で、自ギルド(A)が相手ギルド(B)に勝つための戦略を立ててください。
+
+属性相性: 紫→緑→黄→紫（左が右に有利）
+
+■自ギルド(A)
+${summarize(A)}
+
+■相手ギルド(B)
+${summarize(B)}
+
+以下の観点で、具体的かつ実戦的に350字程度で分析してください：
+- 総合戦力差をどう見るか
+- 属性相性をどう突くか（相手の手薄な属性、こちらがぶつけるべき属性）
+- キーとなるマッチアップ（誰を誰にぶつけるか、名前を挙げて）
+- 勝つための具体的な狙いどころ
+
+「です・ます」調、改行使用可、前置きなしで分析から。`;
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user', content:prompt}] }),
+    });
+    const data = await res.json();
+    document.getElementById('aiStrategy').textContent = data.content?.[0]?.text || '分析に失敗しました。';
+  } catch(e) {
+    document.getElementById('aiStrategy').textContent = 'AI分析に失敗しました。通信環境を確認してください。';
+  }
+}
+
+// ========== モード切替 ==========
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const mode = tab.dataset.mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t===tab));
+    document.getElementById('manageSection').classList.toggle('active', mode==='manage');
+    document.getElementById('compareSection').classList.toggle('active', mode==='compare');
+    if (mode==='compare') refreshDropdowns();
+  });
+});
+
+document.getElementById('editorModal').addEventListener('click', e => { if (e.target.id==='editorModal') closeEditor(); });
+document.getElementById('shareModal').addEventListener('click', e => { if (e.target.id==='shareModal') e.currentTarget.classList.remove('show'); });
+
+// ========== 初期化 ==========
+loadGuilds();
+renderGuilds();
+refreshDropdowns();
+
+// 共有コードがURLパラメータにあれば自動読み込み (?load=GLD-XXXX)
+(function(){
+  const params = new URLSearchParams(location.search);
+  const loadCode = params.get('load');
+  if (loadCode) {
+    document.getElementById('shareCodeInput').value = loadCode;
+    loadFromShare();
+  }
+})();
+</script>
+
+</body>
+</html>
