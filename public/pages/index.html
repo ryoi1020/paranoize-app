@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOIZE 攻略アプリ</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/common.css?v=6">
+<link rel="stylesheet" href="/assets/common.css?v=7">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Noto Sans JP',sans-serif;}
+html{background:#ece8f5;}
 body{
   background:#fdfaff;
   background-image:linear-gradient(180deg,#fff7fb 0%,#fdfaff 50%,#f7fbff 100%);
@@ -16,6 +17,15 @@ body{
   color:#1a1a2e;
   padding-bottom:84px;
   position:relative;
+  /* スマホ幅に固定して中央寄せ（PCでもスマホと同じ見た目に） */
+  max-width:440px;
+  margin:0 auto;
+  min-height:100vh;
+  box-shadow:0 0 60px rgba(124,58,237,0.12);
+}
+/* PCで横の余白に背景が見えるように */
+@media (min-width:441px){
+  html{background-image:linear-gradient(135deg,#e8e3f5 0%,#f0e8f5 50%,#e3eef5 100%);background-attachment:fixed;}
 }
 
 /* 背景グラデーションオーブ — 多色ポップ */
@@ -41,7 +51,7 @@ body{
 .kicker-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#ff5e8c,#ffd166);box-shadow:0 0 8px rgba(255,94,140,0.7);animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.85);}}
 
-.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(1.9rem,8.5vw,5rem);font-weight:800;letter-spacing:0.01em;line-height:1;
+.hero-logo{font-family:'Syne',sans-serif;font-size:clamp(1.9rem,13vw,3.6rem);font-weight:800;letter-spacing:0.01em;line-height:1;
   background:linear-gradient(135deg,#ff5e8c 0%,#9b6dff 30%,#4ec3ff 60%,#56e0a0 85%,#ffd166 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   filter:drop-shadow(0 4px 18px rgba(155,109,255,0.35));

@@ -122,6 +122,9 @@ body::after{
   bottom:calc(8px + env(safe-area-inset-bottom,0));
   left:10px;right:10px;
   z-index:100;
+  /* PCではスマホ幅に合わせて中央寄せ */
+  max-width:420px;
+  margin:0 auto;
   background:rgba(255,255,255,0.72);
   backdrop-filter:blur(40px) saturate(190%);-webkit-backdrop-filter:blur(40px) saturate(190%);
   border:1px solid rgba(255,255,255,0.95);
