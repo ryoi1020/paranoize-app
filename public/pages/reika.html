@@ -89,7 +89,7 @@
 /* ホームボタン */
 .back-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.9);border-radius:100px;padding:6px 14px;color:var(--tx2);font-size:0.78rem;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:0.5rem;font-weight:600;}
 </style>
-<link rel="stylesheet" href="/assets/common.css?v=4">
+<link rel="stylesheet" href="/assets/common.css?v=5">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -297,7 +297,54 @@ var BASES_SHIKOKU={
   '鍛冶屋B':{star:1,neighbors:['肉屋B','魚屋B','ゲームセンターB']}
 };
 
-var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:true},'キュウシュウ':{available:false}};
+var BASES_KYUSHU={
+  '本丸':{star:3,neighbors:['八本木ヒルズ','カジノ','麗華のお屋敷','メゾン・ド・イエ']},
+  'メゾン・ド・イエ':{star:2,neighbors:['本丸','カシワ荘','映画館B']},
+  '麗華のお屋敷':{star:2,neighbors:['映画館A','本丸','酒場','肉屋A']},
+  '鰐梨事務所':{star:2,neighbors:['映画館B','本屋','ゲームセンターB']},
+  '八本木ヒルズ':{star:2,neighbors:['ゲームセンターA','本丸','映画館A']},
+  'カジノ':{star:2,neighbors:['本丸','肉屋B','ゲームセンターA']},
+  '肉屋B':{star:1,neighbors:['カシワ荘','カジノ']},
+  'ゲームセンターA':{star:1,neighbors:['カジノ','八本木ヒルズ']},
+  'カシワ荘':{star:1,neighbors:['メゾン・ド・イエ','肉屋B','ゲームセンターB']},
+  '映画館A':{star:1,neighbors:['八本木ヒルズ','麗華のお屋敷','宮本家']},
+  '酒場':{star:1,neighbors:['麗華のお屋敷','本屋','映画館B']},
+  '映画館B':{star:1,neighbors:['酒場','メゾン・ド・イエ','鰐梨事務所']},
+  '宮本家':{star:1,neighbors:['映画館A','魚屋']},
+  '肉屋A':{star:1,neighbors:['麗華のお屋敷','温泉宿']},
+  '本屋':{star:1,neighbors:['酒場','温泉宿','鰐梨事務所']},
+  'ゲームセンターB':{star:1,neighbors:['カシワ荘','鰐梨事務所']},
+  '魚屋':{star:1,neighbors:['宮本家','温泉宿']},
+  '温泉宿':{star:1,neighbors:['魚屋','肉屋A','本屋']}
+};
+
+var BASES_NATIONAL={
+  '本丸':{star:3,neighbors:['麗華のお屋敷','鰐梨事務所','カジノ','道場B']},
+  '麗華のお屋敷':{star:2,neighbors:['本丸','映画館','本屋A','橘家']},
+  '鰐梨事務所':{star:2,neighbors:['本屋A','肉屋A','本丸','鍛冶屋B']},
+  'カジノ':{star:2,neighbors:['本丸','ゲームセンターB','肉屋B','本田のマンション','ゲームセンターA']},
+  '温泉宿':{star:2,neighbors:['魚屋A','道場A','カシワ荘']},
+  '本田のマンション':{star:2,neighbors:['肉屋B','本屋B','カジノ']},
+  'メゾン・ド・イエ':{star:2,neighbors:['道場B','宮本家','鍛冶屋A']},
+  '道場A':{star:1,neighbors:['肉屋A','鍛冶屋B','温泉宿']},
+  '肉屋A':{star:1,neighbors:['本屋A','鰐梨事務所','道場A']},
+  '魚屋A':{star:1,neighbors:['ゲームセンターB','温泉宿']},
+  'カシワ荘':{star:1,neighbors:['温泉宿','ゲームセンターA']},
+  '本屋A':{star:1,neighbors:['肉屋A','麗華のお屋敷','酒場','鰐梨事務所']},
+  '鍛冶屋B':{star:1,neighbors:['鰐梨事務所','道場A','ゲームセンターB']},
+  'ゲームセンターB':{star:1,neighbors:['鍛冶屋B','魚屋A','カジノ']},
+  '映画館':{star:1,neighbors:['麗華のお屋敷','酒場']},
+  '肉屋B':{star:1,neighbors:['カジノ','本田のマンション','ゲームセンターA','本屋B']},
+  'ゲームセンターA':{star:1,neighbors:['肉屋B','カジノ','カシワ荘']},
+  '酒場':{star:1,neighbors:['映画館','本屋A','宮本家']},
+  '橘家':{star:1,neighbors:['宮本家','麗華のお屋敷','道場B']},
+  '道場B':{star:1,neighbors:['橘家','本丸','メゾン・ド・イエ','本屋B']},
+  '本屋B':{star:1,neighbors:['肉屋B','本田のマンション','道場B','鍛冶屋A']},
+  '宮本家':{star:1,neighbors:['橘家','酒場','メゾン・ド・イエ']},
+  '鍛冶屋A':{star:1,neighbors:['メゾン・ド・イエ','本屋B']}
+};
+
+var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:true},'キュウシュウ':{available:true},'クロスワールド':{available:true,national:true}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
 
@@ -308,7 +355,7 @@ function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'
 function updateBases(){
   // 一旦クリア
   for(var k in BASES){ delete BASES[k]; }
-  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : MAP==='シコク' ? BASES_SHIKOKU : BASES_TOUHOKU;
+  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : MAP==='シコク' ? BASES_SHIKOKU : MAP==='キュウシュウ' ? BASES_KYUSHU : MAP==='クロスワールド' ? BASES_NATIONAL : BASES_TOUHOKU;
   Object.assign(BASES, src);
   BN = Object.keys(BASES);
 }
@@ -320,7 +367,14 @@ function buildMapBtns(){
     var b=document.createElement('button');
     b.textContent=n+(av?'':'（未公開）');b.disabled=!av;
     b.className='mb'+(n===MAP?' act':'');
-    if(av){b.onclick=function(){MAP=n;updateBases();buildMapBtns();buildGrids();document.getElementById('result').innerHTML='';updateSim();};}
+    if(av){b.onclick=function(){
+      MAP=n;
+      var modeSel=document.getElementById('mode');
+      if(MAPS[n].national){ modeSel.value='national'; }
+      else if(modeSel.value==='national'){ modeSel.value='normal'; }
+      onModeChange();
+      updateBases();buildMapBtns();buildGrids();document.getElementById('result').innerHTML='';updateSim();
+    };}
     c.appendChild(b);
   });
 }
@@ -494,8 +548,9 @@ function buildPrompt(){
   var scL={'three':'3つ（全国版）','two':isFirstDay?'2つ（1〜8位）+★1拠点2つ持ちスタート':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
+  var declEnd = MAP==='クロスワールド' ? '21:00' : '20:00';
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
-  p+='- 布告は朝8:00〜20:00のみ可能（早い者勝ち）\n';
+  p+='- 布告は朝8:00〜'+declEnd+'のみ可能（早い者勝ち）\n';
   p+='- 【薄積み戦術】拠点を弱い班2〜3つだけで守る戦術。相手の強い班がその拠点を取っても、取った強い班はその日もう攻めに行けなくなる（布告の制限のため）。相手の攻撃ルートを絞る有効な守備戦術。\n';
   p+='- 野望ポイントランキングは毎日夜12時にリセットされる\n';
   p+='- 布告可能数は前日のランキング次第（通常版：1〜8位は2つ、9〜16位は1つ、全国版は3つ）\n';
@@ -511,10 +566,29 @@ function buildPrompt(){
 
 
   p+='## 現在の状況\n';
+  p+='- 対象マップ：'+MAP+'\n';
   p+='- 開催形式：'+(isN?'全国版（1週間・22:00〜22:45）':'通常版（2週間・21:00〜21:45）')+'\n';
   p+='- 残り日数：'+d+'日（全'+max+'日中）\n';
   p+='- 布告可能数：'+scL+'\n';
   p+='- 相手の戦力：'+enL+'\n\n';
+
+  // クロスワールド（全国版マップ）専用の戦術コンテキスト
+  if(MAP==='クロスワールド'){
+    p+='## クロスワールド（全国版マップ）特有のルールと戦術【最重要】\n';
+    p+='- このマップには**4ギルドしか存在しない**（通常版は16ギルド以上がひしめく）。\n';
+    p+='- 集まる4ギルドは**戦力が拮抗**している。誰が勝ってもおかしくない、極めて競った戦いになる。\n';
+    p+='- **全ギルドが常に互いに隣接しており、逃げ場がない**。通常版のように他ギルド同士の潰し合いを待つ「漁夫の利」戦法は使えない。必ず直接ぶつかる。\n';
+    p+='- 布告可能時間：朝8:00〜**21:00**（通常版は8:00〜20:00。クロスは1時間長い）。\n';
+    p+='\n### 布告返し（攻守逆転）の原則 ※全形式共通だが4ギルド戦で特に重要\n';
+    p+='- 自拠点に布告されたら、**同じ拠点に布告返し**をする。すると相手はその拠点を「攻める」だけでなく「守る」必要も生じ、**相手の戦力を実質半分に分散**させられる。\n';
+    p+='\n### 布告権の使い切りは厳禁（4ギルド戦の最大の罠）\n';
+    p+='- 1つのギルドから3つ布告された時、全部に布告返ししたくなるが、**布告権3つを使い果たすのは危険**。\n';
+    p+='- なぜなら残り2ギルドから**最大6箇所**さらに布告される。その時に布告返しできず、めっちゃ不利な戦いになる。\n';
+    p+='- 布告権は常に**残し**を意識し、他2ギルドからの攻撃に対応できる余力を持つこと。\n';
+    p+='\n### 終了直前のギリ布告が最善手\n';
+    p+='- 布告時間終了の**21時直前にギリギリで布告**するのが強力。相手に布告返しする時間を与えず、攻めを一方的に通せる。\n';
+    p+='- このマップでは「いつ布告するか」のタイミングが勝敗を分ける。早撃ちは布告返しを食らうリスクが高い。\n\n';
+  }
 
   p+='## 自チームの保有拠点\n';
   if(own.length>0){own.forEach(function(n){p+='- '+sl(n)+' '+n+'（+'+BASES[n].star+'pt/日）\n';});p+='合計：+'+myD+'pt/日\n';}else{p+='（なし）\n';}
