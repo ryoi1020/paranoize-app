@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ギルド分析 — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=10">
+<link rel="stylesheet" href="/assets/common.css?v=8">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -43,6 +43,24 @@
 .gbtn.share:hover{border-color:#4ec3ff;color:#4ec3ff;}
 
 .guild-attr-bar{display:flex;gap:8px;margin-top:8px;}
+
+/* タグ */
+.guild-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.gtag{font-size:0.64rem;font-weight:700;padding:2px 9px;border-radius:99px;background:rgba(155,109,255,0.14);color:#7c3aed;border:1px solid rgba(155,109,255,0.25);}
+/* タグ選択（編集モーダル内） */
+.tag-picker{display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;padding:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r8);margin-bottom:12px;}
+.tag-opt{font-size:0.72rem;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--bg);border:1px solid var(--border2);color:var(--tx2);cursor:pointer;transition:all 0.12s;user-select:none;}
+.tag-opt:hover{border-color:var(--accent);}
+.tag-opt.on{background:linear-gradient(135deg,#9b6dff,#7c3aed);color:#fff;border-color:transparent;}
+/* フィルターバー */
+.filter-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r12);padding:10px 12px;margin-bottom:12px;}
+.filter-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.filter-title{font-size:0.76rem;font-weight:700;color:var(--tx2);}
+.filter-mode{display:flex;gap:4px;}
+.fmode-btn{font-size:0.66rem;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid var(--border2);background:var(--bg);color:var(--tx3);cursor:pointer;}
+.fmode-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.filter-tags{display:flex;flex-wrap:wrap;gap:4px;max-height:120px;overflow-y:auto;}
+.filter-clear{font-size:0.66rem;color:var(--tx3);cursor:pointer;text-decoration:underline;margin-left:8px;}
 .attr-chip{flex:1;text-align:center;padding:6px 4px;border-radius:var(--r8);font-size:0.7rem;font-weight:700;}
 .attr-chip.purple{background:rgba(155,109,255,0.12);color:#7c3aed;}
 .attr-chip.green{background:rgba(86,224,160,0.14);color:#059669;}
@@ -208,6 +226,19 @@
         <button class="gbtn" onclick="reloadGuilds()">🔄 再読込</button>
       </div>
     </div>
+
+    <!-- タグフィルター -->
+    <div class="filter-bar">
+      <div class="filter-head">
+        <div class="filter-title">🏷️ サーバーで絞り込み<span class="filter-clear" id="filterClear" onclick="clearFilter()" style="display:none;">クリア</span></div>
+        <div class="filter-mode">
+          <button class="fmode-btn on" id="fmodeOr" onclick="setFilterMode('or')">OR</button>
+          <button class="fmode-btn" id="fmodeAnd" onclick="setFilterMode('and')">AND</button>
+        </div>
+      </div>
+      <div class="filter-tags" id="filterTags"></div>
+    </div>
+
     <div class="guild-list" id="guildList"></div>
     <button class="add-guild-btn" onclick="openEditor()">＋ 新しいギルドを追加</button>
   </div>
@@ -235,6 +266,11 @@
     <div class="field">
       <label class="field-label">ギルド名</label>
       <input type="text" class="field-input" id="editGuildName" placeholder="例：自ギルド / 相手ギルドA">
+    </div>
+
+    <div class="field">
+      <label class="field-label">🏷️ サーバータグ（複数選択可）</label>
+      <div class="tag-picker" id="tagPicker"></div>
     </div>
 
     <!-- スクショ解析（admin限定）-->
@@ -324,8 +360,13 @@ let isAdmin = false;
 // ========== データ管理（Supabase共有スペース）==========
 const SHARE_KEYWORD = 'guild_shared_board_v1';  // 全員共通の共有キー
 const MAX_MEMBERS = 50;
+// サーバータグ（1〜34サーバー）
+const SERVER_TAGS = Array.from({length:34}, (_,i) => `${i+1}サーバー`);
 let guilds = [];
 let editingId = null;
+let editingTags = [];        // 編集中ギルドの選択タグ
+let filterTags = [];          // フィルター選択中のタグ
+let filterMode = 'or';        // 'or' | 'and'
 let isSyncing = false;
 
 // 全ギルドをSupabaseから読み込み
@@ -375,13 +416,35 @@ function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','
 // ========== ギルド一覧描画 ==========
 function renderGuilds() {
   const list = document.getElementById('guildList');
+  renderFilterTags();
+
   if (guilds.length === 0) {
     list.innerHTML = '<div class="empty-msg">まだギルドが登録されていません。<br>「＋ 新しいギルドを追加」から始めましょう。</div>';
     return;
   }
-  list.innerHTML = guilds.map(g => {
+
+  // フィルター適用
+  let shown = guilds;
+  if (filterTags.length > 0) {
+    shown = guilds.filter(g => {
+      const tags = g.tags || [];
+      if (filterMode === 'and') return filterTags.every(t => tags.includes(t));
+      return filterTags.some(t => tags.includes(t));  // or
+    });
+  }
+
+  if (shown.length === 0) {
+    list.innerHTML = '<div class="empty-msg">選んだサーバータグに一致するギルドがありません。<br>フィルターを変更してください。</div>';
+    return;
+  }
+
+  list.innerHTML = shown.map(g => {
     const total = guildTotal(g);
     const p = guildAttrTotal(g,'purple'), gr = guildAttrTotal(g,'green'), y = guildAttrTotal(g,'yellow');
+    const tags = g.tags || [];
+    const tagHtml = tags.length > 0
+      ? `<div class="guild-tags">${tags.map(t => `<span class="gtag">${escapeHtml(t)}</span>`).join('')}</div>`
+      : '';
     return `
       <div class="guild-card">
         <div class="guild-card-head" onclick="openDetail('${g.id}')" style="cursor:pointer;">
@@ -394,6 +457,7 @@ function renderGuilds() {
             <button class="gbtn danger" onclick="deleteGuild('${g.id}')">削除</button>
           </div>
         </div>
+        ${tagHtml}
         <div class="guild-attr-bar">
           <div class="attr-chip purple">🟣紫<span class="chip-val">${fmtNum(p)}</span></div>
           <div class="attr-chip green">🟢緑<span class="chip-val">${fmtNum(gr)}</span></div>
@@ -402,6 +466,41 @@ function renderGuilds() {
       </div>
     `;
   }).join('');
+}
+
+// ========== フィルター ==========
+function renderFilterTags() {
+  const box = document.getElementById('filterTags');
+  if (!box) return;
+  // 実際に使われているタグだけ表示（全34個出すと邪魔なので）
+  const usedTags = SERVER_TAGS.filter(t => guilds.some(g => (g.tags||[]).includes(t)));
+  if (usedTags.length === 0) {
+    box.innerHTML = '<span style="font-size:0.68rem;color:var(--tx3);">タグ付きギルドがまだありません</span>';
+    document.getElementById('filterClear').style.display = 'none';
+    return;
+  }
+  box.innerHTML = usedTags.map(t =>
+    `<span class="tag-opt ${filterTags.includes(t)?'on':''}" onclick="toggleFilterTag('${t}')">${t}</span>`
+  ).join('');
+  document.getElementById('filterClear').style.display = filterTags.length > 0 ? 'inline' : 'none';
+}
+
+function toggleFilterTag(t) {
+  if (filterTags.includes(t)) filterTags = filterTags.filter(x => x !== t);
+  else filterTags.push(t);
+  renderGuilds();
+}
+
+function setFilterMode(mode) {
+  filterMode = mode;
+  document.getElementById('fmodeOr').classList.toggle('on', mode==='or');
+  document.getElementById('fmodeAnd').classList.toggle('on', mode==='and');
+  renderGuilds();
+}
+
+function clearFilter() {
+  filterTags = [];
+  renderGuilds();
 }
 
 // ========== 詳細ビュー ==========
@@ -452,7 +551,13 @@ function renderDetail() {
     `;
   }).join('');
 
+  const dTags = g.tags || [];
+  const dTagHtml = dTags.length > 0
+    ? `<div class="guild-tags" style="margin-bottom:14px;">${dTags.map(t => `<span class="gtag">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
+
   document.getElementById('detailBody').innerHTML = `
+    ${dTagHtml}
     <div class="detail-summary">
       <div class="detail-stat">
         <div class="detail-stat-label">合計戦力</div>
@@ -513,15 +618,32 @@ function openEditor(id) {
     const g = guilds.find(x => x.id === id);
     document.getElementById('editorTitle').textContent = 'ギルドを編集';
     document.getElementById('editGuildName').value = g.name;
+    editingTags = [...(g.tags || [])];
     g.members.forEach(m => addMemberRow(m, true));
   } else {
     document.getElementById('editorTitle').textContent = 'ギルドを追加';
     document.getElementById('editGuildName').value = '';
+    editingTags = [];
     for (let i=0;i<3;i++) addMemberRow(null, true);
   }
+  renderTagPicker();
   updateMemberCount();
   modal.classList.add('show');
 }
+
+// タグピッカー描画
+function renderTagPicker() {
+  const box = document.getElementById('tagPicker');
+  box.innerHTML = SERVER_TAGS.map(t =>
+    `<span class="tag-opt ${editingTags.includes(t)?'on':''}" onclick="toggleEditTag('${t}')">${t}</span>`
+  ).join('');
+}
+function toggleEditTag(t) {
+  if (editingTags.includes(t)) editingTags = editingTags.filter(x => x !== t);
+  else editingTags.push(t);
+  renderTagPicker();
+}
+
 function closeEditor() {
   document.getElementById('editorModal').classList.remove('show');
   editingId = null;
@@ -590,10 +712,10 @@ async function saveGuild() {
 
   if (editingId) {
     const g = guilds.find(x => x.id === editingId);
-    if (g) { g.name = name; g.members = members; }
-    else { guilds.push({ id:editingId, name, members }); }
+    if (g) { g.name = name; g.members = members; g.tags = [...editingTags]; }
+    else { guilds.push({ id:editingId, name, members, tags:[...editingTags] }); }
   } else {
-    guilds.push({ id:'g'+Date.now()+Math.random().toString(36).slice(2,6), name, members });
+    guilds.push({ id:'g'+Date.now()+Math.random().toString(36).slice(2,6), name, members, tags:[...editingTags] });
   }
   await saveGuilds();
   renderGuilds();
