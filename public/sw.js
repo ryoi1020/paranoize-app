@@ -1,6 +1,6 @@
 // Service Worker for パラノイズ攻略
 // バージョン管理：キャッシュ仕様変更時にここを更新するとクライアントが新キャッシュに切替
-const VERSION = 'v14';
+const VERSION = 'v15';
 const APP_CACHE = `paranoize-app-${VERSION}`;
 const IMG_CACHE = `paranoize-images-${VERSION}`;
 
@@ -58,6 +58,7 @@ self.addEventListener('fetch', (event) => {
   // ただし API はキャッシュしない
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith('/api/')) return; // APIは素通し
+    if (url.pathname.startsWith('/_vercel/')) return; // Vercel Analytics/Speed Insightsは素通し
 
     event.respondWith(
       caches.open(APP_CACHE).then(async (cache) => {
