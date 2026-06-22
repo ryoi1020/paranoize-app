@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOIZE 攻略アプリ</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/common.css?v=7">
+<link rel="stylesheet" href="/assets/common.css?v=8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Noto Sans JP',sans-serif;}
@@ -133,6 +133,31 @@ body{
 
 /* フッター */
 .footer{position:relative;z-index:1;text-align:center;padding:1rem;font-size:0.58rem;color:rgba(26,26,46,0.32);letter-spacing:0.15em;text-transform:uppercase;}
+
+/* 応援セクション */
+.support-section{position:relative;z-index:1;padding:0 1rem;margin:1.5rem 0 0.5rem;}
+.support-card{
+  background:linear-gradient(135deg,rgba(255,94,140,0.10),rgba(155,109,255,0.10));
+  border:1px solid rgba(255,94,140,0.18);
+  border-radius:22px;
+  padding:1.3rem 1.2rem;
+  text-align:center;
+  backdrop-filter:blur(10px);
+}
+.support-emoji{font-size:1.9rem;margin-bottom:0.5rem;}
+.support-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#1a1a2e;margin-bottom:0.35rem;}
+.support-desc{font-size:0.72rem;color:rgba(26,26,46,0.6);line-height:1.6;margin-bottom:0.9rem;}
+.support-btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:linear-gradient(135deg,#ff5e8c,#ff8a65);
+  color:#fff;font-weight:800;font-size:0.85rem;
+  text-decoration:none;
+  padding:0.7rem 1.6rem;border-radius:100px;
+  box-shadow:0 6px 18px rgba(255,94,140,0.32);
+  transition:transform 0.15s,box-shadow 0.2s;
+}
+.support-btn:active{transform:scale(0.96);}
+.support-note{font-size:0.6rem;color:rgba(26,26,46,0.4);margin-top:0.7rem;}
 
 /* ===== iPhone風アプリグリッド（3列） ===== */
 .app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.55rem;margin-bottom:0.85rem;}
@@ -391,6 +416,19 @@ body{
 </div>
 
 
+
+<!-- 開発を応援する -->
+<div class="support-section">
+  <div class="support-card">
+    <div class="support-emoji">☕</div>
+    <div class="support-title">開発を応援する</div>
+    <div class="support-desc">このアプリが役に立ったら、PayPayで開発を応援できます。<br>いただいた支援は新機能・サーバー費用に使わせていただきます🙏</div>
+    <a class="support-btn" id="supportBtn" href="https://qr.paypay.ne.jp/p2p01_eKhQ3W32E8qrfT0n" target="_blank" rel="noopener">
+      <span>💸</span><span>PayPayで応援する</span>
+    </a>
+    <div class="support-note">※任意です。応援は完全に自由です。</div>
+  </div>
+</div>
 
 <div class="footer">v1.0.0 · PARANOIZE GUILD TOOLS</div>
 
