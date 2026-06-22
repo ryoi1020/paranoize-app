@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ARカメラ — パラノイズ攻略</title>
-<link rel="stylesheet" href="/assets/common.css?v=6">
+<link rel="stylesheet" href="/assets/common.css?v=7">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -156,7 +156,15 @@ async function startCamera(facing) {
     document.getElementById('arError').classList.remove('show');
   } catch (e) {
     console.error('camera error', e);
-    document.getElementById('arError').classList.add('show');
+    // アプリ内とブラウザでエラーメッセージを出し分け
+    var errEl = document.getElementById('arError');
+    var msgEl = errEl.querySelector('p');
+    if (window.IS_NATIVE_APP) {
+      msgEl.innerHTML = 'カメラへのアクセスが許可されていません。<br><br>iPhoneの「設定」→「パラノイズ攻略」→「カメラ」をオンにしてからもう一度お試しください。';
+    } else {
+      msgEl.innerHTML = 'カメラへのアクセスが許可されていません。ブラウザの設定からカメラを許可してください。<br><br>※ より快適にARを楽しむには、App Store版アプリのご利用がおすすめです。';
+    }
+    errEl.classList.add('show');
   }
 }
 startCamera(currentFacing);

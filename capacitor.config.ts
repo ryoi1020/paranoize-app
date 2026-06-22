@@ -23,7 +23,11 @@ const config: CapacitorConfig = {
     contentInset: 'always',
     // スクロールの跳ね返り
     scrollEnabled: true,
-    backgroundColor: '#fdfaff'
+    backgroundColor: '#fdfaff',
+    // WebView内のgetUserMedia（カメラ/AR）でインライン再生を許可
+    allowsInlineMediaPlayback: true,
+    // カメラ等のメディアキャプチャでユーザー操作を不要にしない（権限は別途取得）
+    limitsNavigationsToAppBoundDomains: false
   },
   plugins: {
     SplashScreen: {
