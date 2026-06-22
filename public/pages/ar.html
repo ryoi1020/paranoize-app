@@ -81,6 +81,7 @@ body{overflow:hidden;position:fixed;width:100%;height:100%;background:#000;}
 <!-- Vercel Speed Insights -->
 <script>window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
+<script src="/assets/native.js" defer></script>
 </head>
 <body>
 
@@ -387,6 +388,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
 
 document.getElementById('shareBtn').addEventListener('click', async () => {
   if (!lastCapture) return;
+  if (window.appHaptic) window.appHaptic('MEDIUM');
   try {
     const blob = await (await fetch(lastCapture)).blob();
     const file = new File([blob], `paranoize_ar_${Date.now()}.png`, {type:'image/png'});
