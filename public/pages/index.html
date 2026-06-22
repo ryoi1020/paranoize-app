@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARANOIZE 攻略アプリ</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/common.css?v=10">
+<link rel="stylesheet" href="/assets/common.css?v=11">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100vh;overflow-x:hidden;font-family:'Noto Sans JP',sans-serif;}
@@ -158,6 +158,14 @@ body{
 }
 .support-btn:active{transform:scale(0.96);}
 .support-note{font-size:0.6rem;color:rgba(26,26,46,0.4);margin-top:0.7rem;}
+
+/* 通知トグルスイッチ */
+.notif-switch{position:relative;display:inline-block;width:48px;height:28px;flex-shrink:0;}
+.notif-switch input{opacity:0;width:0;height:0;}
+.notif-slider{position:absolute;cursor:pointer;inset:0;background:rgba(0,0,0,0.18);border-radius:99px;transition:0.25s;}
+.notif-slider:before{content:"";position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.25s;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+.notif-switch input:checked + .notif-slider{background:linear-gradient(135deg,#4ec3ff,#9b6dff);}
+.notif-switch input:checked + .notif-slider:before{transform:translateX(20px);}
 
 /* ===== iPhone風アプリグリッド（3列） ===== */
 .app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.55rem;margin-bottom:0.85rem;}
@@ -431,7 +439,41 @@ body{
   </div>
 </div>
 
-<!-- アプリ内のみ表示：友達に教える（ネイティブ共有） -->
+<!-- アプリ内のみ表示：通知設定 -->
+<div class="support-section" id="notifSection" style="display:none;margin-top:0.6rem;">
+  <div class="support-card" style="background:linear-gradient(135deg,rgba(78,195,255,0.10),rgba(155,109,255,0.10));border-color:rgba(78,195,255,0.18);text-align:left;">
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;">
+      <span style="font-size:1.4rem;">🔔</span>
+      <span style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#1a1a2e;">通知設定</span>
+    </div>
+
+    <!-- 布告リマインド -->
+    <div class="notif-row" style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid rgba(0,0,0,0.06);">
+      <div>
+        <div style="font-size:0.84rem;font-weight:700;color:#1a1a2e;">⚔️ 布告リマインド</div>
+        <div style="font-size:0.66rem;color:rgba(26,26,46,0.5);">毎日 <span id="fukokuTime">19:45</span> に通知</div>
+      </div>
+      <label class="notif-switch">
+        <input type="checkbox" id="fukokuToggle">
+        <span class="notif-slider"></span>
+      </label>
+    </div>
+
+    <!-- デイリーリマインド -->
+    <div class="notif-row" style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;">
+      <div>
+        <div style="font-size:0.84rem;font-weight:700;color:#1a1a2e;">📅 デイリーリマインド</div>
+        <div style="font-size:0.66rem;color:rgba(26,26,46,0.5);">毎日 <span id="dailyTime">21:00</span> に通知</div>
+      </div>
+      <label class="notif-switch">
+        <input type="checkbox" id="dailyToggle">
+        <span class="notif-slider"></span>
+      </label>
+    </div>
+
+    <div id="notifStatus" style="font-size:0.64rem;color:rgba(26,26,46,0.45);margin-top:0.7rem;"></div>
+  </div>
+</div>
 <div class="support-section" id="appShareSection" style="display:none;margin-top:0.6rem;">
   <button class="support-btn" id="appShareBtn" style="width:auto;background:linear-gradient(135deg,#9b6dff,#4ec3ff);box-shadow:0 6px 18px rgba(124,58,237,0.3);">
     <span>📣</span><span>このアプリを友達に教える</span>
@@ -456,8 +498,72 @@ window.addEventListener('DOMContentLoaded', function () {
         });
       }
     });
+
+    // ===== 通知設定 =====
+    initNotificationSettings();
   }
 });
+
+// 通知設定の初期化（アプリ内のみ）
+async function initNotificationSettings() {
+  var sec = document.getElementById('notifSection');
+  if (sec) sec.style.display = 'block';
+
+  var FUKOKU_ID = 1001;   // 布告リマインドの通知ID
+  var DAILY_ID = 1002;    // デイリーリマインドの通知ID
+  var FUKOKU_H = 19, FUKOKU_M = 45;  // 19:45（布告20時の15分前）
+  var DAILY_H = 21, DAILY_M = 0;     // 21:00
+
+  var fukokuToggle = document.getElementById('fukokuToggle');
+  var dailyToggle = document.getElementById('dailyToggle');
+  var statusEl = document.getElementById('notifStatus');
+
+  // 保存された設定を復元（アプリ内のメモリではなく、セット済み通知から判定）
+  var pending = await window.appListNotifications();
+  var ids = pending.map(function(n){ return n.id; });
+  fukokuToggle.checked = ids.indexOf(FUKOKU_ID) !== -1;
+  dailyToggle.checked = ids.indexOf(DAILY_ID) !== -1;
+
+  function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  // 布告リマインド トグル
+  fukokuToggle.addEventListener('change', async function () {
+    if (window.appHaptic) window.appHaptic('LIGHT');
+    if (this.checked) {
+      var perm = await window.appRequestNotificationPermission();
+      if (perm !== 'granted') {
+        this.checked = false;
+        setStatus('⚠️ 通知が許可されていません。設定アプリから許可してください。');
+        return;
+      }
+      await window.appScheduleDaily(FUKOKU_ID, FUKOKU_H, FUKOKU_M,
+        '⚔️ もうすぐ布告時間！', '麗華の野望の布告時間が近づいています。準備はOK？');
+      setStatus('✅ 布告リマインドをONにしました（毎日19:45）');
+    } else {
+      await window.appCancelNotification(FUKOKU_ID);
+      setStatus('布告リマインドをOFFにしました');
+    }
+  });
+
+  // デイリーリマインド トグル
+  dailyToggle.addEventListener('change', async function () {
+    if (window.appHaptic) window.appHaptic('LIGHT');
+    if (this.checked) {
+      var perm = await window.appRequestNotificationPermission();
+      if (perm !== 'granted') {
+        this.checked = false;
+        setStatus('⚠️ 通知が許可されていません。設定アプリから許可してください。');
+        return;
+      }
+      await window.appScheduleDaily(DAILY_ID, DAILY_H, DAILY_M,
+        '📅 デイリーミッション', '今日のデイリー、もう終わった？忘れずにこなそう！');
+      setStatus('✅ デイリーリマインドをONにしました（毎日21:00）');
+    } else {
+      await window.appCancelNotification(DAILY_ID);
+      setStatus('デイリーリマインドをOFFにしました');
+    }
+  });
+}
 </script>
 
 <div class="footer">v1.0.0 · PARANOIZE GUILD TOOLS</div>

@@ -55,5 +55,71 @@
     return false;
   };
 
+  // ============================================
+  // ローカル通知
+  // ============================================
+  const LN = Plugins.LocalNotifications;
+
+  // 通知の許可をリクエスト（初回のみダイアログ）
+  window.appRequestNotificationPermission = async function () {
+    try {
+      if (!LN) return 'unavailable';
+      const res = await LN.requestPermissions();
+      return res.display; // 'granted' | 'denied' | 'prompt'
+    } catch (e) { console.warn('notif permission failed', e); return 'error'; }
+  };
+
+  // 現在の許可状態を確認
+  window.appCheckNotificationPermission = async function () {
+    try {
+      if (!LN) return 'unavailable';
+      const res = await LN.checkPermissions();
+      return res.display;
+    } catch (e) { return 'error'; }
+  };
+
+  // 指定時刻に毎日繰り返す通知をセット
+  // id: 通知の識別番号, hour/minute: 時刻, title/body: 内容
+  window.appScheduleDaily = async function (id, hour, minute, title, body) {
+    try {
+      if (!LN) return false;
+      // 既存の同IDを消してから入れ直す
+      await LN.cancel({ notifications: [{ id: id }] });
+      await LN.schedule({
+        notifications: [{
+          id: id,
+          title: title,
+          body: body,
+          schedule: {
+            on: { hour: hour, minute: minute },
+            allowWhileIdle: true,
+            repeats: true
+          },
+          smallIcon: 'ic_stat_icon',
+          sound: null
+        }]
+      });
+      return true;
+    } catch (e) { console.warn('schedule failed', e); return false; }
+  };
+
+  // 指定IDの通知をキャンセル
+  window.appCancelNotification = async function (id) {
+    try {
+      if (!LN) return false;
+      await LN.cancel({ notifications: [{ id: id }] });
+      return true;
+    } catch (e) { return false; }
+  };
+
+  // セット済みの通知一覧
+  window.appListNotifications = async function () {
+    try {
+      if (!LN) return [];
+      const res = await LN.getPending();
+      return res.notifications || [];
+    } catch (e) { return []; }
+  };
+
   console.log('[native.js] Capacitorネイティブ機能を有効化しました');
 })();
