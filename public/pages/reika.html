@@ -89,7 +89,7 @@
 /* ホームボタン */
 .back-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.9);border-radius:100px;padding:6px 14px;color:var(--tx2);font-size:0.78rem;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:0.5rem;font-weight:600;}
 </style>
-<link rel="stylesheet" href="/assets/common.css?v=5">
+<link rel="stylesheet" href="/assets/common.css?v=6">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -351,7 +351,36 @@ var BASES_NATIONAL={
   '鍛冶屋A':{star:1,neighbors:['メゾン・ド・イエ','本屋B']}
 };
 
-var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:true},'キュウシュウ':{available:true},'クロスワールド':{available:true,national:true}};
+// 東京（クロスワールド・全国版）25拠点
+var BASES_TOKYO={
+  '本丸':{star:3,neighbors:['カジノ','麗華のお屋敷','本田のマンション','温泉宿']},
+  '麗華のお屋敷':{star:2,neighbors:['橘家','宮本家','ゲームセンターB','鰐梨事務所','本丸']},
+  '鰐梨事務所':{star:2,neighbors:['ゲームセンターB','本屋A','麗華のお屋敷','本屋B']},
+  '本田のマンション':{star:2,neighbors:['本丸','本屋B','カシワ荘']},
+  '八本木ヒルズ':{star:2,neighbors:['肉屋B','カシワ荘','鍛冶屋B']},
+  'カジノ':{star:2,neighbors:['宮本家','魚屋A','道場','本丸']},
+  '温泉宿':{star:2,neighbors:['本丸','カシワ荘','道場','酒場B']},
+  'メゾン・ド・イエ':{star:2,neighbors:['道場','肉屋A','魚屋B','酒場B']},
+  '宮本家':{star:1,neighbors:['ゲームセンターA','カジノ','麗華のお屋敷','橘家','鍛冶屋A']},
+  '橘家':{star:1,neighbors:['宮本家','麗華のお屋敷','本屋A']},
+  'ゲームセンターB':{star:1,neighbors:['本屋A','鰐梨事務所','麗華のお屋敷']},
+  '本屋A':{star:1,neighbors:['橘家','ゲームセンターB','鰐梨事務所']},
+  '本屋B':{star:1,neighbors:['鰐梨事務所','本田のマンション','肉屋B']},
+  '肉屋B':{star:1,neighbors:['本屋B','八本木ヒルズ']},
+  'カシワ荘':{star:1,neighbors:['本田のマンション','温泉宿','映画館','八本木ヒルズ']},
+  '映画館':{star:1,neighbors:['カシワ荘','酒場B','魚屋B','鍛冶屋B']},
+  '鍛冶屋B':{star:1,neighbors:['八本木ヒルズ','映画館','魚屋B']},
+  '酒場A':{star:1,neighbors:['肉屋A','ゲームセンターA','鍛冶屋A']},
+  '鍛冶屋A':{star:1,neighbors:['酒場A','ゲームセンターA','魚屋A','宮本家']},
+  '魚屋A':{star:1,neighbors:['鍛冶屋A','道場','カジノ','肉屋A']},
+  '道場':{star:1,neighbors:['カジノ','魚屋A','メゾン・ド・イエ','温泉宿']},
+  '酒場B':{star:1,neighbors:['温泉宿','メゾン・ド・イエ','映画館']},
+  'ゲームセンターA':{star:1,neighbors:['酒場A','鍛冶屋A','宮本家']},
+  '肉屋A':{star:1,neighbors:['酒場A','魚屋A','メゾン・ド・イエ']},
+  '魚屋B':{star:1,neighbors:['メゾン・ド・イエ','映画館','鍛冶屋B']}
+};
+
+var MAPS={'トウホク':{available:true},'トウカイ':{available:true},'キンキ':{available:true},'シコク':{available:true},'キュウシュウ':{available:true},'横浜':{available:true,national:true},'東京':{available:true,national:true}};
 var MAP='トウホク';
 var BN=Object.keys(BASES);
 
@@ -362,7 +391,7 @@ function chk(p){return BN.filter(function(n){var e=document.getElementById(p+'_'
 function updateBases(){
   // 一旦クリア
   for(var k in BASES){ delete BASES[k]; }
-  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : MAP==='シコク' ? BASES_SHIKOKU : MAP==='キュウシュウ' ? BASES_KYUSHU : MAP==='クロスワールド' ? BASES_NATIONAL : BASES_TOUHOKU;
+  var src = MAP==='トウカイ' ? BASES_TOUKAI : MAP==='キンキ' ? BASES_KINKI : MAP==='シコク' ? BASES_SHIKOKU : MAP==='キュウシュウ' ? BASES_KYUSHU : MAP==='横浜' ? BASES_NATIONAL : MAP==='東京' ? BASES_TOKYO : BASES_TOUHOKU;
   Object.assign(BASES, src);
   BN = Object.keys(BASES);
 }
@@ -555,7 +584,7 @@ function buildPrompt(){
   var scL={'three':'3つ（全国版）','two':isFirstDay?'2つ（1〜8位）+★1拠点2つ持ちスタート':'2つ（1〜8位）','one':'1つ（9〜16位）','zero':'0（布告権なし）'}[sc]||'不明';
   var enL={'weaker':'自分たちより弱い','equal':'ほぼ互角','stronger':'自分たちより強い'}[enemy]||'不明';
 
-  var declEnd = MAP==='クロスワールド' ? '21:00' : '20:00';
+  var declEnd = (MAPS[MAP]&&MAPS[MAP].national) ? '21:00' : '20:00';
   var p='# 麗華の野望 戦略AI 戦略分析\n\n## ゲームルール（重要）\n';
   p+='- 布告は朝8:00〜'+declEnd+'のみ可能（早い者勝ち）\n';
   p+='- 【薄積み戦術】拠点を弱い班2〜3つだけで守る戦術。相手の強い班がその拠点を取っても、取った強い班はその日もう攻めに行けなくなる（布告の制限のため）。相手の攻撃ルートを絞る有効な守備戦術。\n';
@@ -579,8 +608,8 @@ function buildPrompt(){
   p+='- 布告可能数：'+scL+'\n';
   p+='- 相手の戦力：'+enL+'\n\n';
 
-  // クロスワールド（全国版マップ）専用の戦術コンテキスト
-  if(MAP==='クロスワールド'){
+  // クロスワールド（全国版マップ：横浜・東京）専用の戦術コンテキスト
+  if(MAPS[MAP]&&MAPS[MAP].national){
     p+='## クロスワールド（全国版マップ）特有のルールと戦術【最重要】\n';
     p+='- このマップには**4ギルドしか存在しない**（通常版は16ギルド以上がひしめく）。\n';
     p+='- 集まる4ギルドは**戦力が拮抗**している。誰が勝ってもおかしくない、極めて競った戦いになる。\n';
